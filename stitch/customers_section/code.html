@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Customer Management - Operational Elegance</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary-fixed-dim": "#c3d4ff",
+              "tertiary-container": "#d3ceef",
+              "on-primary-fixed-variant": "#0057bd",
+              "tertiary-dim": "#c5c0e0",
+              "surface-container": "#141a20",
+              "on-error": "#490106",
+              "primary-container": "#004395",
+              "secondary": "#9d9da4",
+              "outline": "#6d7680",
+              "inverse-surface": "#f8f9fe",
+              "surface-variant": "#1e272f",
+              "tertiary-fixed": "#d3ceef",
+              "on-tertiary-fixed-variant": "#504e69",
+              "outline-variant": "#404952",
+              "error": "#ee7d77",
+              "on-primary": "#003d88",
+              "on-secondary-fixed": "#3e3f45",
+              "surface-container-highest": "#1e272f",
+              "secondary-container": "#3a3b41",
+              "inverse-on-surface": "#535559",
+              "on-secondary-container": "#bebfc5",
+              "on-tertiary-fixed": "#34314b",
+              "surface-tint": "#adc6ff",
+              "error-dim": "#bb5551",
+              "on-error-container": "#ff9993",
+              "secondary-fixed": "#e2e2e9",
+              "surface": "#0b0e11",
+              "surface-container-lowest": "#000000",
+              "on-primary-container": "#bdd0ff",
+              "inverse-primary": "#005bc4",
+              "secondary-fixed-dim": "#d4d4db",
+              "on-primary-fixed": "#003c86",
+              "secondary-dim": "#9d9da4",
+              "on-surface-variant": "#a3acb7",
+              "tertiary": "#e1dcfd",
+              "tertiary-fixed-dim": "#c5c0e0",
+              "background": "#0b0e11",
+              "on-tertiary": "#504d68",
+              "on-surface": "#dde6f2",
+              "on-tertiary-container": "#47445f",
+              "on-secondary-fixed-variant": "#5a5b61",
+              "primary-fixed": "#d8e2ff",
+              "primary": "#adc6ff",
+              "surface-container-high": "#192027",
+              "error-container": "#7f2927",
+              "surface-bright": "#222d37",
+              "primary-dim": "#98b8ff",
+              "surface-dim": "#0b0e11",
+              "surface-container-low": "#0f1418",
+              "on-background": "#dde6f2",
+              "on-secondary": "#1e2025"
+            },
+            fontFamily: {
+              "headline": ["Inter"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+          },
+        },
+      }
+    </script>
+<style>
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      }
+      .tonal-shift-separation {
+        background-color: #0f1418;
+      }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body antialiased flex overflow-hidden">
+<!-- SideNavBar Component -->
+<aside class="h-screen w-64 border-r border-outline-variant/15 flex flex-col py-6 px-4 bg-[#0f1418] dark:bg-[#0f1418] font-['Inter'] antialiased tracking-tight">
+<div class="flex items-center gap-3 px-2 mb-10">
+<div class="w-10 h-10 rounded-xl bg-primary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-primary" data-icon="restaurant_menu">restaurant_menu</span>
+</div>
+<div>
+<h1 class="text-lg font-bold text-[#adc6ff] tracking-tighter">Operational Elegance</h1>
+<p class="text-[10px] uppercase tracking-widest text-secondary">Silent Maître d’</p>
+</div>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center gap-3 px-4 py-2 text-sm font-medium text-[#9d9da4] hover:text-[#dde6f2] hover:bg-[#141a20]/50 transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+                Dashboard
+            </a>
+<a class="flex items-center gap-3 px-4 py-2 text-sm font-medium text-[#9d9da4] hover:text-[#dde6f2] hover:bg-[#141a20]/50 transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="shopping_cart">shopping_cart</span>
+                Orders
+            </a>
+<a class="flex items-center gap-3 px-4 py-2 text-sm font-medium text-[#adc6ff] bg-[#141a20] rounded-md" href="#">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+                Customers
+            </a>
+<a class="flex items-center gap-3 px-4 py-2 text-sm font-medium text-[#9d9da4] hover:text-[#dde6f2] hover:bg-[#141a20]/50 transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="restaurant_menu">restaurant_menu</span>
+                Menu
+            </a>
+<a class="flex items-center gap-3 px-4 py-2 text-sm font-medium text-[#9d9da4] hover:text-[#dde6f2] hover:bg-[#141a20]/50 transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="analytics">analytics</span>
+                Analytics
+            </a>
+<a class="flex items-center gap-3 px-4 py-2 text-sm font-medium text-[#9d9da4] hover:text-[#dde6f2] hover:bg-[#141a20]/50 transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="robot_2">robot_2</span>
+                Bot Status
+            </a>
+</nav>
+<div class="mt-auto space-y-4">
+<button class="w-full bg-gradient-to-br from-primary to-primary-container text-on-primary py-2.5 rounded-xl font-semibold text-sm shadow-lg shadow-primary/10 active:scale-95 transition-all">
+                New Automation
+            </button>
+<a class="flex items-center gap-3 px-4 py-2 text-sm font-medium text-[#9d9da4] hover:text-[#dde6f2] transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+                Settings
+            </a>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="flex-1 flex flex-col h-screen overflow-hidden">
+<!-- TopNavBar Component -->
+<header class="w-full h-16 bg-[#0b0e11]/80 backdrop-blur-xl flex items-center justify-between px-8 z-40 border-b border-transparent">
+<div class="flex items-center gap-6">
+<div class="relative group">
+<span class="absolute inset-y-0 left-3 flex items-center text-secondary">
+<span class="material-symbols-outlined text-lg" data-icon="search">search</span>
+</span>
+<input class="bg-surface-container-low border-none rounded-full pl-10 pr-4 py-1.5 text-sm w-64 focus:ring-1 focus:ring-primary/20 placeholder-secondary transition-all" placeholder="Search customers..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-5">
+<button class="text-secondary hover:text-on-surface transition-colors active:scale-95 cursor-pointer">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="text-secondary hover:text-on-surface transition-colors active:scale-95 cursor-pointer">
+<span class="material-symbols-outlined" data-icon="sensors">sensors</span>
+</button>
+<div class="w-8 h-8 rounded-full overflow-hidden border border-outline-variant/30 active:scale-95 cursor-pointer">
+<img alt="User Avatar" class="w-full h-full object-cover" data-alt="Close-up professional portrait of a man with friendly expression in minimalist studio lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB5SR5yjo2EUu84bjxVVFCX9DDh4yma8syWTy64Uh4vBmnZ29U8RD_1NZyl1fiUfQb_V6vmJFCuELnoW0EwUwdeajNEm_eJv2OVsH1AfQl_B4LMxj4LD6IjKlhKyRxq628XIJa9T5ixrTI7EPLtxfZtu2q_k5aFKNsz-zko7cppL4FoRCTYPPrluErifUXXtqQGvYsS7imL6Lbni1CZZN-JPI-7YkDJbps5spsllqdgafzYuWIm1MZsFUrD1gFS9637-6JZ51Nxp6E"/>
+</div>
+</div>
+</header>
+<!-- Page Content -->
+<section class="flex-1 overflow-y-auto p-8 space-y-8">
+<!-- Header Section -->
+<div class="flex justify-between items-end">
+<div>
+<h2 class="text-3xl font-bold tracking-tight text-on-surface">Customer Insights</h2>
+<p class="text-secondary mt-1">Manage relationships and track automated engagement.</p>
+</div>
+<div class="flex gap-3">
+<button class="px-4 py-2 bg-surface-container-highest text-on-surface text-sm font-medium rounded-xl hover:bg-surface-bright transition-all">
+                        Export CSV
+                    </button>
+<button class="px-4 py-2 bg-gradient-to-br from-primary to-primary-container text-on-primary text-sm font-semibold rounded-xl active:scale-95 transition-all">
+                        Add Customer
+                    </button>
+</div>
+</div>
+<!-- Bento Layout Main Area -->
+<div class="grid grid-cols-12 gap-6">
+<!-- Main Customer Table Card -->
+<div class="col-span-12 lg:col-span-8 bg-surface-container rounded-xl p-1 shadow-sm overflow-hidden">
+<div class="p-5 border-b border-outline-variant/10 flex justify-between items-center">
+<h3 class="text-lg font-semibold text-on-surface">Active Database</h3>
+<span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-primary-container/20 text-primary">1,248 Total</span>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left">
+<thead>
+<tr class="text-secondary text-[11px] uppercase tracking-wider">
+<th class="px-6 py-4 font-semibold">Customer</th>
+<th class="px-6 py-4 font-semibold text-center">Orders</th>
+<th class="px-6 py-4 font-semibold text-right">Total Spent</th>
+<th class="px-6 py-4 font-semibold text-right">Last Active</th>
+<th class="px-6 py-4 text-center"></th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/5">
+<tr class="group hover:bg-surface-container-high transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-tertiary-container/10 flex items-center justify-center overflow-hidden">
+<img alt="Customer" class="w-full h-full object-cover" data-alt="high quality portrait of a young woman with a warm smile in soft natural lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA9hXMfLZ8dVvtt8aZxyJZcH-3WAm_E3-h3NPCq3jkYe37jx4eXV78RSj_oB9xr86gstryz0Qq6GmSTnxW_xUO-pc0paaJj6sv7dQUl_2Cj-FEFooaLYk8PqcMCJc7EowyjPdSTijKzExH6Q2mpNBVLzA9je_gyajgrQXP87lWEyZm11UFaTlWpz9NUcA-M7tdyEOh1j-xp4A2p9a8nE0Etd3e4GyOyIfR6fbn_QnBv7A-edFKjfzZp3H5-6zFiPylZpoVfPS2mo2E"/>
+</div>
+<div>
+<div class="text-sm font-medium text-on-surface">Elena Rodriguez</div>
+<div class="text-xs text-secondary">+1 (555) 012-3456</div>
+</div>
+</div>
+</td>
+<td class="px-6 py-4 text-center text-sm text-on-surface">24</td>
+<td class="px-6 py-4 text-right text-sm font-medium text-primary">$1,842.00</td>
+<td class="px-6 py-4 text-right text-xs text-secondary">2 hours ago</td>
+<td class="px-6 py-4 text-center">
+<button class="text-secondary hover:text-primary transition-all">
+<span class="material-symbols-outlined text-lg" data-icon="chevron_right">chevron_right</span>
+</button>
+</td>
+</tr>
+<tr class="group hover:bg-surface-container-high transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-tertiary-container/10 flex items-center justify-center overflow-hidden">
+<img alt="Customer" class="w-full h-full object-cover" data-alt="professional portrait of a man with sharp features and a clean-cut beard in cinematic lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBaIkAlm4G2Ht_Q36h48zMm9HC1Jwr4WrXbQIrRQGChvDBJs4RH6zV2V8HQgCLSIM40jgXdYVjq6UdAgUUBAZL4ePoRGVraPqEf2JUGRI-69VZHx-m_tdZs9uyUHj61HwfcrArtotgiMkS49EsrijpGJiEHJrVXkdU1fgZu84oe_qw7nWT6HpRWZXnNPSioHBR2SI8x_PgPfyvLJ1B60213ncmiFWZ83ZuEp4dPhhEslJG3Tjj5p1gMOzc7d0boesPqkberQPMELyc"/>
+</div>
+<div>
+<div class="text-sm font-medium text-on-surface">Marcus Chen</div>
+<div class="text-xs text-secondary">+1 (555) 098-7654</div>
+</div>
+</div>
+</td>
+<td class="px-6 py-4 text-center text-sm text-on-surface">18</td>
+<td class="px-6 py-4 text-right text-sm font-medium text-primary">$1,210.50</td>
+<td class="px-6 py-4 text-right text-xs text-secondary">Yesterday</td>
+<td class="px-6 py-4 text-center">
+<button class="text-secondary hover:text-primary transition-all">
+<span class="material-symbols-outlined text-lg" data-icon="chevron_right">chevron_right</span>
+</button>
+</td>
+</tr>
+<tr class="group hover:bg-surface-container-high transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-tertiary-container/10 flex items-center justify-center overflow-hidden">
+<img alt="Customer" class="w-full h-full object-cover" data-alt="sharp headshot of a middle-aged man with graying hair and a confident look in soft studio lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBq6wXMJg4UImp9nbM_k3aiiL47j4IUPYCLlut9ZU5g2X6JynjzNGqqhn-3JxL_ASf0oOQEvIs96iL5KA2UKQ2pelAed3ySCaNZFcL3e6j3DDHicgGm0RN5Tan6jRW3iVebmXzNkG3EnFOn2dLrx6ppYvGA5Frric4eXeWXc8En4ic8X4y3mr6a3HEicL3QsTTjTL6AlZD1Wg8C9mr-PnSX1lnOcWGEhHZfF64Lhndd_T6_i4ZH3afGnuz8M2xAZlzT_4-IdeNs_6g"/>
+</div>
+<div>
+<div class="text-sm font-medium text-on-surface">Jonathan Wright</div>
+<div class="text-xs text-secondary">+1 (555) 432-1098</div>
+</div>
+</div>
+</td>
+<td class="px-6 py-4 text-center text-sm text-on-surface">32</td>
+<td class="px-6 py-4 text-right text-sm font-medium text-primary">$2,490.20</td>
+<td class="px-6 py-4 text-right text-xs text-secondary">3 days ago</td>
+<td class="px-6 py-4 text-center">
+<button class="text-secondary hover:text-primary transition-all">
+<span class="material-symbols-outlined text-lg" data-icon="chevron_right">chevron_right</span>
+</button>
+</td>
+</tr>
+<tr class="group hover:bg-surface-container-high transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-tertiary-container/10 flex items-center justify-center overflow-hidden">
+<img alt="Customer" class="w-full h-full object-cover" data-alt="artistic portrait of a woman with curly hair looking thoughtfully away from camera in moody lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDtVodGuEZQ-A1zzQHDjTOPmKucVNwPfdFxcb1HOqPehLwg4E_zZzn8Wu9AAHUFLmz4saoOV9AXP26xbZsjOfigr_6Gnb2bTwB1DBCbCZeMTbisg9ucXWxXZal90-r1Amcy1fo0iJik0UzIFxYLOxL4GHTiaA2LfSftWqbVcd54l92fZPauwQpW9zgvzpUaI6jjGnXwSOIPaAnf6Brpry_uwLlhstIBdKG2Kjefdr0JrUeCFhuG2SDHWZekr_57gjElSRD1BHfqEJc"/>
+</div>
+<div>
+<div class="text-sm font-medium text-on-surface">Sarah Jenkins</div>
+<div class="text-xs text-secondary">+1 (555) 888-0000</div>
+</div>
+</div>
+</td>
+<td class="px-6 py-4 text-center text-sm text-on-surface">12</td>
+<td class="px-6 py-4 text-right text-sm font-medium text-primary">$654.00</td>
+<td class="px-6 py-4 text-right text-xs text-secondary">Oct 24, 2023</td>
+<td class="px-6 py-4 text-center">
+<button class="text-secondary hover:text-primary transition-all">
+<span class="material-symbols-outlined text-lg" data-icon="chevron_right">chevron_right</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Featured Profile Card (Sidebar of Page Content) -->
+<div class="col-span-12 lg:col-span-4 space-y-6">
+<!-- Detailed Profile Card -->
+<div class="bg-surface-container rounded-xl p-6 shadow-sm border border-outline-variant/5">
+<div class="flex items-start justify-between mb-6">
+<h3 class="text-sm font-semibold text-secondary uppercase tracking-widest">Focused Insight</h3>
+<button class="text-primary hover:bg-primary/10 p-1.5 rounded-lg transition-colors">
+<span class="material-symbols-outlined" data-icon="edit">edit</span>
+</button>
+</div>
+<div class="flex flex-col items-center text-center pb-8 border-b border-outline-variant/10">
+<div class="w-24 h-24 rounded-full p-1 border-2 border-primary/30 mb-4">
+<img alt="Elena Rodriguez" class="w-full h-full object-cover rounded-full" data-alt="close-up high quality portrait of a young woman with a warm smile in soft natural lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDPBxkuI2R4sk1yhxrXeovjcRd4LSpiDtTF-767N2zKZeSBV3PE6oOdUudep_DWBQIv48ihbYJPz2kIyOwBg898iAbaojjheFB73uGJsnM0tJWnDeRk7-S2vkTMgVnAoqmBcNBs4UuKJuH_HzDojNboV9EsfkUWLmagyntlZdd9To8wmB1kV9hSvSCrphLe1VpFdYYcynefBbrXTELVy3C-ecinDfIHxq-JIUw_EQwRH3rdR7caGycVYDYZ7rVsalmtwL7llS43YMY"/>
+</div>
+<h4 class="text-xl font-bold text-on-surface">Elena Rodriguez</h4>
+<p class="text-secondary text-sm">Platinum Member since 2022</p>
+<div class="mt-4 flex gap-2">
+<span class="px-3 py-1 bg-tertiary-container/10 text-tertiary text-[10px] font-bold uppercase tracking-tight rounded-full border border-tertiary/20">In Prep</span>
+<span class="px-3 py-1 bg-primary-container/10 text-primary text-[10px] font-bold uppercase tracking-tight rounded-full border border-primary/20">Loyal</span>
+</div>
+</div>
+<div class="py-6 space-y-4">
+<div class="flex justify-between items-center">
+<span class="text-sm text-secondary">Lifetime Value</span>
+<span class="text-lg font-bold text-on-surface">$1,842.00</span>
+</div>
+<div class="flex justify-between items-center">
+<span class="text-sm text-secondary">Order Frequency</span>
+<span class="text-sm font-medium text-on-surface">2.4 / month</span>
+</div>
+<div class="flex justify-between items-center">
+<span class="text-sm text-secondary">Average Ticket</span>
+<span class="text-sm font-medium text-on-surface">$76.75</span>
+</div>
+</div>
+<div class="pt-2">
+<h5 class="text-xs font-semibold text-secondary uppercase tracking-widest mb-4">Recent History</h5>
+<div class="space-y-4">
+<div class="flex gap-4">
+<div class="flex-shrink-0 w-8 h-8 rounded-lg bg-surface-container-highest flex items-center justify-center">
+<span class="material-symbols-outlined text-sm" data-icon="lunch_dining">lunch_dining</span>
+</div>
+<div class="flex-1">
+<div class="text-sm font-medium text-on-surface">Gourmet Burger Set</div>
+<div class="text-xs text-secondary">Oct 26 • $42.00</div>
+</div>
+</div>
+<div class="flex gap-4">
+<div class="flex-shrink-0 w-8 h-8 rounded-lg bg-surface-container-highest flex items-center justify-center">
+<span class="material-symbols-outlined text-sm" data-icon="local_cafe">local_cafe</span>
+</div>
+<div class="flex-1">
+<div class="text-sm font-medium text-on-surface">Morning Brew Office Pack</div>
+<div class="text-xs text-secondary">Oct 24 • $88.50</div>
+</div>
+</div>
+</div>
+<button class="w-full mt-6 text-center text-xs font-bold text-primary uppercase tracking-widest hover:text-primary-dim transition-colors">
+                                View Full Order History
+                            </button>
+</div>
+</div>
+<!-- Quick Contact Card -->
+<div class="bg-surface-container-low rounded-xl p-4 border border-outline-variant/10 flex items-center gap-4">
+<div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-xl" data-icon="chat">chat</span>
+</div>
+<div class="flex-1">
+<div class="text-sm font-semibold text-on-surface">Send WhatsApp Message</div>
+<div class="text-xs text-secondary">Last bot interaction: 12h ago</div>
+</div>
+<button class="material-symbols-outlined text-secondary hover:text-on-surface transition-colors" data-icon="open_in_new">open_in_new</button>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Floating Action Element - Restricted for relevant screen only -->
+<div class="fixed bottom-8 right-8 z-50">
+<button class="flex items-center gap-2 px-5 py-3 bg-gradient-to-br from-primary to-primary-container text-on-primary rounded-full shadow-xl shadow-primary/20 hover:scale-105 active:scale-95 transition-all group">
+<span class="material-symbols-outlined" data-icon="add">add</span>
+<span class="font-semibold text-sm pr-1">New Broadcast</span>
+</button>
+</div>
+</body></html>

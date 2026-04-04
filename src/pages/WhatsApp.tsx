@@ -1,0 +1,238 @@
+import { useState, useEffect, useRef } from 'react';
+import { supabase } from '../supabaseClient';
+
+interface Chat {
+  id: string;
+  phone_number: string;
+  contact_name: string;
+  last_message_at: string;
+  unread_count: number;
+}
+
+interface Message {
+  id: string;
+  chat_id: string;
+  direction: 'inbound' | 'outbound';
+  message_body: string;
+  created_at: string;
+  status: string;
+}
+
+export default function WhatsApp() {
+  const [chats, setChats] = useState<Chat[]>([]);
+  const [activeChatId, setActiveChatId] = useState<string | null>(null);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [replyText, setReplyText] = useState('');
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  // Fetch initial chats
+  useEffect(() => {
+    fetchChats();
+    
+    // Suscripción de Realtime a nuevos chats
+    const chatSubscription = supabase
+      .channel('public:whatsapp_chats')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'whatsapp_chats' }, () => {
+        fetchChats();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(chatSubscription);
+    };
+  }, []);
+
+  // Fetch messages when a chat is selected
+  useEffect(() => {
+    if (activeChatId) {
+      fetchMessages(activeChatId);
+
+      // Usar Supabase Realtime para capturar nuevos mensajes al vuelo!
+      const msgSubscription = supabase
+        .channel(`public:whatsapp_messages`)
+        .on('postgres_changes', { 
+            event: 'INSERT', 
+            schema: 'public', 
+            table: 'whatsapp_messages',
+            filter: `chat_id=eq.${activeChatId}`
+        }, (payload) => {
+          setMessages(prev => [...prev, payload.new as Message]);
+        })
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(msgSubscription);
+      };
+    } else {
+      setMessages([]);
+    }
+  }, [activeChatId]);
+
+  const fetchChats = async () => {
+    const { data, error } = await supabase
+      .from('whatsapp_chats')
+      .select('*')
+      .order('last_message_at', { ascending: false });
+    if (!error && data) setChats(data);
+  };
+
+  const fetchMessages = async (chatId: string) => {
+    const { data, error } = await supabase
+      .from('whatsapp_messages')
+      .select('*')
+      .eq('chat_id', chatId)
+      .order('created_at', { ascending: true });
+    if (!error && data) setMessages(data);
+  };
+
+  const handleSendMessage = async () => {
+    if (!replyText.trim() || !activeChatId) return;
+    
+    // Inyectamos a Supabase como mensaje de salida. 
+    // NOTA: Para producción real, aquí también haríamos fetch a nuestro backend para que 
+    // le diga a Meta Graph API que envíe el mensaje al teléfono físico del cliente.
+    const outboundText = replyText;
+    setReplyText('');
+
+    await supabase.from('whatsapp_messages').insert([{
+      chat_id: activeChatId,
+      direction: 'outbound',
+      message_body: outboundText,
+      status: 'sent'
+    }]);
+  };
+
+  return (
+    <div className="page-container" style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
+      <header className="page-header" style={{ flexShrink: 0 }}>
+        <h2>Atención WhatsApp 📱</h2>
+        <p>Centro de mensajes centralizado. Actualizado mágicamente en tiempo real.</p>
+      </header>
+
+      <div style={{ display: 'flex', flex: 1, gap: '1rem', minHeight: 0, marginTop: '1rem' }}>
+        {/* Panel Izquierdo: Lista de Chats */}
+        <div style={{ width: '300px', backgroundColor: 'var(--bg-card)', borderRadius: '12px', display: 'flex', flexDirection: 'column', border: '1px solid var(--border-color)', overflow: 'hidden' }}>
+          <div style={{ padding: '1rem', borderBottom: '1px solid var(--border-color)', fontWeight: 600, display: 'flex', gap: '8px', alignItems:'center' }}>
+            <span className="material-symbols-outlined" style={{color: '#10b981'}}>chat</span>
+            Bandeja de Entrada
+          </div>
+          <div style={{ flex: 1, overflowY: 'auto' }}>
+            {chats.length === 0 ? (
+              <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-secondary)' }}>No hay chats aún</div>
+            ) : chats.map(chat => (
+              <div 
+                key={chat.id} 
+                onClick={() => setActiveChatId(chat.id)}
+                style={{ 
+                  padding: '1rem', 
+                  borderBottom: '1px solid rgba(255,255,255,0.05)', 
+                  cursor: 'pointer',
+                  backgroundColor: activeChatId === chat.id ? 'rgba(74, 158, 255, 0.1)' : 'transparent',
+                  borderLeft: activeChatId === chat.id ? '3px solid var(--primary-color)' : '3px solid transparent',
+                  transition: 'all 0.2s ease'
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                  <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{chat.contact_name}</div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                    {new Date(chat.last_message_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                  </div>
+                </div>
+                <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>+{chat.phone_number}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Panel Derecho: Ventana del Chat Activo */}
+        <div style={{ flex: 1, backgroundColor: '#0f172a', borderRadius: '12px', display: 'flex', flexDirection: 'column', border: '1px solid var(--border-color)', overflow: 'hidden', backgroundImage: 'radial-gradient(circle at center, rgba(16, 185, 129, 0.03) 0%, transparent 100%)' }}>
+          {activeChatId ? (
+            <>
+              {/* Header del chat */}
+              <div style={{ padding: '1rem', borderBottom: '1px solid var(--border-color)', backgroundColor: 'var(--bg-card)', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                 <div style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: 'rgba(16, 185, 129, 0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+                    <span className="material-symbols-outlined" style={{color: '#10b981'}}>account_circle</span>
+                 </div>
+                 <div>
+                    <div style={{ fontWeight: 600, fontSize: '1.1rem' }}>{chats.find(c => c.id === activeChatId)?.contact_name}</div>
+                    <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)'}}>Cliente Frecuente</div>
+                 </div>
+              </div>
+              
+              {/* Burbujas de mensajes */}
+              <div style={{ flex: 1, overflowY: 'auto', padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {messages.length === 0 ? (
+                    <div style={{ textAlign: 'center', marginTop: '2rem', color: 'rgba(255,255,255,0.3)' }}>Cargando mensajes...</div>
+                ) : messages.map((msg, idx) => {
+                  const isInbound = msg.direction === 'inbound';
+                  return (
+                    <div key={msg.id || idx} style={{
+                      alignSelf: isInbound ? 'flex-start' : 'flex-end',
+                      width: 'max-content',
+                      maxWidth: '75%',
+                    }}>
+                      <div style={{
+                          backgroundColor: isInbound ? '#1e293b' : '#059669', // gris oscuro vs verde whatsapp esmeralda
+                          color: '#fff',
+                          padding: '12px 16px',
+                          borderRadius: '12px',
+                          borderTopLeftRadius: isInbound ? '0' : '12px',
+                          borderTopRightRadius: !isInbound ? '0' : '12px',
+                          boxShadow: '0 2px 5px rgba(0,0,0,0.1)',
+                          lineHeight: 1.4
+                      }}>
+                        <div style={{wordBreak: 'break-word'}}>{msg.message_body}</div>
+                        <div style={{fontSize: '0.65rem', textAlign: 'right', marginTop: '6px', opacity: 0.6, letterSpacing: '0.5px'}}>
+                          {new Date(msg.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                          {!isInbound && <span className="material-symbols-outlined" style={{fontSize: '12px', verticalAlign: 'middle', marginLeft: '4px'}}>done_all</span>}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+                <div ref={messagesEndRef} />
+              </div>
+              
+              {/* Input para responder */}
+              <div style={{ padding: '1rem', backgroundColor: 'var(--bg-card)', borderTop: '1px solid var(--border-color)' }}>
+                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                  <div style={{display: 'flex', flex: 1, backgroundColor: '#0f172a', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)'}}>
+                      <input 
+                        type="text" 
+                        placeholder="Escribe un mensaje al cliente..."
+                        style={{ flex: 1, backgroundColor: 'transparent', border: 'none', color: '#fff', padding: '12px 16px', outline: 'none' }}
+                        value={replyText}
+                        onChange={(e) => setReplyText(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
+                      />
+                  </div>
+                  <button className="btn-primary" onClick={handleSendMessage} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '44px', width: '44px', borderRadius: '50%', padding: 0 }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: '1.2rem' }}>send</span>
+                  </button>
+                </div>
+              </div>
+            </>
+          ) : (
+            <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-secondary)' }}>
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ width: '80px', height: '80px', borderRadius: '50%', backgroundColor: 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem' }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: '2.5rem', opacity: 0.5 }}>forum</span>
+                </div>
+                <h3>Central de WhatsApp</h3>
+                <p style={{ marginTop: '0.5rem', opacity: 0.6 }}>Selecciona un chat en la bandeja izquierda<br/>para empezar a responder.</p>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}

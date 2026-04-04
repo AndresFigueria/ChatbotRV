@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary-fixed-dim": "#c3d4ff",
+              "tertiary-container": "#d3ceef",
+              "on-primary-fixed-variant": "#0057bd",
+              "tertiary-dim": "#c5c0e0",
+              "surface-container": "#141a20",
+              "on-error": "#490106",
+              "primary-container": "#004395",
+              "secondary": "#9d9da4",
+              "outline": "#6d7680",
+              "inverse-surface": "#f8f9fe",
+              "surface-variant": "#1e272f",
+              "tertiary-fixed": "#d3ceef",
+              "on-tertiary-fixed-variant": "#504e69",
+              "outline-variant": "#404952",
+              "error": "#ee7d77",
+              "on-primary": "#003d88",
+              "on-secondary-fixed": "#3e3f45",
+              "surface-container-highest": "#1e272f",
+              "secondary-container": "#3a3b41",
+              "inverse-on-surface": "#535559",
+              "on-secondary-container": "#bebfc5",
+              "on-tertiary-fixed": "#34314b",
+              "surface-tint": "#adc6ff",
+              "error-dim": "#bb5551",
+              "on-error-container": "#ff9993",
+              "secondary-fixed": "#e2e2e9",
+              "surface": "#0b0e11",
+              "surface-container-lowest": "#000000",
+              "on-primary-container": "#bdd0ff",
+              "inverse-primary": "#005bc4",
+              "secondary-fixed-dim": "#d4d4db",
+              "on-primary-fixed": "#003c86",
+              "secondary-dim": "#9d9da4",
+              "on-surface-variant": "#a3acb7",
+              "tertiary": "#e1dcfd",
+              "tertiary-fixed-dim": "#c5c0e0",
+              "background": "#0b0e11",
+              "on-tertiary": "#504d68",
+              "on-surface": "#dde6f2",
+              "on-tertiary-container": "#47445f",
+              "on-secondary-fixed-variant": "#5a5b61",
+              "primary-fixed": "#d8e2ff",
+              "primary": "#adc6ff",
+              "surface-container-high": "#192027",
+              "error-container": "#7f2927",
+              "surface-bright": "#222d37",
+              "primary-dim": "#98b8ff",
+              "surface-dim": "#0b0e11",
+              "surface-container-low": "#0f1418",
+              "on-background": "#dde6f2",
+              "on-secondary": "#1e2025"
+            },
+            fontFamily: {
+              "headline": ["Inter"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; background-color: #0b0e11; color: #dde6f2; -webkit-font-smoothing: antialiased; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24; }
+        .tonal-shift-separation { background: linear-gradient(to right, #0f1418, #0b0e11); }
+        .glass-panel { backdrop-filter: blur(16px); background: rgba(30, 39, 47, 0.4); }
+        .primary-gradient { background: linear-gradient(135deg, #adc6ff 0%, #004395 100%); }
+    </style>
+</head>
+<body class="flex min-h-screen">
+<!-- SideNavBar Component -->
+<aside class="flex flex-col h-full py-6 px-4 h-screen w-64 border-r border-[#1e272f]/50 bg-[#0f1418] dark:bg-[#0f1418] font-['Inter'] antialiased tracking-tight sticky top-0 shrink-0">
+<div class="mb-8 px-4">
+<h1 class="text-lg font-bold text-[#adc6ff] tracking-tighter">Operational Elegance</h1>
+<p class="text-[10px] uppercase tracking-widest text-[#9d9da4] mt-1">Silent Maître d’</p>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center gap-3 px-4 py-2 text-sm font-medium text-[#9d9da4] hover:text-[#dde6f2] hover:bg-[#141a20]/50 transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+                Dashboard
+            </a>
+<!-- Active State Logic: Orders is active -->
+<a class="flex items-center gap-3 px-4 py-2 text-sm font-medium text-[#adc6ff] bg-[#141a20] rounded-md" href="#">
+<span class="material-symbols-outlined" data-icon="shopping_cart">shopping_cart</span>
+                Orders
+            </a>
+<a class="flex items-center gap-3 px-4 py-2 text-sm font-medium text-[#9d9da4] hover:text-[#dde6f2] hover:bg-[#141a20]/50 transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+                Customers
+            </a>
+<a class="flex items-center gap-3 px-4 py-2 text-sm font-medium text-[#9d9da4] hover:text-[#dde6f2] hover:bg-[#141a20]/50 transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="restaurant_menu">restaurant_menu</span>
+                Menu
+            </a>
+<a class="flex items-center gap-3 px-4 py-2 text-sm font-medium text-[#9d9da4] hover:text-[#dde6f2] hover:bg-[#141a20]/50 transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="analytics">analytics</span>
+                Analytics
+            </a>
+<a class="flex items-center gap-3 px-4 py-2 text-sm font-medium text-[#9d9da4] hover:text-[#dde6f2] hover:bg-[#141a20]/50 transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+                Settings
+            </a>
+<a class="flex items-center gap-3 px-4 py-2 text-sm font-medium text-[#9d9da4] hover:text-[#dde6f2] hover:bg-[#141a20]/50 transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="robot_2">robot_2</span>
+                Bot Status
+            </a>
+</nav>
+<div class="mt-auto px-4">
+<button class="w-full primary-gradient text-on-primary-fixed font-semibold py-2.5 rounded-lg text-sm transition-transform active:scale-95 shadow-lg shadow-primary/10">
+                New Automation
+            </button>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 flex flex-col bg-background">
+<!-- TopNavBar Component -->
+<header class="w-full h-16 sticky top-0 z-40 bg-[#0b0e11]/80 backdrop-blur-xl flex items-center justify-between px-8 border-b border-transparent">
+<div class="flex items-center gap-6">
+<div class="relative group">
+<span class="absolute inset-y-0 left-3 flex items-center text-secondary">
+<span class="material-symbols-outlined text-[20px]" data-icon="search">search</span>
+</span>
+<input class="bg-surface-container-low border-none rounded-full pl-10 pr-4 py-1.5 text-sm w-64 focus:ring-1 focus:ring-primary/30 transition-all" placeholder="Search orders..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<div class="flex gap-4">
+<button class="text-secondary hover:text-on-surface transition-colors">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="text-secondary hover:text-on-surface transition-colors">
+<span class="material-symbols-outlined" data-icon="sensors">sensors</span>
+</button>
+<button class="text-secondary hover:text-on-surface transition-colors">
+<span class="material-symbols-outlined" data-icon="account_circle">account_circle</span>
+</button>
+</div>
+<div class="h-8 w-8 rounded-full overflow-hidden bg-surface-container-highest">
+<img alt="User Avatar" class="w-full h-full object-cover" data-alt="Close-up portrait of a professional chef in white uniform with blurred restaurant kitchen in the background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDIuSEQx6rm0NZd_5sXT9t6m-l2z14n54D-qIxjxsyA501iAvCAHueI4XqeYiWuGkBuWDNQa-XRZYA6jxF2nPpKpEj1jl1dcU3l1bHbpjJNM1CJuA0lYwoGVy9q_kC27Fho0F8yQzgemIAdOsX1Ix0sEW9bCNVNG8ScM6Eb1M12aO70lHEmfbKCe_8SshG8Av29xU1rQt263zu4muxeXBIQJwt_Kpxfn4MlYrYhHSyZMxzjrgQtkyeDulBXXQhY5uYI1uO8hOAGgmY"/>
+</div>
+</div>
+</header>
+<!-- Page Content -->
+<section class="p-8 max-w-7xl mx-auto w-full">
+<div class="flex justify-between items-end mb-10">
+<div>
+<h2 class="text-3xl font-bold tracking-tight text-on-surface">Order Logistics</h2>
+<p class="text-secondary text-sm mt-1">Live management of automated WhatsApp ordering cycles.</p>
+</div>
+<div class="flex gap-3">
+<button class="px-4 py-2 bg-surface-container-high text-on-surface text-sm font-medium rounded-lg hover:bg-surface-bright transition-colors">
+                        Export Report
+                    </button>
+<button class="px-4 py-2 bg-primary text-on-primary text-sm font-semibold rounded-lg shadow-lg shadow-primary/5">
+                        Refresh Feed
+                    </button>
+</div>
+</div>
+<!-- Dashboard Stats Bento Grid -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
+<div class="bg-surface-container rounded-xl p-5 border-l-2 border-primary">
+<p class="text-label-sm font-semibold text-secondary uppercase tracking-widest text-[10px]">Active Now</p>
+<h3 class="text-2xl font-bold text-on-surface mt-2">14</h3>
+<p class="text-xs text-primary mt-1">+2 incoming</p>
+</div>
+<div class="bg-surface-container rounded-xl p-5">
+<p class="text-label-sm font-semibold text-secondary uppercase tracking-widest text-[10px]">Preparing</p>
+<h3 class="text-2xl font-bold text-on-surface mt-2">08</h3>
+<p class="text-xs text-secondary mt-1">Avg 12min/order</p>
+</div>
+<div class="bg-surface-container rounded-xl p-5">
+<p class="text-label-sm font-semibold text-secondary uppercase tracking-widest text-[10px]">Ready for Pickup</p>
+<h3 class="text-2xl font-bold text-tertiary mt-2">05</h3>
+<p class="text-xs text-secondary mt-1">Across 3 locations</p>
+</div>
+<div class="bg-surface-container rounded-xl p-5">
+<p class="text-label-sm font-semibold text-secondary uppercase tracking-widest text-[10px]">Today's Revenue</p>
+<h3 class="text-2xl font-bold text-on-surface mt-2">$2,842.00</h3>
+<p class="text-xs text-secondary mt-1">Via WhatsApp Pay</p>
+</div>
+</div>
+<!-- Orders Table Container -->
+<div class="bg-surface-container rounded-xl overflow-hidden shadow-2xl">
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-low border-b border-outline-variant/10">
+<th class="px-6 py-4 text-[11px] font-bold text-secondary uppercase tracking-widest">Order ID</th>
+<th class="px-6 py-4 text-[11px] font-bold text-secondary uppercase tracking-widest">Customer</th>
+<th class="px-6 py-4 text-[11px] font-bold text-secondary uppercase tracking-widest">Items</th>
+<th class="px-6 py-4 text-[11px] font-bold text-secondary uppercase tracking-widest">Amount</th>
+<th class="px-6 py-4 text-[11px] font-bold text-secondary uppercase tracking-widest">Time</th>
+<th class="px-6 py-4 text-[11px] font-bold text-secondary uppercase tracking-widest">Status</th>
+<th class="px-6 py-4 text-[11px] font-bold text-secondary uppercase tracking-widest text-right">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/5">
+<!-- New Incoming Order Row -->
+<tr class="group hover:bg-surface-container-high transition-colors bg-primary/5">
+<td class="px-6 py-5">
+<div class="flex items-center gap-2">
+<div class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></div>
+<span class="text-sm font-bold text-on-surface">#9832</span>
+</div>
+</td>
+<td class="px-6 py-5">
+<div class="flex flex-col">
+<span class="text-sm font-semibold text-on-surface">Marcus Thorne</span>
+<span class="text-[11px] text-secondary">+1 (555) 0123</span>
+</div>
+</td>
+<td class="px-6 py-5">
+<div class="flex -space-x-2">
+<img alt="Item" class="h-8 w-8 rounded-full border-2 border-surface-container object-cover" data-alt="High-end gourmet salad bowl with fresh greens and grilled proteins on a dark ceramic plate" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD5DLW7ggTeuG423zlkOLtw5mr1LSQ7ndSodIvUgFD3hzlYYAR9qLpNV-UeFDEew57UzhRRjF5IE5Sbt6s7z2rCB9WiA_0E0n7dfr1HbkUpmNaCngxiY-2S0Qk0gZoyKEWTJRNIuqKl_7hw-r-S2iY4gQ3cJR5M1aVuoeNIBgV0klDPluwfXGY-RAgJvRCDtM8dy6j4QJsA9yTLQfxGGtbAyyjqA68uQwd_3EjDguf2TBf3wYaVEYyWnAQuJEV1zNaYa4YsuuaJ82M"/>
+<img alt="Item" class="h-8 w-8 rounded-full border-2 border-surface-container object-cover" data-alt="Thin crust artisanal pizza with melting mozzarella and fresh basil leaves on a rustic board" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDFX6GVnUPA5Yp9gzjPZepQkWx42zp8Nkz2YMI0T9v1jlxfQamU7j2g5hOq2hhBDDIuDZIJl_vdBVxQHyniUONIGULttkOoV9gFV1thYe-rpyobhlV5PBOjh2G60efEMPUnHOkmgTqale3giK50LfAY8YCO9A9RefaljqGD_w1RYJqmfB35wchc1XQHJlhVpKTzBIrd7XqKqahDv-x-OFRCwWU80xZYbxHqcvlYGPznhvzOxiqxemgsee9nYQcNwjp89p1WO6ijadI"/>
+<div class="h-8 w-8 rounded-full border-2 border-surface-container bg-surface-container-highest flex items-center justify-center text-[10px] font-bold text-secondary">+1</div>
+</div>
+</td>
+<td class="px-6 py-5 text-sm font-medium text-on-surface">$42.50</td>
+<td class="px-6 py-5 text-sm text-secondary">Just now</td>
+<td class="px-6 py-5">
+<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-primary-container text-on-primary-container">
+                                        Pending
+                                    </span>
+</td>
+<td class="px-6 py-5 text-right">
+<div class="flex justify-end gap-2">
+<button class="p-1.5 text-secondary hover:text-primary transition-colors hover:bg-primary/10 rounded">
+<span class="material-symbols-outlined text-sm" data-icon="restaurant">restaurant</span>
+</button>
+<button class="p-1.5 text-secondary hover:text-error transition-colors hover:bg-error/10 rounded">
+<span class="material-symbols-outlined text-sm" data-icon="close">close</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Standard Preparing Row -->
+<tr class="group hover:bg-surface-container-high transition-colors">
+<td class="px-6 py-5 text-sm font-bold text-on-surface">#9831</td>
+<td class="px-6 py-5">
+<div class="flex flex-col">
+<span class="text-sm font-semibold text-on-surface">Sophia Chen</span>
+<span class="text-[11px] text-secondary">+1 (555) 0188</span>
+</div>
+</td>
+<td class="px-6 py-5">
+<div class="flex -space-x-2">
+<img alt="Item" class="h-8 w-8 rounded-full border-2 border-surface-container object-cover" data-alt="Stacked chocolate glazed donuts with colorful sprinkles on a dark background with dramatic lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBfd5LTCYI6gpnfPuSqIsjwv93ypzhb95UW3gsPPhrOfyyKEWkMMGsnwstOk-0PDgZ9hs3w82SUKS3IOqkJu1KskzGPFs9saVxSlV1xV-Ybhe6gMSL9DbMlZoVdNBLcNXpDzVXi0EEXx0idA9soe0_gdhCpI3xbSAPq4zSSug666VsGkq7zOu6BGrQYYkdFzhxuM3TBNf10hPy8kP7VXhpSAe-Dt5M5J_WhGCzvKZ68RRN9uAtHKTjoCsnifQKDPjBYf4IOcZjCxdk"/>
+</div>
+</td>
+<td class="px-6 py-5 text-sm font-medium text-on-surface">$18.20</td>
+<td class="px-6 py-5 text-sm text-secondary">8 mins ago</td>
+<td class="px-6 py-5">
+<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-tertiary-container text-on-tertiary-container">
+                                        Preparing
+                                    </span>
+</td>
+<td class="px-6 py-5 text-right">
+<button class="px-3 py-1 bg-surface-variant text-on-surface-variant text-[10px] font-bold uppercase rounded hover:text-primary transition-all">
+                                        Mark Ready
+                                    </button>
+</td>
+</tr>
+<!-- Standard Ready Row -->
+<tr class="group hover:bg-surface-container-high transition-colors">
+<td class="px-6 py-5 text-sm font-bold text-on-surface">#9830</td>
+<td class="px-6 py-5">
+<div class="flex flex-col">
+<span class="text-sm font-semibold text-on-surface">Liam O'Connor</span>
+<span class="text-[11px] text-secondary">+1 (555) 0922</span>
+</div>
+</td>
+<td class="px-6 py-5">
+<div class="flex -space-x-2">
+<img alt="Item" class="h-8 w-8 rounded-full border-2 border-surface-container object-cover" data-alt="Close-up of a rustic sourdough pizza topped with rocket and parmesan" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAgFhsMeSBhs9dhywOAANi0BDEXjhNml9r5Orn30G-39YGX9gqZNL3m9CMjc1dxQcdyfC-u4mEFgb6N-htm9fm73UpI2kFnQmIo3ro7ZbNaWQpPwTGbrI0_-ay0Kdrm0X5GRbxopMwEaXHyL7i6HcTEwb6GvJXhDwPaCAtBnbx8euNIDZsmqNN_E7qwEwfh26bnp1bIZlhfvATDcFA7UDbqIStHPLOYIbsQFkmbbJ8Xpsmt4VGdWG7ncSunVGaG6KOnd7DT-QfxL6Q"/>
+<img alt="Item" class="h-8 w-8 rounded-full border-2 border-surface-container object-cover" data-alt="Glass bottle of artisanal sparkling water with condensation on a dark surface" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDMU77v5-GRZzZDTaOl9DPe0-u-HoS1VEdoKzH7iRBpShIPhGxnBj8hHv57inltIm6YQVYOZzLRGQIVnmhwhy2ishvNKAO0MhUa-B8ecgFsXzOwtoIxl1B9AVlZ_WHWQXBZG5mJXyXnbg8RtavsdqlyxS10c-HbjraoDNs-7gLpikl8pfTlBdHNAHV8birpxU2Tqdou9Mg-Na_g9e_ROd7ZNZIWeTUk_R7Wvp2lGUZkKefEVmpAgnP5GN88AR35uUTjSQN_nLUjsfI"/>
+</div>
+</td>
+<td class="px-6 py-5 text-sm font-medium text-on-surface">$31.00</td>
+<td class="px-6 py-5 text-sm text-secondary">15 mins ago</td>
+<td class="px-6 py-5">
+<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-tertiary text-on-tertiary">
+                                        Ready
+                                    </span>
+</td>
+<td class="px-6 py-5 text-right">
+<button class="px-3 py-1 primary-gradient text-on-primary text-[10px] font-bold uppercase rounded shadow-sm">
+                                        Dispatch
+                                    </button>
+</td>
+</tr>
+<!-- Standard Delivered Row -->
+<tr class="group hover:bg-surface-container-high transition-colors opacity-60">
+<td class="px-6 py-5 text-sm font-bold text-on-surface">#9829</td>
+<td class="px-6 py-5">
+<div class="flex flex-col">
+<span class="text-sm font-semibold text-on-surface">Elena Rodriguez</span>
+<span class="text-[11px] text-secondary">+1 (555) 0155</span>
+</div>
+</td>
+<td class="px-6 py-5">
+<div class="flex -space-x-2">
+<img alt="Item" class="h-8 w-8 rounded-full border-2 border-surface-container object-cover" data-alt="Classic American burger with sesame seed bun and melted cheese on dark background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAW_iRSj8lUshM61OJOYcheMU9496n9jXvVIvAnI5Z7QJ_CZ9GCkxo76unRHRCT12-gqML9suyMRUYj1ptYX09iJpLpo0NqS6692pv3UTA3hwPkCc9eevQlkvGNAx-E9Z9CeuORKdahbni3oT_tBhAzprA83TIGUoIAIImyXiEdOPlFGAxtbh7AQdhCzT8DM1r3b2yHJYN-cQY2aUs3u5bHolXC7OaUZ-vDTZpAinnUaM8FmMMWsfXd03Ggj-UaSTEt6giUc-nTFko"/>
+</div>
+</td>
+<td class="px-6 py-5 text-sm font-medium text-on-surface">$14.50</td>
+<td class="px-6 py-5 text-sm text-secondary">42 mins ago</td>
+<td class="px-6 py-5">
+<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-surface-container-highest text-secondary">
+                                        Delivered
+                                    </span>
+</td>
+<td class="px-6 py-5 text-right">
+<button class="p-1.5 text-secondary hover:text-on-surface transition-colors">
+<span class="material-symbols-outlined text-sm" data-icon="more_vert">more_vert</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Footer / Pagination -->
+<div class="bg-surface-container-low px-6 py-4 flex items-center justify-between border-t border-outline-variant/5">
+<span class="text-xs text-secondary font-medium tracking-tight">Showing 1-10 of 254 orders</span>
+<div class="flex gap-2">
+<button class="p-1.5 rounded-md hover:bg-surface-container-highest text-secondary transition-all">
+<span class="material-symbols-outlined" data-icon="chevron_left">chevron_left</span>
+</button>
+<button class="p-1.5 rounded-md hover:bg-surface-container-highest text-secondary transition-all">
+<span class="material-symbols-outlined" data-icon="chevron_right">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Floating Quick Help Action -->
+<div class="fixed bottom-8 right-8">
+<button class="h-14 w-14 rounded-full primary-gradient flex items-center justify-center text-white shadow-2xl transition-transform active:scale-90">
+<span class="material-symbols-outlined" data-icon="bolt">bolt</span>
+</button>
+</div>
+</section>
+</main>
+</body></html>
