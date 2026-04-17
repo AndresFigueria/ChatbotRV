@@ -140,14 +140,14 @@ export default function Orders() {
 
   return (
     <div className="p-8">
-      <div className="flex justify-between items-center" style={{ marginBottom: '2.5rem' }}>
+      <div className="page-header">
         <div>
           <h2 className="display-md">Logística de Pedidos</h2>
           <p className="body-md" style={{ color: 'var(--secondary)', marginTop: '0.25rem' }}>
             Gestión en vivo de ciclos de pedidos automatizados por WhatsApp.
           </p>
         </div>
-        <div className="flex gap-3">
+        <div className="flex gap-3 flex-wrap">
           <button className="btn-secondary">Exportar Reporte</button>
           <button onClick={handleSimulateOrder} className="btn-primary" style={{ boxShadow: '0 4px 14px rgba(255, 90, 31, 0.3)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <span className="material-symbols-outlined">smart_toy</span>

@@ -84,7 +84,7 @@ export default function Analytics() {
 
   return (
     <div className="p-8">
-      <div className="flex justify-between items-center" style={{ marginBottom: '2.5rem' }}>
+      <div className="page-header">
         <div>
           <h2 className="display-md">Analíticas Integradas</h2>
           <p className="body-md" style={{ color: 'var(--secondary)', marginTop: '0.25rem' }}>
@@ -122,7 +122,7 @@ export default function Analytics() {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(420px, 1fr))', gap: '1.5rem' }}>
+      <div className="grid-auto-responsive">
         
         {/* Gráfico 1: Barras Verticales */}
         <div className="card">

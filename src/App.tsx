@@ -17,16 +17,24 @@ import Login from './pages/Login';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   if (!isAuthenticated) {
     return <Login onLogin={() => setIsAuthenticated(true)} />;
   }
 
+  const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
+  const closeSidebar = () => setIsSidebarOpen(false);
+
   return (
     <div className="app-container">
-      <Sidebar />
+      <div 
+        className={`sidebar-overlay ${isSidebarOpen ? 'visible' : ''}`} 
+        onClick={closeSidebar}
+      />
+      <Sidebar isOpen={isSidebarOpen} onClose={closeSidebar} />
       <div className="main-canvas">
-        <Topbar />
+        <Topbar onMenuClick={toggleSidebar} />
         <Routes>
           <Route path="/" element={<Dashboard />} />
           <Route path="/orders" element={<Orders />} />
@@ -39,7 +47,6 @@ function App() {
           <Route path="/settings" element={<Settings />} />
           <Route path="/bot-status" element={<BotStatus />} />
           <Route path="/whatsapp" element={<WhatsApp />} />
-          {/* Add more routes later */}
         </Routes>
       </div>
     </div>

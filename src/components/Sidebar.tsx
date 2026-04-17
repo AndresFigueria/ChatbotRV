@@ -15,9 +15,8 @@ const navItems = [
   { path: '/history', label: 'Archivo y Auditoría', icon: 'history' },
 ];
 
-export default function Sidebar() {
+export default function Sidebar({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) {
   const [restName, setRestName] = useState('Elegancia Operativa');
-  // Temporary mocked state for the user until Login is implemented
   const [userName] = useState('Administrador');
 
   useEffect(() => {
@@ -28,20 +27,27 @@ export default function Sidebar() {
       }
     };
     loadSettings();
-
-    // Escuchar el evento personalizado cuando el usuario guarda en la otra pantalla
     window.addEventListener('settingsUpdated', loadSettings);
     return () => window.removeEventListener('settingsUpdated', loadSettings);
   }, []);
 
   return (
-    <aside className="sidebar">
-      <div className="sidebar-header">
-        <h1 className="sidebar-brand">{restName}</h1>
-        <p className="sidebar-subtitle" style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '0.25rem' }}>
-          <span className="material-symbols-outlined" style={{ fontSize: '1.1rem' }}>account_circle</span>
-          Sesión: {userName}
-        </p>
+    <aside className={`sidebar ${isOpen ? 'mobile-visible' : 'mobile-hidden'}`}>
+      <div className="sidebar-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div>
+          <h1 className="sidebar-brand">{restName}</h1>
+          <p className="sidebar-subtitle" style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '0.25rem' }}>
+            <span className="material-symbols-outlined" style={{ fontSize: '1.1rem' }}>account_circle</span>
+            Sesión: {userName}
+          </p>
+        </div>
+        <button 
+          className="mobile-only" 
+          onClick={onClose}
+          style={{ padding: '0.5rem', borderRadius: '50%', color: 'var(--secondary)' }}
+        >
+          <span className="material-symbols-outlined">close</span>
+        </button>
       </div>
       
       <nav style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '4px' }}>
@@ -49,6 +55,9 @@ export default function Sidebar() {
           <NavLink
             key={item.path}
             to={item.path}
+            onClick={() => {
+              if (window.innerWidth <= 768) onClose();
+            }}
             className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
           >
             <span className="material-symbols-outlined">{item.icon}</span>

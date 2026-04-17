@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
 import { useNavigate } from 'react-router-dom';
 
-export default function Topbar() {
+export default function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
   const navigate = useNavigate();
   const [pendingOrders, setPendingOrders] = useState<any[]>([]);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -57,7 +57,6 @@ export default function Topbar() {
   useEffect(() => {
     const visibleCount = pendingOrders.filter(o => !dismissedOrderIds.includes(o.id)).length;
     if (visibleCount > prevCount) {
-      // Si llegan más notificaciones nuevas, quitamos el estado de "visto" para que vuelva a salir el número.
       setHasViewedNotifications(false);
     }
     setPrevCount(visibleCount);
@@ -84,15 +83,12 @@ export default function Topbar() {
       const res: any[] = [];
       
       try {
-        // Buscar clientes
         const { data: cData } = await supabase.from('customers').select('*').ilike('name', query).limit(3);
         if (cData) cData.forEach(c => res.push({ type: 'Cliente', id: c.id, label: c.name, desc: c.phone, path: '/customers' }));
         
-        // Buscar ordenes
         const { data: oData } = await supabase.from('orders').select('*, customer:customers(name)').ilike('order_code', query).limit(3);
         if (oData) oData.forEach(o => res.push({ type: 'Pedido', id: o.id, label: o.order_code, desc: `Cliente: ${o.customer?.name || 'N/A'}`, path: '/orders' }));
         
-        // Buscar menú
         const { data: mData } = await supabase.from('menu_items').select('*').ilike('name', query).limit(3);
         if (mData) mData.forEach(m => res.push({ type: 'Menú', id: m.item_code || m.id, label: m.name, desc: m.category, path: '/menu' }));
         
@@ -120,14 +116,18 @@ export default function Topbar() {
 
   return (
     <header className="topbar">
-      <div className="flex items-center gap-3">
-        <div className="relative">
+      <div className="flex items-center gap-3" style={{ flex: 1 }}>
+        <button className="mobile-menu-btn icon-btn" onClick={onMenuClick}>
+          <span className="material-symbols-outlined">menu</span>
+        </button>
+        
+        <div className="relative desktop-search" style={{ flex: 1, maxWidth: '400px' }}>
           <span className="material-symbols-outlined absolute" style={{ left: '0.75rem', top: '50%', transform: 'translateY(-50%)', fontSize: '1.25rem', color: 'var(--secondary)' }}>search</span>
           <input 
             type="text" 
-            placeholder="Busca pedidos (#), clientes o platos..." 
+            placeholder="Busca pedidos, clientes..." 
             className="input-base" 
-            style={{ width: '320px' }}
+            style={{ width: '100%' }}
             value={globalSearch}
             onChange={(e) => setGlobalSearch(e.target.value)}
           />

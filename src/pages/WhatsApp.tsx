@@ -112,14 +112,16 @@ export default function WhatsApp() {
 
   return (
     <div className="page-container" style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
-      <header className="page-header" style={{ flexShrink: 0 }}>
-        <h2>Atención WhatsApp 📱</h2>
-        <p>Centro de mensajes centralizado. Actualizado mágicamente en tiempo real.</p>
+      <header className="page-header">
+        <div>
+          <h2 className="display-md">Atención WhatsApp 📱</h2>
+          <p className="body-md" style={{ color: 'var(--secondary)', marginTop: '0.25rem' }}>Centro de mensajes centralizado. Actualizado mágicamente en tiempo real.</p>
+        </div>
       </header>
 
-      <div style={{ display: 'flex', flex: 1, gap: '1rem', minHeight: 0, marginTop: '1rem' }}>
+      <div className="chat-layout" style={{ display: 'flex', flex: 1, gap: '1rem', minHeight: 0, marginTop: '1rem' }}>
         {/* Panel Izquierdo: Lista de Chats */}
-        <div style={{ width: '300px', backgroundColor: 'var(--bg-card)', borderRadius: '12px', display: 'flex', flexDirection: 'column', border: '1px solid var(--border-color)', overflow: 'hidden' }}>
+        <div className="chat-sidebar" style={{ minWidth: '300px', backgroundColor: 'var(--surface-container)', borderRadius: '12px', display: 'flex', flexDirection: 'column', border: '1px solid var(--card-border)', overflow: 'hidden' }}>
           <div style={{ padding: '1rem', borderBottom: '1px solid var(--border-color)', fontWeight: 600, display: 'flex', gap: '8px', alignItems:'center' }}>
             <span className="material-symbols-outlined" style={{color: '#10b981'}}>chat</span>
             Bandeja de Entrada

@@ -148,6 +148,7 @@ button {
   background-color: var(--background);
   overflow-y: auto;
   min-width: 0;
+  width: 100%; /* Ensure it fills space */
 }
 
 /* Glass & Gradients */
@@ -194,8 +195,40 @@ button {
 
 .metrics-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 1rem;
+}
+
+.dashboard-grid-main {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  gap: 1.5rem;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2.5rem;
+}
+
+.grid-auto-responsive {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1.5rem;
+}
+
+@media (max-width: 768px) {
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .grid-auto-responsive {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* Input Fields */
@@ -268,4 +301,156 @@ html.light-mode {
   --outline-variant: #64748B;
   
   --emerald-400: #10B981;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* RESPONSIVE DESIGN */
+
+/* Mobile Sidebar State */
+.sidebar.mobile-hidden {
+  transform: translateX(-100%);
+  position: fixed;
+  z-index: 1000;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.sidebar.mobile-visible {
+  transform: translateX(0);
+  position: fixed;
+  z-index: 1000;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 20px 0 50px rgba(0,0,0,0.5);
+}
+
+.sidebar-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.5);
+  backdrop-filter: blur(4px);
+  z-index: 999;
+  display: none;
+}
+
+.sidebar-overlay.visible {
+  display: block;
+}
+
+@media (max-width: 1024px) {
+  .sidebar {
+    width: 260px;
+  }
+}
+
+@media (max-width: 768px) {
+  :root {
+    --p-page: 1rem;
+  }
+
+  .display-md {
+    font-size: 1.75rem;
+  }
+
+  .headline-sm {
+    font-size: 1.25rem;
+  }
+
+  .app-container {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    width: 280px;
+    height: 100vh;
+  }
+
+  .main-canvas {
+    width: 100%;
+  }
+
+  .topbar {
+    padding: 0 1rem;
+    height: 3.5rem;
+  }
+
+  .mobile-menu-btn {
+    display: flex !important;
+  }
+
+  .desktop-search {
+    display: none !important;
+  }
+
+  .p-8 {
+    padding: 1rem;
+  }
+
+  .metrics-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-grid-main {
+    grid-template-columns: 1fr !important;
+  }
+
+  .card {
+    padding: 1rem;
+  }
+
+  /* Tables responsiveness */
+  .table-container, .orders-table-wrapper, .customers-table-wrapper, .history-table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin: 0 -1rem; /* Full width on mobile */
+    padding: 0 1rem;
+  }
+
+  table {
+    min-width: 700px; /* Ensure table doesn't squish too much */
+  }
+
+  .nav-link {
+    padding: 0.75rem 1rem;
+  }
+
+  /* Forms on mobile */
+  .form-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* WhatsApp & Chat on mobile */
+  .chat-layout {
+    flex-direction: column !important;
+  }
+
+  .chat-sidebar {
+    width: 100% !important;
+    height: 300px !important;
+  }
+
+  .login-page-container {
+    flex-direction: column !important;
+  }
+}
+
+/* Utility for hiding on mobile/desktop */
+@media (min-width: 769px) {
+  .mobile-only { display: none !important; }
+  .mobile-menu-btn { display: none !important; }
+}
+
+@media (max-width: 768px) {
+  .desktop-only { display: none !important; }
 }

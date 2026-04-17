@@ -103,11 +103,13 @@ export default function Dashboard() {
 
   return (
     <div className="p-8">
-      <section style={{ marginBottom: '2rem' }}>
-        <h2 className="display-md">Resumen Comercial en Vivo</h2>
-        <p className="body-md" style={{ color: 'var(--secondary)', marginTop: '0.25rem' }}>
-          Tus métricas financieras y logísticas operando en tiempo real con la base de datos central.
-        </p>
+      <section className="page-header">
+        <div>
+          <h2 className="display-md">Resumen Comercial en Vivo</h2>
+          <p className="body-md" style={{ color: 'var(--secondary)', marginTop: '0.25rem' }}>
+            Tus métricas financieras y logísticas operando en tiempo real con la base de datos central.
+          </p>
+        </div>
       </section>
 
       {/* Metrics Grid */}
@@ -137,7 +139,7 @@ export default function Dashboard() {
         ))}
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 2fr) minmax(0, 1fr)', gap: '1.5rem' }}>
+      <div className="dashboard-grid-main">
         {/* Revenue Growth Chart */}
         <div className="card">
           <div className="flex justify-between items-center" style={{ marginBottom: '2rem' }}>

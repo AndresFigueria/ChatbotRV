@@ -24,10 +24,10 @@ export default function Login({ onLogin }: { onLogin: () => void }) {
   };
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', backgroundColor: '#0A0A0A', fontFamily: "'Inter', sans-serif" }}>
+    <div className="login-page-container" style={{ minHeight: '100vh', display: 'flex', backgroundColor: '#0A0A0A', fontFamily: "'Inter', sans-serif" }}>
       
-      {/* Sección Izquierda: Branding (Tu Agencia) */}
-      <div style={{ flex: 1, position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: '4rem', backgroundImage: 'linear-gradient(rgba(10, 10, 10, 0.7), rgba(10, 10, 10, 0.9)), url("https://images.unsplash.com/photo-1514933651103-005eec06c04b?auto=format&fit=crop&q=80&w=1500")', backgroundSize: 'cover', backgroundPosition: 'center', borderRight: '1px solid rgba(255,255,255,0.05)' }}>
+      {/* Sección Izquierda: Branding (Tu Agencia) - Hidden on Mobile */}
+      <div className="desktop-only" style={{ flex: 1, position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: '4rem', backgroundImage: 'linear-gradient(rgba(10, 10, 10, 0.7), rgba(10, 10, 10, 0.9)), url("https://images.unsplash.com/photo-1514933651103-005eec06c04b?auto=format&fit=crop&q=80&w=1500")', backgroundSize: 'cover', backgroundPosition: 'center', borderRight: '1px solid rgba(255,255,255,0.05)' }}>
         
         {/* Decoración */}
         <div style={{ position: 'absolute', top: '-10%', left: '-10%', width: '40%', height: '40%', backgroundColor: 'var(--primary)', filter: 'blur(150px)', opacity: 0.15, borderRadius: '50%' }}></div>
