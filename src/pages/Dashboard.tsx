@@ -63,7 +63,7 @@ export default function Dashboard() {
         ]);
 
         // 5. Historial de Actividad (Últimas 4 órdenes)
-        const mappedActs = orders.slice(0, 4).map((o, idx) => ({
+        const mappedActs = orders.slice(0, 4).map((o) => ({
           id: o.order_code || Math.random().toString(),
           title: `Pedido ${o.status}`,
           desc: `Facturación: $${Number(o.total_amount).toFixed(2)} con ${o.items_count} ítems`,
