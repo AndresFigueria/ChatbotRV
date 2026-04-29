@@ -5,14 +5,14 @@ export default function Orders() {
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [orderToDelete, setOrderToDelete] = useState<string | null>(null);
+  const [activeFilter, setActiveFilter] = useState('Todos');
 
   const fetchOrders = async () => {
-    // Supabase Join: orders.* y trae el name y phone de la tabla referenciada customers
     const { data, error } = await supabase
       .from('orders')
       .select(`
         *,
-        customer:customers (name, phone)
+        customer:customers (name, phone_number)
       `)
       .order('created_at', { ascending: false });
 
@@ -21,9 +21,10 @@ export default function Orders() {
     } else if (data) {
       const mapped = data.map((o: any) => ({
         id: o.order_code,
-        customer: o.customer?.name || 'Cliente Desconocido',
-        phone: o.customer?.phone || '+0 000 0000',
+        customer: o.customer?.name || 'Cliente WhatsApp',
+        phone: o.customer?.phone_number || '+0 000 0000',
         items: o.items_count,
+        itemsDetails: o.items_json || [],
         totalNum: Number(o.total_amount),
         total: `$${Number(o.total_amount).toFixed(2)}`,
         time: new Date(o.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
@@ -37,53 +38,43 @@ export default function Orders() {
 
   useEffect(() => {
     fetchOrders();
-
-    // Suscripción en tiempo real (Realtime Channel)
     const channel = supabase
       .channel('public:orders')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'orders' }, _payload => {
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, _payload => {
         fetchOrders();
-      })
-      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'orders' }, _payload => {
-        fetchOrders(); // Escuchar si alguien lo actualiza desde otro dispositivo
       })
       .subscribe();
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    return () => { supabase.removeChannel(channel); };
   }, []);
 
   const handleSimulateOrder = async () => {
     try {
-      const { data: custData, error: custError } = await supabase.from('customers').select('id').limit(1);
-      if (custError) {
-        alert("Error consultando cliente: " + custError.message);
-        return;
-      }
+      const { data: custData } = await supabase.from('customers').select('id').limit(1);
       const customerId = custData?.[0]?.id;
-      if (!customerId) {
-        alert("Necesitas tener al menos un cliente en Supabase para crear un pedido");
-        return;
-      }
+      if (!customerId) return alert("Necesitas un cliente en Supabase.");
 
       const randomCode = '#' + Math.floor(Math.random() * 10000).toString().padStart(4, '0');
-      const randomItems = Math.floor(Math.random() * 4) + 1;
-      const randomTotal = (Math.random() * 40 + 10).toFixed(2);
+      
+      // Simulación de detalle real de productos
+      const mockMenu = ['Hamburguesa Robotina', 'Pizza Cyber-Pepperoni', 'Papas Megabyte', 'Limonada Galáctica'];
+      const numItems = Math.floor(Math.random() * 3) + 1;
+      const fakeItems = [];
+      for(let i=0; i<numItems; i++) {
+         fakeItems.push({ 
+            name: mockMenu[Math.floor(Math.random() * mockMenu.length)], 
+            qty: Math.floor(Math.random() * 2) + 1 
+         });
+      }
 
-      const { error: insertError } = await supabase.from('orders').insert({
+      await supabase.from('orders').insert({
         order_code: randomCode,
         customer_id: customerId,
-        items_count: randomItems,
-        total_amount: randomTotal,
+        items_count: fakeItems.reduce((acc, curr) => acc + curr.qty, 0),
+        items_json: fakeItems,
+        total_amount: (Math.random() * 40 + 10).toFixed(2),
         status: 'Pendiente'
       });
-
-      if (insertError) {
-        alert("Error insertando pedido: " + insertError.message);
-      } else {
-        await fetchOrders();
-      }
     } catch (err: any) {
       alert("Error crítico: " + err.message);
     }
@@ -91,18 +82,8 @@ export default function Orders() {
 
   const confirmDeleteOrder = async () => {
     if (!orderToDelete) return;
-    
-    const { error } = await supabase
-      .from('orders')
-      .delete()
-      .eq('order_code', orderToDelete);
-
-    if (error) {
-      alert("Error eliminando pedido: " + error.message);
-    } else {
-      setOrderToDelete(null);
-      await fetchOrders();
-    }
+    await supabase.from('orders').delete().eq('order_code', orderToDelete);
+    setOrderToDelete(null);
   };
 
   const handleStatusChange = async (orderCode: string, currentStatus: string) => {
@@ -110,167 +91,127 @@ export default function Orders() {
     if (currentStatus === 'Pendiente') newStatus = 'Preparando';
     else if (currentStatus === 'Preparando') newStatus = 'Listo';
     else if (currentStatus === 'Listo') newStatus = 'Despachado';
-    else return; // "Despachado" is final
+    else return;
 
-    const { error } = await supabase
-      .from('orders')
-      .update({ status: newStatus })
-      .eq('order_code', orderCode);
-
-    if (error) {
-      alert("Error actualizando pedido: " + error.message);
-    } else {
-      await fetchOrders(); // Reload the UI to reflect new status
-    }
+    await supabase.from('orders').update({ status: newStatus }).eq('order_code', orderCode);
   };
 
-  if (loading) {
-    return (
-      <div className="p-8 flex justify-center items-center" style={{ minHeight: '50vh' }}>
-        <p className="body-md" style={{ color: 'var(--secondary)' }}>Sincronizando feed de pedidos...</p>
-      </div>
-    );
-  }
+  if (loading) return <div className="p-8"><p className="body-md">Sincronizando operaciones...</p></div>;
 
-  // Cálculos dinámicos de las métricas arriba
   const activosCount = orders.filter(o => o.status === 'Pendiente' || o.status === 'Preparando').length;
-  const preparandoCount = orders.filter(o => o.status === 'Preparando').length;
   const listosCount = orders.filter(o => o.status === 'Listo').length;
   const totalIngresos = orders.reduce((sum, o) => sum + (o.totalNum || 0), 0);
+
+  const filteredOrders = orders.filter(o => activeFilter === 'Todos' || o.status === activeFilter);
 
   return (
     <div className="p-8">
       <div className="page-header">
         <div>
-          <h2 className="display-md">Logística de Pedidos</h2>
+          <h2 className="display-sm" style={{ fontWeight: 800 }}>Monitor de Operaciones</h2>
           <p className="body-md" style={{ color: 'var(--secondary)', marginTop: '0.25rem' }}>
-            Gestión en vivo de ciclos de pedidos automatizados por WhatsApp.
+            Control de flujo logístico y despachos.
           </p>
         </div>
-        <div className="flex gap-3 flex-wrap">
-          <button className="btn-secondary">Exportar Reporte</button>
+        <div className="flex gap-3">
           <button onClick={handleSimulateOrder} className="btn-primary" style={{ boxShadow: '0 4px 14px rgba(255, 90, 31, 0.3)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <span className="material-symbols-outlined">smart_toy</span>
-            Simular Pedido de Bot
+            <span className="material-symbols-outlined">smart_toy</span> Pedido de Prueba IA
           </button>
         </div>
       </div>
 
-      <div className="metrics-grid" style={{ marginBottom: '2.5rem' }}>
-        {[
-          { label: 'Activos Ahora', value: activosCount.toString().padStart(2, '0'), desc: 'En curso', special: '', border: true },
-          { label: 'Preparando', value: preparandoCount.toString().padStart(2, '0'), desc: 'En cocina' },
-          { label: 'Listos para Recoger', value: listosCount.toString().padStart(2, '0'), desc: 'Esperando despacho o retiro', highlight: true },
-          { label: "Ingresos (Todo)", value: `$${totalIngresos.toFixed(2)}`, desc: 'Ventas totales registradas' },
-        ].map(m => (
-          <div key={m.label} className="card" style={m.border ? { borderLeft: '2px solid var(--primary)' } : {}}>
-            <p className="label-sm">{m.label}</p>
-            <h3 className="display-md" style={{ color: m.highlight ? 'var(--tertiary)' : 'var(--on-surface)', marginTop: '0.5rem', marginBottom: '0.25rem', fontSize: '1.5rem' }}>{m.value}</h3>
-            <p className="body-md" style={{ color: m.border ? 'var(--primary)' : 'var(--secondary)', fontSize: '0.75rem' }}>{m.desc}</p>
-          </div>
-        ))}
+      <div className="metrics-grid mb-8">
+        <div className="card" style={{ borderLeft: '2px solid var(--primary)' }}>
+          <p className="label-sm">Tareas Activas</p>
+          <h3 className="display-md" style={{ fontSize: '1.5rem', marginTop: '0.5rem' }}>{activosCount.toString().padStart(2, '0')}</h3>
+          <p className="body-md" style={{ color: 'var(--primary)', fontSize: '0.75rem' }}>En cocina</p>
+        </div>
+        <div className="card">
+          <p className="label-sm">Finalizadas</p>
+          <h3 className="display-md" style={{ color: 'var(--tertiary)', fontSize: '1.5rem', marginTop: '0.5rem' }}>{listosCount.toString().padStart(2, '0')}</h3>
+          <p className="body-md" style={{ color: 'var(--secondary)', fontSize: '0.75rem' }}>Pendientes de entrega</p>
+        </div>
+        <div className="card">
+          <p className="label-sm">Volumen Transaccional</p>
+          <h3 className="display-md" style={{ fontSize: '1.5rem', marginTop: '0.5rem' }}>${totalIngresos.toFixed(2)}</h3>
+          <p className="body-md" style={{ color: 'var(--secondary)', fontSize: '0.75rem' }}>Facturación del día</p>
+        </div>
       </div>
 
       <div className="orders-table-wrapper">
+        {/* Pestañas de Filtro Rápido */}
+        <div style={{ padding: '1rem 1.5rem', borderBottom: '1px solid var(--surface-container-highest)', backgroundColor: 'var(--surface-container-low)', display: 'flex', gap: '0.5rem' }}>
+           {['Todos', 'Pendiente', 'Preparando', 'Listo', 'Despachado'].map(f => (
+              <button 
+                 key={f} 
+                 onClick={() => setActiveFilter(f)}
+                 style={{ 
+                    padding: '0.4rem 1rem', borderRadius: '2rem', border: 'none', fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s',
+                    backgroundColor: activeFilter === f ? 'var(--primary)' : 'transparent',
+                    color: activeFilter === f ? '#fff' : 'var(--secondary)'
+                 }}
+              >
+                 {f}
+              </button>
+           ))}
+        </div>
+
         <table className="orders-table">
           <thead>
             <tr>
               <th>ID Pedido</th>
               <th>Cliente</th>
-              <th>Artículos</th>
+              <th>Detalle (Artículos)</th>
               <th>Monto</th>
               <th>Hora Asignada</th>
               <th>Estado Logístico</th>
-              <th style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>Flujo de Acción</th>
+              <th style={{ textAlign: 'right' }}>Flujo de Acción</th>
             </tr>
           </thead>
           <tbody>
-            {orders.length === 0 && (
+            {filteredOrders.length === 0 && (
               <tr>
                 <td colSpan={7} style={{ textAlign: 'center', padding: '3rem 1rem', color: 'var(--secondary)' }}>
-                  <div className="flex flex-col items-center gap-2">
-                    <span className="material-symbols-outlined" style={{ fontSize: '3rem', opacity: 0.5 }}>receipt_long</span>
-                    <p>Esperando la entrada de nuevos pedidos vía WhatsApp...</p>
-                  </div>
+                  No hay pedidos en esta categoría.
                 </td>
               </tr>
             )}
-            {orders.map((order, i) => (
-              <tr key={order.id} style={i === 0 ? { backgroundColor: 'var(--surface-container-high)' } : {}}>
+            {filteredOrders.map((order, i) => (
+              <tr key={order.id} style={order.status === 'Pendiente' ? { backgroundColor: 'var(--surface-container-high)' } : {}}>
                 <td>
                   <div className="flex flex-col items-start gap-2">
-                    <div className="flex items-center gap-2">
-                      {i === 0 && order.status === 'Pendiente' && <div className="pulse-dot"></div>}
-                      <span style={{ fontWeight: 700 }}>{order.id}</span>
-                    </div>
-                    <button 
-                      onClick={() => setOrderToDelete(order.id)}
-                      className="btn-secondary" 
-                      title="Anular / Eliminar Pedido"
-                      style={{ 
-                        color: 'var(--error-dim)', 
-                        padding: '0.2rem 0.4rem', 
-                        backgroundColor: 'transparent', 
-                        border: '1px solid rgba(239, 68, 68, 0.2)',
-                        borderRadius: '4px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.2rem',
-                        fontSize: '0.6rem',
-                        fontWeight: 600,
-                        textTransform: 'uppercase'
-                      }}
-                    >
-                      <span className="material-symbols-outlined" style={{ fontSize: '0.8rem' }}>delete</span>
-                      Anular
-                    </button>
+                     <span style={{ fontWeight: 800 }}>{order.id}</span>
+                     <button onClick={() => setOrderToDelete(order.id)} style={{ color: 'var(--error-dim)', backgroundColor: 'transparent', border: '1px solid rgba(239, 68, 68, 0.2)', borderRadius: '4px', padding: '2px 4px', fontSize: '0.6rem', fontWeight: 600, textTransform: 'uppercase', cursor: 'pointer' }}>Anular</button>
                   </div>
                 </td>
                 <td>
                   <div className="flex flex-col">
                     <span style={{ fontWeight: 600 }}>{order.customer}</span>
-                    <span className="label-sm" style={{ fontSize: '0.625rem', letterSpacing: '0', display: 'flex', alignItems: 'center', gap: '2px', marginTop: '2px' }}>
-                      <span className="material-symbols-outlined" style={{ fontSize: '10px' }}>chat</span> {order.phone}
-                    </span>
+                    <span style={{ fontSize: '0.65rem', color: 'var(--secondary)' }}>{order.phone}</span>
                   </div>
                 </td>
                 <td>
-                  <div className="order-items-stack" style={{ alignItems: 'center' }}>
-                    <img src={`https://ui-avatars.com/api/?name=${order.items}&background= random&color=fff&rounded=true&size=50`} alt="item" />
-                    <span style={{ fontSize: '0.8rem', fontWeight: 600, marginLeft: '0.5rem', color: 'var(--secondary)' }}>x{order.items} uni.</span>
+                  <div className="flex flex-col gap-1">
+                     {order.itemsDetails && order.itemsDetails.length > 0 ? (
+                        order.itemsDetails.map((item: any, idx: number) => (
+                           <span key={idx} style={{ fontSize: '0.75rem', fontWeight: 500 }}>• {item.qty}x {item.name}</span>
+                        ))
+                     ) : (
+                        <span style={{ fontSize: '0.75rem', color: 'var(--secondary)' }}>{order.items} uni. (Sin detalle)</span>
+                     )}
                   </div>
                 </td>
-                <td style={{ fontWeight: 500, color: 'var(--primary)' }}>{order.total}</td>
+                <td style={{ fontWeight: 600, color: 'var(--primary)' }}>{order.total}</td>
                 <td style={{ color: 'var(--secondary)', fontSize: '0.85rem' }}>{order.time}</td>
-                <td>
-                  <span className={`status-badge ${order.statusClass}`}>{order.status}</span>
-                </td>
-                <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
-                  <div className="flex gap-2 justify-end" style={{ alignItems: 'center' }}>
-                    <button 
-                      onClick={() => alert(`Enviando ticket de la orden ${order.id} a la impresora térmica...`)}
-                      className="icon-btn" 
-                      title="Imprimir Ticket"
-                      style={{ padding: '0.4rem', backgroundColor: 'var(--surface-container-high)', borderRadius: '8px' }}
-                    >
-                      <span className="material-symbols-outlined" style={{ fontSize: '1.2rem', color: 'var(--secondary)' }}>print</span>
-                    </button>
+                <td><span className={`status-badge ${order.statusClass}`}>{order.status}</span></td>
+                <td style={{ textAlign: 'right' }}>
+                  <div className="flex gap-2 justify-end items-center">
                     {order.status !== 'Despachado' ? (
-                      <button 
-                        onClick={() => handleStatusChange(order.id, order.status)}
-                        className="btn-secondary" 
-                        style={{ 
-                          padding: '0.4rem 1rem', fontSize: '0.65rem', textTransform: 'uppercase', fontWeight: 700,
-                          backgroundColor: order.status === 'Pendiente' ? 'var(--primary-container)' : 'var(--surface-container-highest)',
-                          color: order.status === 'Pendiente' ? 'var(--on-primary-container)' : 'var(--on-surface)'
-                        }}
-                      >
-                        {order.status === 'Pendiente' ? 'Aceptar Pedido' : (order.status === 'Preparando' ? 'Marcar Listo' : 'Despachar (Fin)')}
+                      <button onClick={() => handleStatusChange(order.id, order.status)} className="btn-secondary" style={{ padding: '0.4rem 1rem', fontSize: '0.65rem', textTransform: 'uppercase', fontWeight: 700, backgroundColor: order.status === 'Pendiente' ? 'var(--primary-container)' : 'var(--surface-container-highest)', color: order.status === 'Pendiente' ? 'var(--on-primary-container)' : 'var(--on-surface)' }}>
+                        {order.status === 'Pendiente' ? 'Validar Op.' : (order.status === 'Preparando' ? 'Marcar Listo' : 'Archivar')}
                       </button>
                     ) : (
-                      <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--emerald-400)', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '4px' }}>
-                        <span className="material-symbols-outlined" style={{ fontSize: '1rem' }}>check_circle</span> Completado
-                      </span>
+                      <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--emerald-400)' }}>Completado</span>
                     )}
                   </div>
                 </td>
@@ -278,32 +219,7 @@ export default function Orders() {
             ))}
           </tbody>
         </table>
-        
-        <div style={{ padding: '1rem 1.5rem', backgroundColor: 'var(--surface-container-low)', borderTop: '1px solid rgba(64, 73, 82, 0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span className="label-sm" style={{ letterSpacing: '0' }}>Mostrando {orders.length} pedidos históricos</span>
-          <div className="flex gap-2">
-            <button className="icon-btn" disabled style={{ opacity: 0.5 }}><span className="material-symbols-outlined">chevron_left</span></button>
-            <button className="icon-btn"><span className="material-symbols-outlined">chevron_right</span></button>
-          </div>
-        </div>
       </div>
-
-      {/* Modal Confirmar Eliminación */}
-      {orderToDelete && (
-        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div className="card" style={{ width: '100%', maxWidth: '360px', padding: '2rem', textAlign: 'center', border: '1px solid var(--error-dim)', backgroundColor: 'var(--surface-bright)' }}>
-            <span className="material-symbols-outlined" style={{ fontSize: '3.5rem', color: 'var(--error)', marginBottom: '1rem' }}>warning</span>
-            <h3 className="display-md" style={{ marginBottom: '0.5rem', fontSize: '1.25rem' }}>¿Anular Pedido {orderToDelete}?</h3>
-            <p className="body-md" style={{ color: 'var(--secondary)', marginBottom: '2rem' }}>
-              Esta acción eliminará el pedido de la base de datos permanentemente. ¿Deseas continuar?
-            </p>
-            <div className="flex gap-3">
-              <button onClick={() => setOrderToDelete(null)} className="btn-secondary" style={{ flex: 1, padding: '0.75rem' }}>Atrás</button>
-              <button onClick={confirmDeleteOrder} className="btn-primary" style={{ flex: 1, padding: '0.75rem', backgroundColor: 'var(--error)', color: '#fff', boxShadow: '0 4px 14px rgba(239, 68, 68, 0.4)' }}>Sí, Anular</button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

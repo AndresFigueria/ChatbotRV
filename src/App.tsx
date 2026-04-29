@@ -14,13 +14,22 @@ import Settings from './pages/Settings';
 import BotStatus from './pages/BotStatus';
 import WhatsApp from './pages/WhatsApp';
 import Login from './pages/Login';
+import Notifications from './pages/Notifications';
 
 function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    const saved = localStorage.getItem('isAuthenticated');
+    return saved === 'true';
+  });
+
+  const handleLogin = () => {
+    localStorage.setItem('isAuthenticated', 'true');
+    setIsAuthenticated(true);
+  };
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   if (!isAuthenticated) {
-    return <Login onLogin={() => setIsAuthenticated(true)} />;
+    return <Login onLogin={handleLogin} />;
   }
 
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
@@ -47,6 +56,7 @@ function App() {
           <Route path="/settings" element={<Settings />} />
           <Route path="/bot-status" element={<BotStatus />} />
           <Route path="/whatsapp" element={<WhatsApp />} />
+          <Route path="/notifications" element={<Notifications />} />
         </Routes>
       </div>
     </div>

@@ -5,6 +5,9 @@ export default function Menu() {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeCategory, setActiveCategory] = useState('Todos');
   const [menuItems, setMenuItems] = useState<any[]>([]);
+  const [reservationsCount, setReservationsCount] = useState(0); 
+  const [reservationsList, setReservationsList] = useState<any[]>([]); // NUEVO: Lista de reservas
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false); // NUEVO: Estado del modal calendario
   const [loading, setLoading] = useState(true);
 
   // Modal State
@@ -12,8 +15,11 @@ export default function Menu() {
   const [formData, setFormData] = useState({
     id: '', 
     name: '',
-    category: 'Principales',
+    category: 'Hamburguesas',
     price: '',
+    cost: '', // NUEVO: Costo
+    upsell: '', // NUEVO: Upsell sugerido
+    modifiers: false, // NUEVO: Permite extras
     keywords: '', 
     img: ''
   });
@@ -23,7 +29,7 @@ export default function Menu() {
     const { data, error } = await supabase
       .from('menu_items')
       .select('*')
-      .order('created_at', { ascending: false });
+      .order('sales_30d', { ascending: false });
 
     if (error) {
       console.error('Error fetching menu:', error);
@@ -34,14 +40,32 @@ export default function Menu() {
         category: item.category,
         price: `$${Number(item.price).toFixed(2)}`,
         rawPrice: item.price,
+        cost: item.cost_price || 0,
+        upsell: item.upsell_item_code || '',
+        modifiers: item.has_modifiers || false,
         stock: item.stock_status,
         keywords: item.keywords || [],
         sales30d: item.sales_30d,
-        img: item.img_url || 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?q=80&w=200&h=200&fit=crop',
+        img: item.img_url || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=400',
         available: item.is_available
       }));
       setMenuItems(mapped);
     }
+
+    // NUEVO: Consultar total de reservas pendientes para el panel y la agenda
+    const { data: resData, count: resCount } = await supabase
+      .from('reservations')
+      .select(`
+        *,
+        customer:customers (name, phone_number)
+      `, { count: 'exact', head: false })
+      .eq('status', 'Pendiente')
+      .order('reservation_time', { ascending: true });
+    
+    if (resData) {
+      setReservationsList(resData);
+    }
+    setReservationsCount(resCount || 0);
     setLoading(false);
   }, []);
 
@@ -49,7 +73,7 @@ export default function Menu() {
     fetchMenu();
   }, [fetchMenu]);
 
-  const categories = ['Todos', 'Principales', 'Combos', 'Bebidas', 'Postres'];
+  const categories = ['Todos', 'Hamburguesas', 'Pizzas', 'Tacos', 'Sushi', 'Postres', 'Bebidas', 'Acompañantes'];
 
   const filteredMenu = menuItems.filter(m => {
     const searchLower = searchTerm.toLowerCase();
@@ -59,21 +83,18 @@ export default function Menu() {
     return matchesSearch && matchesTab;
   });
 
+  const topProduct = menuItems.length > 0 ? [...menuItems].sort((a,b) => b.sales30d - a.sales30d)[0] : null;
+
   const handleToggle = async (id: string, currentAvailable: boolean) => {
-    const { error } = await supabase
-      .from('menu_items')
-      .update({ 
-        is_available: !currentAvailable,
-        stock_status: !currentAvailable ? 'Disponible' : 'Agotado'
-      })
-      .eq('item_code', id);
-    if (!error) {
-      fetchMenu();
-    }
+    const { error } = await supabase.from('menu_items').update({ 
+      is_available: !currentAvailable,
+      stock_status: !currentAvailable ? 'Disponible' : 'Agotado'
+    }).eq('item_code', id);
+    if (!error) fetchMenu();
   };
 
   const openNewItem = () => {
-    setFormData({ id: '', name: '', category: 'Principales', price: '', keywords: '', img: '' });
+    setFormData({ id: '', name: '', category: 'Hamburguesas', price: '', cost: '', upsell: '', modifiers: false, keywords: '', img: '' });
     setIsModalOpen(true);
   };
 
@@ -83,8 +104,11 @@ export default function Menu() {
       name: item.name,
       category: item.category,
       price: item.rawPrice,
+      cost: item.cost,
+      upsell: item.upsell,
+      modifiers: item.modifiers,
       keywords: item.keywords.join(', '),
-      img: item.img // In a real app we might allow null, but here we enforce strings
+      img: item.img
     });
     setIsModalOpen(true);
   };
@@ -92,259 +116,307 @@ export default function Menu() {
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     const itemCode = formData.id || 'P-' + Math.floor(Math.random() * 10000).toString().padStart(4, '0');
-    const kwArray = formData.keywords.split(',').map(k => k.trim()).filter(k => k !== '');
-
+    
     const payload: any = {
       name: formData.name,
       category: formData.category,
       price: Number(formData.price),
-      keywords: kwArray,
+      cost_price: Number(formData.cost) || 0,
+      upsell_item_code: formData.upsell || null,
+      has_modifiers: formData.modifiers,
+      keywords: formData.keywords.split(',').map(k => k.trim()).filter(k => k !== ''),
     };
-
-    if (formData.img && formData.img.startsWith('http')) {
-      payload.img_url = formData.img;
-    }
+    if (formData.img) payload.img_url = formData.img;
 
     if (formData.id) {
-      // Update
       const { error } = await supabase.from('menu_items').update(payload).eq('item_code', formData.id);
-      if (error) alert("Error: " + error.message);
+      if (error) alert("Error actualizando: " + error.message);
     } else {
-      // Insert
       payload.item_code = itemCode;
       payload.is_available = true;
       payload.stock_status = 'Disponible';
       payload.sales_30d = 0;
-      
       const { error } = await supabase.from('menu_items').insert(payload);
-      if (error) alert("Error: " + error.message);
+      if (error) alert("Error creando: " + error.message);
     }
-    
     setIsModalOpen(false);
     fetchMenu();
   };
 
-
-  if (loading && menuItems.length === 0) {
-    return (
-      <div className="p-8 flex justify-center items-center" style={{ minHeight: '50vh' }}>
-        <p className="body-md" style={{ color: 'var(--secondary)' }}>Obteniendo menú desde Supabase...</p>
-      </div>
-    );
-  }
+  if (loading && menuItems.length === 0) return <div className="p-8 text-center text-secondary">Cargando Catálogo Maestro...</div>;
 
   return (
-    <div className="p-8 relative">
-      {/* Header Section */}
-      <div className="flex justify-between items-center" style={{ marginBottom: '2.5rem' }}>
+    <div className="p-8">
+      {/* Header Premium */}
+      <div className="flex justify-between items-end mb-8">
         <div>
-          <h2 className="display-md">Ingeniería de Menú</h2>
-          <p className="body-md" style={{ color: 'var(--secondary)', marginTop: '0.25rem' }}>
-            Gestiona tu catálogo, disponibilidad y palabras clave para el Bot de IA.
-          </p>
+          <h2 className="display-sm" style={{ fontWeight: 800 }}>Inventario & Inteligencia Comercial</h2>
+          <p className="body-md" style={{ color: 'var(--secondary)' }}>Gestión de productos, márgenes de ganancia y reglas de upsell IA.</p>
         </div>
         <div className="flex gap-3">
-          <button className="btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <span className="material-symbols-outlined" style={{ fontSize: '1.25rem' }}>category</span>
-            Categorías
+          <button onClick={() => setIsCalendarOpen(true)} className="btn-secondary" style={{ height: '44px', padding: '0 1.5rem', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 700 }}>
+             <span className="material-symbols-outlined">calendar_month</span> Agenda de Reservas
           </button>
-          <button onClick={openNewItem} className="btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', boxShadow: '0 4px 14px rgba(255, 90, 31, 0.3)' }}>
-            <span className="material-symbols-outlined" style={{ fontSize: '1.25rem' }}>add_circle</span>
-            Nuevo Producto
+          <button onClick={openNewItem} className="btn-primary" style={{ height: '44px', padding: '0 1.5rem', borderRadius: '8px', boxShadow: '0 4px 14px rgba(255, 90, 31, 0.2)' }}>
+             + Nuevo Producto
           </button>
         </div>
       </div>
 
-      {/* Metrics Section */}
-      <div className="metrics-grid" style={{ marginBottom: '2.5rem' }}>
-        {[
-          { label: 'Productos Activos', value: menuItems.filter(m => m.available).length.toString(), change: 'En el catálogo web y chat', icon: 'restaurant_menu', highlight: false },
-          { label: 'Agotados (Out of Stock)', value: menuItems.filter(m => !m.available).length.toString(), change: 'Apagados temporalmente', icon: 'remove_shopping_cart', highlight: menuItems.filter(m => !m.available).length > 0 },
-          { label: 'Top Ventas Bot', value: menuItems.length > 0 ? [...menuItems].sort((a,b)=>b.sales30d - a.sales30d)[0].name : 'N/A', change: 'Más popular del catálogo', icon: 'local_fire_department', highlight: false },
-          { label: 'Tasa de Éxito', value: '88%', change: 'Pedidos validados por bot', icon: 'trending_up', highlight: false },
-        ].map((m, i) => (
-          <div key={i} className="card" style={m.highlight ? { border: '1px solid var(--error-dim)', background: 'linear-gradient(145deg, var(--surface-container), rgba(239, 68, 68, 0.05))' } : {}}>
-            <div className="flex justify-between items-start" style={{ marginBottom: '0.5rem' }}>
-              <p className="label-sm">{m.label}</p>
-              <span className="material-symbols-outlined" style={{ color: m.highlight ? 'var(--error)' : 'var(--primary)' }}>{m.icon}</span>
-            </div>
-            <h3 className="display-md" style={{ color: m.highlight ? 'var(--error)' : 'var(--on-surface)', marginBottom: '0.25rem', fontSize: '1.5rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{m.value}</h3>
-            <p className="body-md" style={{ color: 'var(--secondary)', fontSize: '0.75rem' }}>{m.change}</p>
+      {/* METRICS GRID OPERATIVO (Enfoque Trabajador) */}
+      <div className="metrics-grid mb-8">
+        {/* 1. Estado del Catálogo (Activos / Total) */}
+        <div className="card">
+          <div className="flex justify-between items-start mb-2">
+            <p className="label-sm">Platos Activos</p>
+            <span className="material-symbols-outlined" style={{ color: 'var(--primary)' }}>inventory_2</span>
           </div>
-        ))}
-      </div>
-
-      {/* Main Content: Filtros y Cuadrícula de Menú */}
-      <div className="orders-table-wrapper" style={{ padding: '0', overflowX: 'visible' }}>
-        <div style={{ padding: '1.5rem', borderBottom: 'var(--table-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: 'var(--surface-container-low)', flexWrap: 'wrap', gap: '1rem', borderTopLeftRadius: '0.75rem', borderTopRightRadius: '0.75rem' }}>
-          
-          {/* Tabs Categorias */}
-          <div className="flex gap-2" style={{ overflowX: 'auto', paddingBottom: '0.25rem' }}>
-            {categories.map(cat => (
-              <button 
-                key={cat} 
-                onClick={() => setActiveCategory(cat)}
-                style={{ 
-                  borderRadius: '2rem', padding: '0.4rem 1rem', fontSize: '0.75rem', fontWeight: 600,
-                  backgroundColor: activeCategory === cat ? 'var(--primary)' : 'var(--surface-container-highest)',
-                  color: activeCategory === cat ? 'var(--on-primary)' : 'var(--on-surface)',
-                  transition: 'background 0.2s', border: 'none', cursor: 'pointer'
-                }}
-              >
-                {cat}
-              </button>
-            ))}
-          </div>
-
-          <div className="relative">
-            <span className="material-symbols-outlined absolute" style={{ left: '0.75rem', top: '50%', transform: 'translateY(-50%)', fontSize: '1.25rem', color: 'var(--secondary)' }}>search</span>
-            <input 
-              type="text" 
-              placeholder="Buscar platillo o keyword..." 
-              className="input-base" 
-              style={{ width: '100%', minWidth: '280px' }}
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
+          <h3 className="display-md" style={{ fontSize: '1.8rem', color: menuItems.filter(m => m.available).length === menuItems.length ? 'var(--emerald-400)' : 'var(--on-surface)' }}>
+             {menuItems.filter(m => m.available).length} <span style={{ fontSize: '1.2rem', color: 'var(--secondary)' }}>/ {menuItems.length}</span>
+          </h3>
+          <p className="body-md" style={{ color: 'var(--secondary)', fontSize: '0.75rem', marginTop: '0.25rem' }}>Listos para la venta</p>
         </div>
 
-        {/* Product Grid */}
-        <div style={{ padding: '1.5rem', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.5rem' }}>
-          {filteredMenu.length === 0 && (
-            <div style={{ padding: '3rem', textAlign: 'center', gridColumn: '1 / -1', color: 'var(--secondary)' }}>
-              No se encontraron platillos o keywords coincidiendo con tu búsqueda.
+        {/* 2. Reservas IA (Reemplaza a Agotados) */}
+        <div className="card">
+          <div className="flex justify-between items-start mb-2">
+            <p className="label-sm">Reservas Activas</p>
+            <span className="material-symbols-outlined" style={{ color: 'var(--tertiary)' }}>event_seat</span>
+          </div>
+          <h3 className="display-md" style={{ fontSize: '1.8rem', color: reservationsCount > 0 ? 'var(--tertiary)' : 'var(--on-surface)' }}>
+             {reservationsCount}
+          </h3>
+          <p className="body-md" style={{ color: 'var(--secondary)', fontSize: '0.75rem', marginTop: '0.25rem' }}>
+             Asignadas por Robotina
+          </p>
+        </div>
+
+        {/* 3. Salud del Bot (Sin Keywords) */}
+        <div className="card">
+          <div className="flex justify-between items-start mb-2">
+            <p className="label-sm">Alerta de Config. (IA)</p>
+            <span className="material-symbols-outlined" style={{ color: 'var(--tertiary)' }}>warning</span>
+          </div>
+          <h3 className="display-md" style={{ fontSize: '1.8rem', color: menuItems.filter(m => m.keywords.length === 0).length > 0 ? 'var(--tertiary)' : 'var(--emerald-400)' }}>
+             {menuItems.filter(m => m.keywords.length === 0).length}
+          </h3>
+          <p className="body-md" style={{ color: 'var(--secondary)', fontSize: '0.75rem', marginTop: '0.25rem' }}>
+             {menuItems.filter(m => m.keywords.length === 0).length > 0 ? 'Platos invisibles para el bot' : 'Catálogo 100% optimizado'}
+          </p>
+        </div>
+
+        {/* 4. TARJETA DE TOP RENDIMIENTO CON IMAGEN AJUSTADA */}
+        <div className="card" style={{ border: '1px solid var(--primary-dim)' }}>
+          <div className="flex justify-between items-start mb-2">
+            <p className="label-sm" style={{ color: 'var(--primary)' }}>Plato Estrella</p>
+            <span className="material-symbols-outlined" style={{ color: 'var(--primary)' }}>trending_up</span>
+          </div>
+          {topProduct ? (
+            <div className="flex items-center gap-3 mt-1">
+              <img src={topProduct.img} alt={topProduct.name} style={{ width: '48px', height: '48px', borderRadius: '8px', objectFit: 'cover' }} />
+              <div style={{ overflow: 'hidden' }}>
+                <p style={{ fontWeight: 800, fontSize: '0.9rem', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{topProduct.name}</p>
+                <p style={{ fontSize: '0.75rem', color: 'var(--secondary)', margin: 0 }}>{topProduct.sales30d} ventas (30d)</p>
+              </div>
             </div>
+          ) : (
+            <p style={{ color: 'var(--secondary)' }}>Sin datos</p>
           )}
-          {filteredMenu.map((item) => (
-            <div key={item.id} className="card" style={{ padding: '1rem', display: 'flex', flexDirection: 'column', gap: '1rem', position: 'relative', opacity: item.available ? 1 : 0.65, border: item.available ? '1px solid transparent' : '1px solid rgba(239, 68, 68, 0.2)' }}>
-              <div className="flex gap-3">
-                {/* Imagen Cuadrada con gradiente/blur si está agotado */}
-                <div style={{ position: 'relative', width: '80px', height: '80px', borderRadius: '0.5rem', overflow: 'hidden', flexShrink: 0 }}>
-                  <img src={item.img} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover', filter: item.available ? 'none' : 'grayscale(100%) opacity(0.5)' }} />
-                  {!item.available && (
-                    <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.6)' }}>
-                      <span className="material-symbols-outlined" style={{ color: '#fff' }}>block</span>
-                    </div>
-                  )}
-                </div>
-                
-                {/* Textos del platillo */}
-                <div className="flex flex-col flex-1 justify-center">
-                  <div className="flex justify-between items-start">
-                    <span style={{ fontSize: '0.65rem', fontWeight: 700, textTransform: 'uppercase', padding: '2px 6px', backgroundColor: 'var(--surface-container-highest)', borderRadius: '4px', color: 'var(--on-surface)' }}>{item.category}</span>
-                    <span style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--primary)' }}>{item.price}</span>
-                  </div>
-                  <h4 style={{ fontWeight: 600, color: item.available ? 'var(--on-surface)' : 'var(--secondary)', lineHeight: '1.2', marginTop: '0.4rem', fontSize: '0.95rem' }}>
-                    {item.name}
-                  </h4>
-                  <div style={{ marginTop: '0.25rem', fontSize: '0.75rem', fontWeight: 600, color: item.available ? 'var(--emerald-400)' : 'var(--error)' }}>
-                    {item.stock}
-                  </div>
-                </div>
-              </div>
-              
-              <div style={{ borderTop: 'var(--table-border)', paddingTop: '0.75rem', paddingBottom: '0.25rem' }}>
-                <p style={{ fontSize: '0.65rem', color: 'var(--secondary)', fontWeight: 600, textTransform: 'uppercase', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                  <span className="material-symbols-outlined" style={{ fontSize: '0.8rem' }}>smart_toy</span> Keywords del Bot:
-                </p>
-                <div className="flex gap-2 flex-wrap">
-                  {item.keywords.length === 0 && <span style={{ fontSize: '0.65rem', color: 'var(--error)' }}>Sin keywords asignadas</span>}
-                  {item.keywords.map((kw: string) => (
-                    <span key={kw} style={{ padding: '0.15rem 0.5rem', backgroundColor: 'var(--surface-container-highest)', borderRadius: '4px', fontSize: '0.65rem', color: 'var(--on-surface)' }}>
-                      "{kw}"
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              <div className="flex justify-between items-center" style={{ marginTop: 'auto' }}>
-                <div style={{ fontSize: '0.7rem', color: 'var(--secondary)', fontWeight: 500 }}>
-                  <strong style={{ color: 'var(--on-surface)' }}>{item.sales30d}</strong> vendidos
-                </div>
-                {/* Acciones */}
-                <div className="flex gap-3 items-center">
-                  <button onClick={() => openEditItem(item)} className="icon-btn" title="Editar Platillo" style={{ padding: '0.25rem', color: 'var(--secondary)' }}>
-                    <span className="material-symbols-outlined" style={{ fontSize: '1.2rem' }}>edit</span>
-                  </button>
-                  {/* Botón Switch visual de activado/desactivado */}
-                  <div 
-                    onClick={() => handleToggle(item.id, item.available)}
-                    title={item.available ? "Desactivar Producto" : "Activar Producto"}
-                    style={{ 
-                      width: '36px', height: '20px', borderRadius: '1rem', 
-                      backgroundColor: item.available ? 'var(--emerald-400)' : 'var(--surface-container-highest)',
-                      display: 'flex', alignItems: 'center', padding: '2px', cursor: 'pointer',
-                      justifyContent: item.available ? 'flex-end' : 'flex-start', transition: 'all 0.3s ease'
-                    }}>
-                    <div style={{ width: '16px', height: '16px', backgroundColor: '#fff', borderRadius: '50%', boxShadow: '0 1px 3px rgba(0,0,0,0.3)' }}></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          ))}
         </div>
       </div>
 
-      {/* MODAL PARA CREAR / EDITAR PRODUCTO */}
+      {/* FILTROS Y BÚSQUEDA */}
+      <div className="card" style={{ padding: '1rem 1.5rem', marginBottom: '2rem', backgroundColor: 'var(--surface-container-low)', borderRadius: '12px' }}>
+         <div className="flex justify-between items-center flex-wrap gap-4">
+            <div className="flex gap-2 flex-wrap">
+               {categories.map(cat => (
+                  <button key={cat} onClick={() => setActiveCategory(cat)} style={{ padding: '0.4rem 1rem', borderRadius: '8px', border: 'none', fontWeight: 600, fontSize: '0.75rem', cursor: 'pointer', transition: 'all 0.2s', backgroundColor: activeCategory === cat ? 'var(--primary)' : 'var(--surface-container-highest)', color: activeCategory === cat ? '#fff' : 'var(--on-surface)' }}>
+                     {cat}
+                  </button>
+               ))}
+            </div>
+            <div style={{ position: 'relative', width: '280px' }}>
+               <input type="text" placeholder="Buscar por nombre o keyword..." className="input-base" style={{ width: '100%', borderRadius: '8px', paddingLeft: '2.5rem', height: '40px', backgroundColor: 'var(--surface-bright)' }} value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
+               <span className="material-symbols-outlined absolute" style={{ left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--secondary)', fontSize: '1.2rem' }}>search</span>
+            </div>
+         </div>
+      </div>
+
+      {/* CATÁLOGO DE PRODUCTOS (PRO) */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '1rem' }}>
+         {filteredMenu.map(item => {
+            const profit = item.rawPrice - item.cost;
+            const margin = item.rawPrice > 0 ? Math.round((profit / item.rawPrice) * 100) : 0;
+            const upsellObj = menuItems.find(m => m.id === item.upsell);
+
+            return (
+               <div key={item.id} className="card" style={{ padding: '1rem', display: 'flex', gap: '1rem', alignItems: 'center', transition: 'all 0.2s', opacity: item.available ? 1 : 0.6, borderLeft: item.upsell ? '3px solid var(--tertiary)' : '1px solid var(--surface-container-highest)' }}>
+                  <img src={item.img} alt={item.name} style={{ width: '80px', height: '80px', borderRadius: '8px', objectFit: 'cover' }} />
+                  <div style={{ flex: 1 }}>
+                     <div className="flex justify-between items-start">
+                       <div>
+                         <span style={{ fontSize: '0.6rem', fontWeight: 800, color: 'var(--primary)', textTransform: 'uppercase' }}>{item.category}</span>
+                         <h4 style={{ fontWeight: 700, fontSize: '0.95rem', margin: '0.1rem 0 0.25rem 0', color: 'var(--on-surface)' }}>{item.name}</h4>
+                       </div>
+                       <div style={{ textAlign: 'right' }}>
+                          <span style={{ fontSize: '0.9rem', fontWeight: 800, display: 'block' }}>{item.price}</span>
+                          {/* Margen de ganancia */}
+                          <span style={{ fontSize: '0.65rem', fontWeight: 700, color: margin > 50 ? 'var(--emerald-400)' : 'var(--tertiary)' }}>{margin}% Mg.</span>
+                       </div>
+                     </div>
+                     
+                     {/* Tags de Inteligencia (Upsell / Modificadores) */}
+                     <div className="flex gap-1 mt-1 mb-2">
+                        {item.modifiers && <span style={{ fontSize: '0.6rem', padding: '2px 6px', backgroundColor: 'var(--surface-container-highest)', borderRadius: '4px', color: 'var(--on-surface)' }}>Acepta Extras</span>}
+                        {upsellObj && <span style={{ fontSize: '0.6rem', padding: '2px 6px', backgroundColor: 'var(--tertiary)', color: '#fff', borderRadius: '4px' }}>Upsell: {upsellObj.name}</span>}
+                     </div>
+
+                     <div className="flex justify-between items-center border-top" style={{ borderTop: '1px solid var(--surface-container-highest)', paddingTop: '0.5rem', marginTop: 'auto' }}>
+                        <p style={{ fontSize: '0.7rem', color: 'var(--secondary)', margin: 0 }}>{item.sales30d} vendidos</p>
+                        
+                        <div className="flex gap-2">
+                           <button onClick={() => openEditItem(item)} className="icon-btn" style={{ padding: '0.2rem' }}>
+                              <span className="material-symbols-outlined" style={{ fontSize: '1.2rem', color: 'var(--secondary)' }}>edit</span>
+                           </button>
+                           <div onClick={() => handleToggle(item.id, item.available)} style={{ width: '36px', height: '20px', borderRadius: '10px', backgroundColor: item.available ? 'var(--primary)' : 'var(--surface-container-highest)', display: 'flex', alignItems: 'center', padding: '2px', cursor: 'pointer', justifyContent: item.available ? 'flex-end' : 'flex-start' }}>
+                              <div style={{ width: '16px', height: '16px', backgroundColor: '#fff', borderRadius: '50%', boxShadow: '0 2px 4px rgba(0,0,0,0.2)' }}></div>
+                           </div>
+                        </div>
+                     </div>
+                  </div>
+               </div>
+            )
+         })}
+      </div>
+
+      {/* MODAL CONFIGURACIÓN PRO */}
       {isModalOpen && (
         <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.6)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(4px)' }}>
-          <div className="card" style={{ width: '100%', maxWidth: '500px', padding: '2rem', backgroundColor: 'var(--surface-bright)', maxHeight: '90vh', overflowY: 'auto' }}>
-            <div className="flex justify-between items-center" style={{ marginBottom: '1.5rem' }}>
-              <h3 className="display-md" style={{ fontSize: '1.5rem' }}>{formData.id ? 'Editar Platillo' : 'Nuevo Platillo'}</h3>
-              <button onClick={() => setIsModalOpen(false)} className="icon-btn" style={{ padding: '0.2rem' }}>
-                <span className="material-symbols-outlined">close</span>
-              </button>
-            </div>
-            
+          <div className="card" style={{ width: '100%', maxWidth: '600px', padding: '2rem', backgroundColor: 'var(--surface-bright)', borderRadius: '16px', maxHeight: '90vh', overflowY: 'auto' }}>
+            <h3 className="display-sm mb-6" style={{ fontWeight: 800 }}>{formData.id ? 'Editar Producto IA' : 'Nuevo Producto IA'}</h3>
             <form onSubmit={handleSave} className="flex flex-col gap-4">
-              <div>
-                <label className="label-sm" style={{ display: 'block', marginBottom: '0.5rem' }}>Nombre del Producto *</label>
-                <input required type="text" className="input-base" style={{ width: '100%', paddingLeft: '1rem' }} value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} placeholder="Ej. Hamburguesa Doble" />
-              </div>
-
-              <div className="flex gap-4">
-                <div style={{ flex: 1 }}>
-                  <label className="label-sm" style={{ display: 'block', marginBottom: '0.5rem' }}>Categoría</label>
-                  <select className="input-base" style={{ width: '100%', paddingLeft: '1rem', appearance: 'none', backgroundColor: 'var(--surface-container-low)' }} value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})}>
-                    <option value="Principales">Principales</option>
-                    <option value="Combos">Combos</option>
-                    <option value="Bebidas">Bebidas</option>
-                    <option value="Postres">Postres</option>
-                  </select>
-                </div>
-                <div style={{ flex: 1 }}>
-                  <label className="label-sm" style={{ display: 'block', marginBottom: '0.5rem' }}>Precio ($) *</label>
-                  <input required min="0" step="0.01" type="number" className="input-base" style={{ width: '100%', paddingLeft: '1rem' }} value={formData.price} onChange={e => setFormData({...formData, price: e.target.value})} placeholder="Ej. 12.50" />
-                </div>
-              </div>
-
-              <div>
-                <label className="label-sm" style={{ display: 'block', marginBottom: '0.5rem' }}>Keywords (Para el Bot de WhatsApp)</label>
-                <input type="text" className="input-base" style={{ width: '100%', paddingLeft: '1rem' }} value={formData.keywords} onChange={e => setFormData({...formData, keywords: e.target.value})} placeholder="Separa por comas: hamburguesa, doble, promo" />
-                <p style={{ fontSize: '0.65rem', color: 'var(--secondary)', marginTop: '0.25rem' }}>Las palabras que el cliente podría escribir en WhatsApp para buscar este plato.</p>
-              </div>
-
-              <div>
-                <label className="label-sm" style={{ display: 'block', marginBottom: '0.5rem' }}>URL de Fotografía (Opcional)</label>
-                <input type="url" className="input-base" style={{ width: '100%', paddingLeft: '1rem' }} value={formData.img} onChange={e => setFormData({...formData, img: e.target.value})} placeholder="https://ejemplo.com/foto.jpg" />
-                {formData.img && formData.img.startsWith('http') && (
-                  <div style={{ marginTop: '0.5rem', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                    <img src={formData.img} alt="Vista previa" style={{ width: '40px', height: '40px', borderRadius: '4px', objectFit: 'cover' }} />
-                    <span style={{ fontSize: '0.7rem', color: 'var(--emerald-400)' }}>Vista previa cargada</span>
+               {/* 1. Datos Básicos */}
+               <h4 style={{ fontSize: '0.8rem', color: 'var(--primary)', borderBottom: '1px solid var(--surface-container-highest)', paddingBottom: '0.5rem' }}>1. DATOS BÁSICOS</h4>
+               <div className="flex gap-4">
+                  <div className="flex flex-col gap-1" style={{ flex: 2 }}>
+                     <label className="label-sm">Nombre del Plato *</label>
+                     <input required className="input-base" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} />
                   </div>
-                )}
-              </div>
+                  <div className="flex flex-col gap-1" style={{ flex: 1 }}>
+                     <label className="label-sm">Categoría *</label>
+                     <select className="input-base" value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})}>
+                        {categories.slice(1).map(c => <option key={c} value={c}>{c}</option>)}
+                     </select>
+                  </div>
+               </div>
 
-              <div className="flex gap-3" style={{ marginTop: '1rem', borderTop: 'var(--table-border)', paddingTop: '1.5rem' }}>
-                <button type="button" onClick={() => setIsModalOpen(false)} className="btn-secondary" style={{ flex: 1, padding: '0.75rem' }}>Cancelar</button>
-                <button type="submit" className="btn-primary" style={{ flex: 1, padding: '0.75rem', boxShadow: '0 4px 14px rgba(255, 90, 31, 0.3)' }}>{formData.id ? 'Guardar Cambios' : 'Crear Producto'}</button>
-              </div>
+               {/* 2. Finanzas */}
+               <h4 style={{ fontSize: '0.8rem', color: 'var(--primary)', borderBottom: '1px solid var(--surface-container-highest)', paddingBottom: '0.5rem', marginTop: '1rem' }}>2. ESTRUCTURA FINANCIERA</h4>
+               <div className="flex gap-4">
+                  <div className="flex flex-col gap-1" style={{ flex: 1 }}>
+                     <label className="label-sm">Precio de Venta ($) *</label>
+                     <input required type="number" step="0.01" className="input-base" value={formData.price} onChange={e => setFormData({...formData, price: e.target.value})} />
+                  </div>
+                  <div className="flex flex-col gap-1" style={{ flex: 1 }}>
+                     <label className="label-sm">Costo Real ($)</label>
+                     <input type="number" step="0.01" className="input-base" placeholder="Ej: 3.50" value={formData.cost} onChange={e => setFormData({...formData, cost: e.target.value})} />
+                  </div>
+                  <div className="flex flex-col gap-1" style={{ flex: 1, backgroundColor: 'var(--surface-container-low)', padding: '0.5rem', borderRadius: '8px', justifyContent: 'center', alignItems: 'center' }}>
+                     <label className="label-sm">Margen Bruto</label>
+                     <span style={{ fontWeight: 800, color: 'var(--emerald-400)', fontSize: '1.2rem' }}>
+                        {Number(formData.price) > 0 ? Math.round(((Number(formData.price) - Number(formData.cost)) / Number(formData.price)) * 100) : 0}%
+                     </span>
+                  </div>
+               </div>
+
+               {/* 3. Inteligencia Artificial y Reglas */}
+               <h4 style={{ fontSize: '0.8rem', color: 'var(--primary)', borderBottom: '1px solid var(--surface-container-highest)', paddingBottom: '0.5rem', marginTop: '1rem' }}>3. REGLAS PARA EL BOT (IA)</h4>
+               
+               <div className="flex gap-4 items-end">
+                  <div className="flex flex-col gap-1" style={{ flex: 2 }}>
+                     <label className="label-sm">Sugerencia de Upsell (Venta Cruzada)</label>
+                     <select className="input-base" value={formData.upsell} onChange={e => setFormData({...formData, upsell: e.target.value})}>
+                        <option value="">Ninguna sugerencia</option>
+                        {menuItems.filter(m => m.id !== formData.id).map(m => (
+                           <option key={m.id} value={m.id}>Ofrecer: {m.name} ({m.price})</option>
+                        ))}
+                     </select>
+                     <span style={{ fontSize: '0.65rem', color: 'var(--secondary)' }}>El bot ofrecerá esto automáticamente.</span>
+                  </div>
+                  <div style={{ flex: 1, paddingBottom: '0.5rem' }}>
+                     <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600 }}>
+                        <input type="checkbox" checked={formData.modifiers} onChange={e => setFormData({...formData, modifiers: e.target.checked})} style={{ width: '18px', height: '18px', accentColor: 'var(--primary)' }} />
+                        Acepta Extras / Cambios
+                     </label>
+                  </div>
+               </div>
+
+               <div className="flex flex-col gap-1">
+                  <label className="label-sm">Keywords (bot)</label>
+                  <input className="input-base" placeholder="carne, doble, hamburguesa..." value={formData.keywords} onChange={e => setFormData({...formData, keywords: e.target.value})} />
+               </div>
+               
+               <div className="flex flex-col gap-1 mt-2">
+                  <label className="label-sm">URL Imagen (Cuadrada recomendada)</label>
+                  <input className="input-base" value={formData.img} onChange={e => setFormData({...formData, img: e.target.value})} />
+               </div>
+
+               <div className="flex gap-3 mt-4">
+                  <button type="button" onClick={() => setIsModalOpen(false)} className="btn-secondary" style={{ flex: 1 }}>Cancelar</button>
+                  <button type="submit" className="btn-primary" style={{ flex: 1 }}>Guardar Plato</button>
+               </div>
             </form>
           </div>
         </div>
       )}
 
+      {/* MODAL CALENDARIO DE RESERVAS */}
+      {isCalendarOpen && (
+        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.6)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(4px)' }}>
+          <div className="card" style={{ width: '100%', maxWidth: '600px', padding: '2.5rem', backgroundColor: 'var(--surface-bright)', borderRadius: '24px', maxHeight: '90vh', overflowY: 'auto' }}>
+            <div className="flex justify-between items-center mb-6">
+               <h3 className="display-sm" style={{ fontWeight: 800 }}>Agenda de Reservas</h3>
+               <button onClick={() => setIsCalendarOpen(false)} className="icon-btn" style={{ padding: '0.5rem', backgroundColor: 'var(--surface-container-highest)', borderRadius: '50%' }}>
+                  <span className="material-symbols-outlined">close</span>
+               </button>
+            </div>
+            
+            {reservationsList.length === 0 ? (
+               <div style={{ textAlign: 'center', padding: '4rem 1rem', color: 'var(--secondary)', backgroundColor: 'var(--surface-container-low)', borderRadius: '16px' }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: '4rem', opacity: 0.3, marginBottom: '1rem' }}>event_available</span>
+                  <p style={{ fontSize: '1.1rem', fontWeight: 600 }}>El calendario está libre.</p>
+                  <p style={{ fontSize: '0.85rem' }}>Las reservas tomadas por Robotina aparecerán aquí automáticamente.</p>
+               </div>
+            ) : (
+               <div className="flex flex-col gap-3">
+                  {reservationsList.map((res) => {
+                     const dateObj = new Date(res.reservation_time);
+                     return (
+                        <div key={res.id} style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '1rem', border: '1px solid var(--surface-container-highest)', borderRadius: '16px', backgroundColor: 'var(--surface-container-low)' }}>
+                           <div style={{ backgroundColor: 'var(--primary-container)', color: 'var(--on-primary-container)', padding: '0.5rem 1rem', borderRadius: '12px', textAlign: 'center', minWidth: '85px' }}>
+                              <p style={{ fontSize: '0.75rem', fontWeight: 800, margin: 0, textTransform: 'uppercase', letterSpacing: '1px' }}>{dateObj.toLocaleDateString('es-ES', { month: 'short' })}</p>
+                              <p style={{ fontSize: '1.8rem', fontWeight: 900, margin: '-4px 0' }}>{dateObj.getDate()}</p>
+                           </div>
+                           <div style={{ flex: 1 }}>
+                              <h4 style={{ fontWeight: 800, margin: 0, fontSize: '1.1rem' }}>{res.customer?.name || 'Cliente WhatsApp'}</h4>
+                              <p style={{ color: 'var(--secondary)', fontSize: '0.85rem', margin: 0, display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px' }}>
+                                 <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>chat</span> {res.customer?.phone_number || 'Sin número'}
+                              </p>
+                           </div>
+                           <div style={{ textAlign: 'right' }}>
+                              <p style={{ fontWeight: 900, margin: 0, fontSize: '1.2rem', color: 'var(--on-surface)' }}>{dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                              <p style={{ color: 'var(--tertiary)', fontSize: '0.85rem', margin: 0, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '4px', marginTop: '4px' }}>
+                                 <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>group</span> {res.guest_count} Personas
+                              </p>
+                           </div>
+                        </div>
+                     )
+                  })}
+               </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

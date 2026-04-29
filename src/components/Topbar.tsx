@@ -261,12 +261,12 @@ export default function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
               <button 
                 onClick={() => {
                   setIsDropdownOpen(false);
-                  navigate('/orders');
+                  navigate('/notifications');
                 }}
-                className="btn-secondary" 
+                className="btn-primary" 
                 style={{ width: '100%', marginTop: '1rem', fontSize: '0.75rem', padding: '0.6rem' }}
               >
-                Ir a Tablero de Órdenes
+                Ver todas las notificaciones
               </button>
             </div>
           )}

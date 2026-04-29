@@ -86,9 +86,9 @@ export default function Analytics() {
     <div className="p-8">
       <div className="page-header">
         <div>
-          <h2 className="display-md">Analíticas Integradas</h2>
+          <h2 className="display-sm" style={{ fontWeight: 800 }}>Business Intelligence</h2>
           <p className="body-md" style={{ color: 'var(--secondary)', marginTop: '0.25rem' }}>
-            Desbloquea el crecimiento matemático evaluando los hábitos de tus clientes.
+            Análisis de datos cruzados entre pedidos, clientes y automatizaciones.
           </p>
         </div>
         <div className="flex gap-3">

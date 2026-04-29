@@ -35,7 +35,7 @@ export default function Login({ onLogin }: { onLogin: () => void }) {
         <div>
            <div className="flex items-center gap-3" style={{ marginBottom: '3rem' }}>
              <span className="material-symbols-outlined" style={{ fontSize: '2.5rem', color: 'var(--primary)' }}>robot_2</span>
-             <h1 style={{ color: '#fff', margin: 0, fontSize: '1.5rem', letterSpacing: '1px' }}>Robotina <span style={{ fontWeight: 300 }}>IA</span></h1>
+             <h1 style={{ color: '#fff', margin: 0, fontSize: '1.5rem', letterSpacing: '1px' }}>Robotina <span style={{ fontWeight: 300 }}>Central</span></h1>
            </div>
 
            <h2 style={{ color: '#fff', fontSize: '3.5rem', fontWeight: 800, lineHeight: 1.1, marginBottom: '1.5rem', maxWidth: '600px', letterSpacing: '-1px' }}>

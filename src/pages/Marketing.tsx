@@ -12,11 +12,8 @@ export default function Marketing() {
   const [progress, setProgress] = useState(0);
   const [success, setSuccess] = useState(false);
 
-  // Historial Mock de métricas de marketing
-  const [history, setHistory] = useState([
-    { id: 1, name: 'Promo 2x1 Martes Locos', date: 'Hace 3 días', audience: 'VIP', sent: 142, converted: 28, revenue: '$392.00', status: 'Finalizado' },
-    { id: 2, name: 'Recuperación Fin de Mes', date: 'Hace 2 semanas', audience: 'En Riesgo', sent: 89, converted: 12, revenue: '$140.50', status: 'Finalizado' },
-  ]);
+  // Historial real de métricas de marketing (Vacío al inicio)
+  const [history, setHistory] = useState<any[]>([]);
 
   useEffect(() => {
     async function loadCustomers() {
@@ -157,7 +154,7 @@ export default function Marketing() {
                <div style={{ backgroundColor: '#DCF8C6', padding: '0.75rem', borderRadius: '0.5rem', borderTopLeftRadius: 0, boxShadow: '0 1px 2px rgba(0,0,0,0.1)', maxWidth: '90%', marginLeft: 'auto', borderTopRightRadius: 0 }}>
                   {imgUrl && <img src={imgUrl} alt="Flyer" style={{ width: '100%', borderRadius: '0.4rem', marginBottom: '0.5rem', objectFit: 'cover' }} />}
                   <p style={{ fontSize: '0.8rem', color: '#303030', whiteSpace: 'pre-wrap', lineHeight: 1.4 }}>
-                    {message.replace('[Nombre]', 'Carlos').replace('[Plato_Favorito]', 'Tacos al Pastor').replace('[LTV]', '$34.00')}
+                    {message.replace('[Nombre]', 'Cliente').replace('[Plato_Favorito]', 'su plato favorito').replace('[LTV]', '$0.00')}
                   </p>
                   <div style={{ textAlign: 'right', fontSize: '0.6rem', color: '#999', marginTop: '0.2rem' }}>Ahora ✓✓</div>
                </div>

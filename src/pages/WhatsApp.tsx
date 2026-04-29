@@ -23,6 +23,7 @@ export default function WhatsApp() {
   const [activeChatId, setActiveChatId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [replyText, setReplyText] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -64,7 +65,11 @@ export default function WhatsApp() {
             table: 'whatsapp_messages',
             filter: `chat_id=eq.${activeChatId}`
         }, (payload) => {
-          setMessages(prev => [...prev, payload.new as Message]);
+          setIsTyping(true);
+          setTimeout(() => {
+            setMessages(prev => [...prev, payload.new as Message]);
+            setIsTyping(false);
+          }, 800); // Pequeño delay para que se vea el "escribiendo"
         })
         .subscribe();
 
@@ -154,8 +159,8 @@ export default function WhatsApp() {
           </div>
         </div>
 
-        {/* Panel Derecho: Ventana del Chat Activo */}
-        <div style={{ flex: 1, backgroundColor: '#0f172a', borderRadius: '12px', display: 'flex', flexDirection: 'column', border: '1px solid var(--border-color)', overflow: 'hidden', backgroundImage: 'radial-gradient(circle at center, rgba(16, 185, 129, 0.03) 0%, transparent 100%)' }}>
+        {/* Panel Derecho: Ventana del Chat Activo (Contraste Máximo) */}
+        <div style={{ flex: 1, backgroundColor: 'var(--surface-container-highest)', borderRadius: '12px', display: 'flex', flexDirection: 'column', border: '1px solid var(--card-border)', overflow: 'hidden' }}>
           {activeChatId ? (
             <>
               {/* Header del chat */}
@@ -170,7 +175,7 @@ export default function WhatsApp() {
               </div>
               
               {/* Burbujas de mensajes */}
-              <div style={{ flex: 1, overflowY: 'auto', padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div id="messages-container" style={{ flex: 1, overflowY: 'auto', padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '12px', maxHeight: 'calc(100vh - 250px)', backgroundColor: 'var(--surface-container-highest)' }}>
                 {messages.length === 0 ? (
                     <div style={{ textAlign: 'center', marginTop: '2rem', color: 'rgba(255,255,255,0.3)' }}>Cargando mensajes...</div>
                 ) : messages.map((msg, idx) => {
@@ -180,15 +185,15 @@ export default function WhatsApp() {
                       alignSelf: isInbound ? 'flex-start' : 'flex-end',
                       width: 'max-content',
                       maxWidth: '75%',
-                    }}>
+                    }} className="chat-bubble-anim">
                       <div style={{
-                          backgroundColor: isInbound ? '#1e293b' : '#059669', // gris oscuro vs verde whatsapp esmeralda
-                          color: '#fff',
+                          backgroundColor: isInbound ? 'var(--surface-container-lowest)' : 'var(--primary)', 
+                          color: isInbound ? 'var(--on-surface)' : 'var(--on-primary)',
                           padding: '12px 16px',
                           borderRadius: '12px',
                           borderTopLeftRadius: isInbound ? '0' : '12px',
                           borderTopRightRadius: !isInbound ? '0' : '12px',
-                          boxShadow: '0 2px 5px rgba(0,0,0,0.1)',
+                          boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
                           lineHeight: 1.4
                       }}>
                         <div style={{wordBreak: 'break-word'}}>{msg.message_body}</div>
@@ -200,17 +205,24 @@ export default function WhatsApp() {
                     </div>
                   );
                 })}
+                {isTyping && (
+                  <div className="typing-bubble chat-bubble-anim">
+                    <div className="dot-typing"></div>
+                    <div className="dot-typing"></div>
+                    <div className="dot-typing"></div>
+                  </div>
+                )}
                 <div ref={messagesEndRef} />
               </div>
               
               {/* Input para responder */}
-              <div style={{ padding: '1rem', backgroundColor: 'var(--bg-card)', borderTop: '1px solid var(--border-color)' }}>
+              <div style={{ padding: '1rem', backgroundColor: 'var(--surface-container)', borderTop: '1px solid var(--card-border)' }}>
                 <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                  <div style={{display: 'flex', flex: 1, backgroundColor: '#0f172a', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)'}}>
+                  <div style={{display: 'flex', flex: 1, backgroundColor: 'var(--surface-container-low)', borderRadius: '8px', border: '1px solid var(--card-border)'}}>
                       <input 
                         type="text" 
                         placeholder="Escribe un mensaje al cliente..."
-                        style={{ flex: 1, backgroundColor: 'transparent', border: 'none', color: '#fff', padding: '12px 16px', outline: 'none' }}
+                        style={{ flex: 1, backgroundColor: 'transparent', border: 'none', color: 'var(--on-surface)', padding: '12px 16px', outline: 'none' }}
                         value={replyText}
                         onChange={(e) => setReplyText(e.target.value)}
                         onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
