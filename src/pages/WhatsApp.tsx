@@ -187,8 +187,8 @@ export default function WhatsApp() {
                       maxWidth: '75%',
                     }} className="chat-bubble-anim">
                       <div style={{
-                          backgroundColor: isInbound ? 'var(--surface-container-lowest)' : 'var(--primary)', 
-                          color: isInbound ? 'var(--on-surface)' : 'var(--on-primary)',
+                          backgroundColor: isInbound ? '#005c4b' : 'var(--primary)', 
+                          color: '#ffffff',
                           padding: '12px 16px',
                           borderRadius: '12px',
                           borderTopLeftRadius: isInbound ? '0' : '12px',
@@ -197,7 +197,7 @@ export default function WhatsApp() {
                           lineHeight: 1.4
                       }}>
                         <div style={{wordBreak: 'break-word'}}>{msg.message_body}</div>
-                        <div style={{fontSize: '0.65rem', textAlign: 'right', marginTop: '6px', opacity: 0.6, letterSpacing: '0.5px'}}>
+                        <div style={{fontSize: '0.65rem', textAlign: 'right', marginTop: '6px', opacity: 0.6, letterSpacing: '0.5px', color: '#ffffff'}}>
                           {new Date(msg.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
                           {!isInbound && <span className="material-symbols-outlined" style={{fontSize: '12px', verticalAlign: 'middle', marginLeft: '4px'}}>done_all</span>}
                         </div>

@@ -7,8 +7,10 @@ const navGroups = [
     group: 'Operaciones',
     items: [
       { path: '/', label: 'Monitor Principal', icon: 'grid_view' },
-      { path: '/orders', label: 'Pedidos y Logística', icon: 'shopping_bag' },
-      { path: '/menu', label: 'Menú e Inventario', icon: 'inventory_2' },
+      { path: '/orders', label: 'Gestión de Ventas', icon: 'shopping_bag' },
+      { path: '/bookings', label: 'Agenda de Citas', icon: 'calendar_month' },
+      { path: '/catalog', label: 'Catálogo y Servicios', icon: 'inventory_2' },
+      { path: '/operations', label: 'Panel de Operaciones', icon: 'engineering' },
       { path: '/customers', label: 'Base de Clientes', icon: 'group' },
       { path: '/whatsapp', label: 'Canal WhatsApp', icon: 'forum' },
       { path: '/notifications', label: 'Centro de Alertas', icon: 'notifications' },

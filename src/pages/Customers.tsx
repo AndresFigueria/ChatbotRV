@@ -64,7 +64,7 @@ export default function Customers() {
             <tr style={{ backgroundColor: 'var(--surface-container-low)', borderBottom: '1px solid var(--surface-container-highest)' }}>
               <th style={{ padding: '1rem', color: 'var(--secondary)', fontSize: '0.75rem', textTransform: 'uppercase' }}>Cliente</th>
               <th style={{ padding: '1rem', color: 'var(--secondary)', fontSize: '0.75rem', textTransform: 'uppercase' }}>Teléfono</th>
-              <th style={{ padding: '1rem', color: 'var(--secondary)', fontSize: '0.75rem', textTransform: 'uppercase' }}>Pedidos</th>
+              <th style={{ padding: '1rem', color: 'var(--secondary)', fontSize: '0.75rem', textTransform: 'uppercase' }}>Actividad</th>
               <th style={{ padding: '1rem', color: 'var(--secondary)', fontSize: '0.75rem', textTransform: 'uppercase' }}>Total Gastado</th>
               <th style={{ padding: '1rem', color: 'var(--secondary)', fontSize: '0.75rem', textTransform: 'uppercase' }}>Estado</th>
             </tr>

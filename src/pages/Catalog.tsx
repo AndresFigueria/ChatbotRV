@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../supabaseClient';
 
-export default function Menu() {
+export default function Catalog() {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeCategory, setActiveCategory] = useState('Todos');
   const [menuItems, setMenuItems] = useState<any[]>([]);
@@ -15,7 +15,7 @@ export default function Menu() {
   const [formData, setFormData] = useState({
     id: '', 
     name: '',
-    category: 'Hamburguesas',
+    category: 'Servicios',
     price: '',
     cost: '', // NUEVO: Costo
     upsell: '', // NUEVO: Upsell sugerido
@@ -73,7 +73,7 @@ export default function Menu() {
     fetchMenu();
   }, [fetchMenu]);
 
-  const categories = ['Todos', 'Hamburguesas', 'Pizzas', 'Tacos', 'Sushi', 'Postres', 'Bebidas', 'Acompañantes'];
+  const categories = ['Todos', 'Servicios', 'Consultas', 'Productos', 'Suscripciones', 'Otros'];
 
   const filteredMenu = menuItems.filter(m => {
     const searchLower = searchTerm.toLowerCase();
@@ -94,7 +94,7 @@ export default function Menu() {
   };
 
   const openNewItem = () => {
-    setFormData({ id: '', name: '', category: 'Hamburguesas', price: '', cost: '', upsell: '', modifiers: false, keywords: '', img: '' });
+    setFormData({ id: '', name: '', category: 'Servicios', price: '', cost: '', upsell: '', modifiers: false, keywords: '', img: '' });
     setIsModalOpen(true);
   };
 
@@ -158,7 +158,7 @@ export default function Menu() {
              <span className="material-symbols-outlined">calendar_month</span> Agenda de Reservas
           </button>
           <button onClick={openNewItem} className="btn-primary" style={{ height: '44px', padding: '0 1.5rem', borderRadius: '8px', boxShadow: '0 4px 14px rgba(255, 90, 31, 0.2)' }}>
-             + Nuevo Producto
+             + Nuevo Item
           </button>
         </div>
       </div>
@@ -168,7 +168,7 @@ export default function Menu() {
         {/* 1. Estado del Catálogo (Activos / Total) */}
         <div className="card">
           <div className="flex justify-between items-start mb-2">
-            <p className="label-sm">Platos Activos</p>
+            <p className="label-sm">Items Activos</p>
             <span className="material-symbols-outlined" style={{ color: 'var(--primary)' }}>inventory_2</span>
           </div>
           <h3 className="display-md" style={{ fontSize: '1.8rem', color: menuItems.filter(m => m.available).length === menuItems.length ? 'var(--emerald-400)' : 'var(--on-surface)' }}>
@@ -208,7 +208,7 @@ export default function Menu() {
         {/* 4. TARJETA DE TOP RENDIMIENTO CON IMAGEN AJUSTADA */}
         <div className="card" style={{ border: '1px solid var(--primary-dim)' }}>
           <div className="flex justify-between items-start mb-2">
-            <p className="label-sm" style={{ color: 'var(--primary)' }}>Plato Estrella</p>
+            <p className="label-sm" style={{ color: 'var(--primary)' }}>Item Estrella</p>
             <span className="material-symbols-outlined" style={{ color: 'var(--primary)' }}>trending_up</span>
           </div>
           {topProduct ? (
@@ -363,7 +363,7 @@ export default function Menu() {
 
                <div className="flex gap-3 mt-4">
                   <button type="button" onClick={() => setIsModalOpen(false)} className="btn-secondary" style={{ flex: 1 }}>Cancelar</button>
-                  <button type="submit" className="btn-primary" style={{ flex: 1 }}>Guardar Plato</button>
+                  <button type="submit" className="btn-primary" style={{ flex: 1 }}>Guardar Item</button>
                </div>
             </form>
           </div>

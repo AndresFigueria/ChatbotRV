@@ -6,12 +6,13 @@ import Dashboard from './pages/Dashboard';
 import Orders from './pages/Orders';
 import Customers from './pages/Customers';
 import Marketing from './pages/Marketing';
-import Menu from './pages/Menu';
-import Kitchen from './pages/Kitchen';
+import Catalog from './pages/Catalog';
+import Operations from './pages/Operations';
 import Analytics from './pages/Analytics';
 import History from './pages/History';
 import Settings from './pages/Settings';
 import BotStatus from './pages/BotStatus';
+import Bookings from './pages/Bookings';
 import WhatsApp from './pages/WhatsApp';
 import Login from './pages/Login';
 import Notifications from './pages/Notifications';
@@ -47,10 +48,11 @@ function App() {
         <Routes>
           <Route path="/" element={<Dashboard />} />
           <Route path="/orders" element={<Orders />} />
-          <Route path="/kitchen" element={<Kitchen />} />
+          <Route path="/bookings" element={<Bookings />} />
+          <Route path="/operations" element={<Operations />} />
           <Route path="/customers" element={<Customers />} />
           <Route path="/marketing" element={<Marketing />} />
-          <Route path="/menu" element={<Menu />} />
+          <Route path="/catalog" element={<Catalog />} />
           <Route path="/analytics" element={<Analytics />} />
           <Route path="/history" element={<History />} />
           <Route path="/settings" element={<Settings />} />

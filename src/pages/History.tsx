@@ -7,19 +7,16 @@ export default function History() {
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Mock de Bitácora del Sistema (Audit Log)
-  const systemLogs = [
-    { id: 1, time: '14:32:01', user: 'Robotina (IA)', action: 'Procesó nueva orden de WhatsApp #9021 automáticamente.', type: 'bot' },
-    { id: 2, time: '14:28:45', user: 'Terminal Cocina', action: 'Imprimió comanda física para el pedido #9018.', type: 'kitchen' },
-    { id: 3, time: '13:15:22', user: 'Admin (Caja 1)', action: 'Desactivó temporalmente producto "Limonada de Coco" (Stock Out).', type: 'system' },
-    { id: 4, time: '12:05:00', user: 'Admin (Caja 1)', action: 'Lanzó campaña promocional masiva a 89 clientes VIP.', type: 'marketing' },
-    { id: 5, time: '11:42:19', user: 'Robotina (IA)', action: 'Escaló a humano la queja del cliente Elena Rodríguez.', type: 'alert' },
+  // Mock de Cierres de Caja
+  const dailyClosures = [
+    { id: 1, date: '2026-05-14', totalSales: 842.50, totalBookings: 12, status: 'Cerrado (Auto)', created_at: '2026-05-14T18:00:00Z' },
+    { id: 2, date: '2026-05-13', totalSales: 715.00, totalBookings: 8, status: 'Cerrado (Manual)', created_at: '2026-05-13T17:45:00Z' },
+    { id: 3, date: '2026-05-12', totalSales: 920.15, totalBookings: 15, status: 'Cerrado (Auto)', created_at: '2026-05-12T18:00:00Z' },
   ];
 
   useEffect(() => {
     async function fetchHistoricalOrders() {
       setLoading(true);
-      // Supabase Query con JOIN a customers
       const { data, error } = await supabase
         .from('orders')
         .select(`
@@ -55,6 +52,13 @@ export default function History() {
     alert(`Re-imprimiendo Boleta Electrónica Oficial para el Pedido #${code}...\nConectando a impresora térmica EPSON_TM20...`);
   };
 
+  const handleManualClose = () => {
+    const confirm = window.confirm('¿Deseas realizar el CIERRE DE DÍA ahora? Se guardará el resumen de ventas y citas actual.');
+    if (confirm) {
+      alert('Cierre de Día procesado con éxito. El resumen ha sido archivado.');
+    }
+  };
+
   if (loading) {
     return <div className="p-8 flex justify-center items-center" style={{ minHeight: '50vh' }}>
       <p className="body-md" style={{ color: 'var(--secondary)' }}>Accediendo a la caja fuerte de datos...</p>
@@ -69,7 +73,7 @@ export default function History() {
         <div>
           <h2 className="display-md">Archivo y Contabilidad</h2>
           <p className="body-md" style={{ color: 'var(--secondary)', marginTop: '0.25rem' }}>
-            Registro exacto e inmutable de boletas emitidas y eventos logísticos de la Inteligencia Artificial.
+            Registro exacto e inmutable de boletas emitidas, cierres de día y eventos logísticos.
           </p>
         </div>
         <div className="flex gap-3">
@@ -77,9 +81,9 @@ export default function History() {
             <span className="material-symbols-outlined" style={{ fontSize: '1.25rem' }}>cloud_download</span>
             CSV Contable
           </button>
-          <button className="btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', boxShadow: '0 4px 14px rgba(255, 90, 31, 0.3)' }}>
+          <button onClick={handleManualClose} className="btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', boxShadow: '0 4px 14px rgba(255, 90, 31, 0.3)' }}>
             <span className="material-symbols-outlined" style={{ fontSize: '1.25rem' }}>receipt_long</span>
-            Cierre de Caja Virtual
+            Cerrar Día Manual
           </button>
         </div>
       </div>
@@ -106,7 +110,7 @@ export default function History() {
 
       {/* Navegación por Pestañas */}
       <div className="flex gap-4" style={{ marginBottom: '1.5rem', borderBottom: 'var(--table-border)', paddingBottom: '0.5rem' }}>
-        {['Boletas Electrónicas', 'Bitácora del Sistema (Logs)'].map(tab => (
+        {['Boletas Electrónicas', 'Cierres de Caja (Día)', 'Historial WhatsApp (AI)', 'Bitácora del Sistema (Logs)'].map(tab => (
           <button 
             key={tab} 
             onClick={() => setActiveTab(tab)}
@@ -201,7 +205,62 @@ export default function History() {
           </>
         )}
 
-        {/* TAB 2: AUDIT LOGS */}
+        {/* TAB 2: CIERRES DE CAJA */}
+        {activeTab === 'Cierres de Caja (Día)' && (
+          <div style={{ padding: '1.5rem', backgroundColor: 'var(--surface-bright)' }}>
+             <p className="body-md" style={{ color: 'var(--secondary)', marginBottom: '1.5rem', fontSize: '0.85rem' }}>
+               Resumen histórico de cierres diarios. Cada entrada representa la consolidación final de ventas y servicios prestados.
+             </p>
+
+             <div style={{ overflowX: 'auto' }}>
+               <table className="orders-table" style={{ margin: 0 }}>
+                 <thead>
+                   <tr style={{ backgroundColor: 'var(--surface-container-high)' }}>
+                     <th>Fecha de Operación</th>
+                     <th>Ventas Totales</th>
+                     <th>Citas / Servicios</th>
+                     <th>Tipo de Cierre</th>
+                     <th>Hora de Guardado</th>
+                     <th style={{ textAlign: 'right' }}>Acciones</th>
+                   </tr>
+                 </thead>
+                 <tbody>
+                   {dailyClosures.map(closure => (
+                     <tr key={closure.id} style={{ borderBottom: '1px solid var(--surface-container-highest)' }}>
+                       <td style={{ fontWeight: 700, color: 'var(--on-surface)' }}>
+                         {new Date(closure.date).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}
+                       </td>
+                       <td style={{ fontWeight: 800, color: 'var(--emerald-400)' }}>
+                         ${closure.totalSales.toFixed(2)}
+                       </td>
+                       <td style={{ fontWeight: 600 }}>
+                         {closure.totalBookings} Citas
+                       </td>
+                       <td>
+                         <span style={{ 
+                           fontSize: '0.65rem', padding: '0.2rem 0.6rem', borderRadius: '1rem', fontWeight: 800,
+                           backgroundColor: 'var(--surface-container-highest)', color: 'var(--secondary)'
+                         }}>
+                           {closure.status}
+                         </span>
+                       </td>
+                       <td style={{ color: 'var(--secondary)', fontSize: '0.85rem' }}>
+                         {new Date(closure.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                       </td>
+                       <td style={{ textAlign: 'right' }}>
+                          <button className="icon-btn" style={{ padding: '0.4rem', backgroundColor: 'var(--surface-container-low)', borderRadius: '8px' }}>
+                            <span className="material-symbols-outlined" style={{ fontSize: '1.2rem', color: 'var(--primary)' }}>visibility</span>
+                          </button>
+                       </td>
+                     </tr>
+                   ))}
+                 </tbody>
+               </table>
+             </div>
+          </div>
+        )}
+
+        {/* TAB 3: AUDIT LOGS */}
         {activeTab === 'Bitácora del Sistema (Logs)' && (
           <div style={{ padding: '1.5rem', backgroundColor: 'var(--surface-bright)' }}>
              <p className="body-md" style={{ color: 'var(--secondary)', marginBottom: '1.5rem', fontSize: '0.85rem' }}>
@@ -235,6 +294,74 @@ export default function History() {
           </div>
         )}
 
+        {/* TAB 4: WHATSAPP LOGS (NEW) */}
+        {activeTab === 'Historial WhatsApp (AI)' && (
+           <WhatsAppLogsTab />
+        )}
+      </div>
+    </div>
+  );
+}
+
+function WhatsAppLogsTab() {
+  const [logs, setLogs] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchLogs() {
+      const { data } = await supabase
+        .from('conversation_logs')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(50);
+      
+      if (data) setLogs(data);
+      setLoading(false);
+    }
+    fetchLogs();
+  }, []);
+
+  if (loading) return <div className="p-8 text-center text-secondary">Cargando bitácora de IA...</div>;
+
+  return (
+    <div style={{ padding: '1.5rem', backgroundColor: 'var(--surface-bright)' }}>
+      <p className="body-md" style={{ color: 'var(--secondary)', marginBottom: '1.5rem', fontSize: '0.85rem' }}>
+        Registro de interacciones procesadas por Robotina vía n8n. Puedes auditar cada respuesta del bot aquí.
+      </p>
+
+      <div style={{ overflowX: 'auto' }}>
+        <table className="orders-table" style={{ margin: 0 }}>
+          <thead>
+            <tr style={{ backgroundColor: 'var(--surface-container-high)' }}>
+              <th>Fecha/Hora</th>
+              <th>Cliente</th>
+              <th>Teléfono</th>
+              <th>Mensaje Recibido</th>
+              <th>Respuesta Robotina</th>
+              <th>Estado</th>
+            </tr>
+          </thead>
+          <tbody>
+            {logs.map(log => (
+              <tr key={log.id} style={{ borderBottom: '1px solid var(--surface-container-highest)' }}>
+                <td style={{ fontSize: '0.8rem', color: 'var(--secondary)' }}>
+                  {new Date(log.created_at).toLocaleString([], { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                </td>
+                <td style={{ fontWeight: 700 }}>{log.customer_name || 'N/A'}</td>
+                <td style={{ fontSize: '0.85rem' }}>{log.phone}</td>
+                <td style={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: '0.85rem' }}>
+                  {log.inbound_message}
+                </td>
+                <td style={{ maxWidth: '300px', fontSize: '0.85rem', color: 'var(--primary)', fontStyle: 'italic' }}>
+                   "{log.agent_response}"
+                </td>
+                <td>
+                   <span style={{ fontSize: '0.65rem', color: 'var(--emerald-400)', fontWeight: 900 }}>{log.status?.toUpperCase()}</span>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     </div>
   );

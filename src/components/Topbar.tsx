@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '../supabaseClient';
 import { useNavigate } from 'react-router-dom';
 
@@ -9,6 +9,18 @@ export default function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
   const [hasViewedNotifications, setHasViewedNotifications] = useState(false);
   const [prevCount, setPrevCount] = useState(0);
   const [dismissedOrderIds, setDismissedOrderIds] = useState<string[]>([]);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   // Search state
   const [globalSearch, setGlobalSearch] = useState('');
@@ -178,7 +190,7 @@ export default function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
         </button>
         
         {/* Notificaciones Bell with Dropdown */}
-        <div style={{ position: 'relative' }}>
+        <div style={{ position: 'relative' }} ref={dropdownRef}>
           <button 
             onClick={handleOpenNotifications} 
             style={{ color: 'var(--secondary)', position: 'relative' }} 

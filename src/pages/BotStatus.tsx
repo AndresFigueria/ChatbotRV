@@ -8,6 +8,7 @@ interface Chat {
   last_message: string;
   last_message_at: string;
   status: string;
+  is_bot_active: boolean;
 }
 
 interface Message {
@@ -21,13 +22,12 @@ export default function BotStatus() {
   const [chats, setChats] = useState<Chat[]>([]);
   const [activeChatId, setActiveChatId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
-  const [humanModeIds, setHumanModeIds] = useState<string[]>([]);
   const [inputText, setInputText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const activeChat = chats.find(c => c.id === activeChatId);
-  const isHumanControlled = activeChatId ? humanModeIds.includes(activeChatId) : false;
+  const isHumanControlled = activeChat ? !activeChat.is_bot_active : false;
 
   useEffect(() => {
     fetchChats();
@@ -59,7 +59,7 @@ export default function BotStatus() {
 
   const fetchChats = async () => {
     const { data } = await supabase.from('whatsapp_chats').select('*').order('last_message_at', { ascending: false });
-    if (data) setChats(data);
+    if (data) setChats(data as Chat[]);
   };
 
   const fetchMessages = async (chatId: string) => {
@@ -74,12 +74,19 @@ export default function BotStatus() {
     }
   };
 
-  const toggleHumanMode = () => {
-    if (!activeChatId) return;
-    if (humanModeIds.includes(activeChatId)) {
-      setHumanModeIds(humanModeIds.filter(id => id !== activeChatId));
+  const toggleHumanMode = async () => {
+    if (!activeChatId || !activeChat) return;
+    
+    // Actualizamos en la DB para que n8n se entere inmediatamente
+    const { error } = await supabase
+      .from('whatsapp_chats')
+      .update({ is_bot_active: !activeChat.is_bot_active })
+      .eq('id', activeChatId);
+
+    if (error) {
+      console.error('Error toggling bot:', error);
     } else {
-      setHumanModeIds([...humanModeIds, activeChatId]);
+      fetchChats(); // Refrescar UI
     }
   };
 
@@ -118,7 +125,9 @@ export default function BotStatus() {
               <div key={chat.id} onClick={() => setActiveChatId(chat.id)} style={{ padding: '1rem', borderBottom: '1px solid var(--surface-container-highest)', cursor: 'pointer', backgroundColor: activeChatId === chat.id ? 'var(--surface-container)' : 'transparent', borderLeft: activeChatId === chat.id ? '4px solid var(--primary)' : '4px solid transparent' }}>
                 <p style={{ fontWeight: 600, fontSize: '0.85rem' }}>{chat.contact_name || 'Cliente Nuevo'}</p>
                 <p style={{ color: 'var(--secondary)', fontSize: '0.7rem' }}>{chat.phone_number}</p>
-                <span style={{ fontSize: '0.6rem', color: 'var(--primary)', fontWeight: 700 }}>{humanModeIds.includes(chat.id) ? 'CONTROL HUMANO' : 'BOT ACTIVO'}</span>
+                <span style={{ fontSize: '0.6rem', color: chat.is_bot_active ? 'var(--primary)' : 'var(--error)', fontWeight: 700 }}>
+                  {chat.is_bot_active ? 'BOT ACTIVO' : 'CONTROL HUMANO'}
+                </span>
               </div>
             ))}
           </div>
@@ -140,10 +149,17 @@ export default function BotStatus() {
               <div style={{ flex: 1, backgroundColor: 'var(--surface-container-highest)', padding: '1.5rem', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                 {messages.map((msg, i) => (
                   <div key={i} style={{ display: 'flex', justifyContent: msg.sender === 'user' ? 'flex-start' : 'flex-end' }} className="chat-bubble-anim">
-                    <div style={{ maxWidth: '70%', padding: '0.75rem 1rem', borderRadius: '0.75rem', boxShadow: '0 4px 12px rgba(0,0,0,0.08)', backgroundColor: msg.sender === 'user' ? 'var(--surface-container-lowest)' : (msg.sender === 'bot' ? 'var(--surface-container-high)' : 'var(--primary-container)') }}>
-                      <div style={{ fontSize: '0.6rem', color: 'var(--secondary)', marginBottom: '0.2rem', fontWeight: 700 }}>{msg.sender.toUpperCase()}</div>
+                    <div style={{ 
+                      maxWidth: '70%', 
+                      padding: '0.75rem 1rem', 
+                      borderRadius: '0.75rem', 
+                      boxShadow: '0 4px 12px rgba(0,0,0,0.08)', 
+                      backgroundColor: msg.sender === 'user' ? '#005c4b' : (msg.sender === 'bot' ? 'var(--surface-container-high)' : 'var(--primary-container)'),
+                      color: msg.sender === 'user' ? '#ffffff' : 'inherit'
+                    }}>
+                      <div style={{ fontSize: '0.6rem', color: msg.sender === 'user' ? 'rgba(255,255,255,0.7)' : 'var(--secondary)', marginBottom: '0.2rem', fontWeight: 700 }}>{msg.sender.toUpperCase()}</div>
                       <div style={{ fontSize: '0.85rem' }}>{msg.text}</div>
-                      <div style={{ textAlign: 'right', fontSize: '0.6rem', color: 'var(--secondary)', marginTop: '0.4rem' }}>{msg.time}</div>
+                      <div style={{ textAlign: 'right', fontSize: '0.6rem', color: msg.sender === 'user' ? 'rgba(255,255,255,0.5)' : 'var(--secondary)', marginTop: '0.4rem' }}>{msg.time}</div>
                     </div>
                   </div>
                 ))}

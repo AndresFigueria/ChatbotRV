@@ -62,8 +62,8 @@ export default function Dashboard() {
     <div className="p-8">
       <header className="page-header mb-8">
         <div>
-          <h2 className="display-md">Monitor Robotina Central 🤖</h2>
-          <p className="body-md" style={{ color: 'var(--secondary)' }}>Panel de control operativo y financiero.</p>
+          <h2 className="display-md">Robotina Business Control 🤖</h2>
+          <p className="body-md" style={{ color: 'var(--secondary)' }}>Panel de control operativo y estratégico.</p>
         </div>
       </header>
 
@@ -73,7 +73,7 @@ export default function Dashboard() {
           <h3 className="display-md" style={{ color: 'var(--primary)', marginTop: '0.5rem' }}>${stats.revenue.toLocaleString()}</h3>
         </div>
         <div className="card">
-          <p className="label-sm">Pedidos Cerrados</p>
+          <p className="label-sm">Operaciones Totales</p>
           <h3 className="display-md" style={{ marginTop: '0.5rem' }}>{stats.orders}</h3>
         </div>
         <div className="card">

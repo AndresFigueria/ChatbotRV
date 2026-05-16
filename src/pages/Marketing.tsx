@@ -3,7 +3,7 @@ import { supabase } from '../supabaseClient';
 
 export default function Marketing() {
   const [audience, setAudience] = useState('Todos');
-  const [message, setMessage] = useState('¡Hola [Nombre]! 🌟 Sabemos que te encanta el [Plato_Favorito], por eso te regalamos un 20% de descuento en tu próximo pedido usando el código: REGRESA20.\n\n¿Deseas pedirlo ahora mismo? Escribe "QUIERO EL DESCUENTO" y yo armaré tu carrito. 🍔');
+  const [message, setMessage] = useState('¡Hola [Nombre]! 🌟 Sabemos que te interesa nuestro servicio de [Item_Favorito], por eso te regalamos un bono especial en tu próxima visita usando el código: REGRESA20.\n\n¿Deseas agendar ahora mismo? Escribe "QUIERO EL BONO" y yo me encargo de todo. ✨');
   const [imgUrl, setImgUrl] = useState('');
   const [campaignName, setCampaignName] = useState('Recuperación de Clientes Febrero');
   
@@ -75,7 +75,7 @@ export default function Marketing() {
         <div>
           <h2 className="display-md">Generador de Marketing (WhatsApp)</h2>
           <p className="body-md" style={{ color: 'var(--secondary)', marginTop: '0.25rem' }}>
-            Aumenta tus ventas impactando directamente al bolsillo de tus comensales mediante la IA.
+            Aumenta tus ventas impactando directamente al teléfono de tus clientes mediante la IA.
           </p>
         </div>
       </div>
@@ -154,7 +154,7 @@ export default function Marketing() {
                <div style={{ backgroundColor: '#DCF8C6', padding: '0.75rem', borderRadius: '0.5rem', borderTopLeftRadius: 0, boxShadow: '0 1px 2px rgba(0,0,0,0.1)', maxWidth: '90%', marginLeft: 'auto', borderTopRightRadius: 0 }}>
                   {imgUrl && <img src={imgUrl} alt="Flyer" style={{ width: '100%', borderRadius: '0.4rem', marginBottom: '0.5rem', objectFit: 'cover' }} />}
                   <p style={{ fontSize: '0.8rem', color: '#303030', whiteSpace: 'pre-wrap', lineHeight: 1.4 }}>
-                    {message.replace('[Nombre]', 'Cliente').replace('[Plato_Favorito]', 'su plato favorito').replace('[LTV]', '$0.00')}
+                    {message.replace('[Nombre]', 'Cliente').replace('[Item_Favorito]', 'nuestro servicio estrella').replace('[LTV]', '$0.00')}
                   </p>
                   <div style={{ textAlign: 'right', fontSize: '0.6rem', color: '#999', marginTop: '0.2rem' }}>Ahora ✓✓</div>
                </div>
@@ -216,8 +216,8 @@ export default function Marketing() {
             </div>
             <h3 className="display-md" style={{ margin: 0 }}>¡Inyección Exitosa!</h3>
             <p className="body-md" style={{ color: 'var(--secondary)', textAlign: 'center', maxWidth: '300px', margin: 0 }}>
-              Has lanzado {audienceCount} mensajes personalizados directo a la yugular del teléfono de tus clientes. 
-              Siéntate y mira cómo tu Bot empieza a levantar cientos de dólares en comandas.
+              Has lanzado {audienceCount} mensajes personalizados directo al teléfono de tus clientes. 
+              Siéntate y mira cómo tu Bot empieza a levantar ventas y servicios automáticamente.
             </p>
           </div>
         </div>
