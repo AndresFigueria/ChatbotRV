@@ -14,6 +14,13 @@ export default function History() {
     { id: 3, date: '2026-05-12', totalSales: 920.15, totalBookings: 15, status: 'Cerrado (Auto)', created_at: '2026-05-12T18:00:00Z' },
   ];
 
+  // Mock de Logs del Sistema (Faltaba esto)
+  const systemLogs = [
+    { id: 1, type: 'bot', action: 'Actualización de Prompts completada', user: 'AI Agent', time: 'Hace 5 min' },
+    { id: 2, type: 'admin', action: 'Cambio de horario de apertura', user: 'Andrés (Admin)', time: 'Hace 20 min' },
+    { id: 3, type: 'alert', action: 'Falla en conexión Webhook Meta', user: 'System', time: 'Hace 1 hora' },
+  ];
+
   useEffect(() => {
     async function fetchHistoricalOrders() {
       setLoading(true);
@@ -268,7 +275,7 @@ export default function History() {
              </p>
 
              <div className="flex flex-col gap-3">
-               {systemLogs.map(log => (
+               {systemLogs.map((log: Log) => (
                  <div key={log.id} style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '1rem', border: '1px solid var(--surface-container-highest)', borderRadius: '0.5rem', backgroundColor: 'var(--surface-container-low)' }}>
                    <div style={{ padding: '0.5rem', borderRadius: '50%', display: 'flex', backgroundColor: log.type === 'bot' ? 'rgba(255, 90, 31, 0.1)' : (log.type === 'alert' ? 'rgba(239, 68, 68, 0.1)' : 'var(--surface-container-high)'), color: log.type === 'bot' ? 'var(--primary)' : (log.type === 'alert' ? 'var(--error)' : 'var(--secondary)') }}>
                      <span className="material-symbols-outlined" style={{ fontSize: '1.2rem' }}>

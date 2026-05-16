@@ -80,11 +80,6 @@ export default function Orders() {
     }
   };
 
-  const confirmDeleteOrder = async () => {
-    if (!orderToDelete) return;
-    await supabase.from('orders').delete().eq('order_code', orderToDelete);
-    setOrderToDelete(null);
-  };
 
   const handleStatusChange = async (orderCode: string, currentStatus: string) => {
     let newStatus = '';
@@ -96,17 +91,6 @@ export default function Orders() {
     await supabase.from('orders').update({ status: newStatus }).eq('order_code', orderCode);
   };
 
-  const [isDarkMode, setIsDarkMode] = useState(!document.documentElement.classList.contains('light-mode'));
-
-  useEffect(() => {
-    const observer = new MutationObserver(() => {
-      const isLight = document.documentElement.classList.contains('light-mode');
-      setIsDarkMode(!isLight);
-    });
-
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
-    return () => observer.disconnect();
-  }, []);
 
   if (loading) return (
     <div className="p-8" style={{ backgroundColor: 'var(--surface-container-low)', minHeight: '100vh', color: 'var(--on-surface)' }}>
@@ -115,7 +99,6 @@ export default function Orders() {
   );
 
   const activosCount = orders.filter(o => o.status === 'Pendiente' || o.status === 'Preparando').length;
-  const listosCount = orders.filter(o => o.status === 'Listo').length;
   const totalIngresos = orders.reduce((sum, o) => sum + (o.totalNum || 0), 0);
 
   const filteredOrders = orders.filter(o => activeFilter === 'Todos' || o.status === activeFilter);
@@ -268,11 +251,10 @@ export default function Orders() {
                   onClick={() => handleStatusChange(order.id, order.status)}
                   style={{ 
                     width: '100%', padding: '1rem', border: 'none', cursor: 'pointer', fontWeight: 800, fontSize: '0.75rem', letterSpacing: '1px', textTransform: 'uppercase', transition: 'all 0.3s',
-                    backgroundColor: isPending ? 'var(--primary-container)' : 'var(--surface-container-highest)',
-                    color: isPending ? 'var(--on-primary-container)' : 'var(--on-surface)',
+                    backgroundColor: isPending ? 'rgba(201, 168, 76, 0.1)' : 'rgba(255, 255, 255, 0.05)',
+                    color: isPending ? '#C9A84C' : '#fff',
                     borderTop: '1px solid var(--surface-container-highest)'
                   }}
-                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = isPending ? '#C9A84C' : 'rgba(255,255,255,0.1)'}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.backgroundColor = isPending ? '#C9A84C' : 'rgba(255,255,255,0.1)';
                     if (isPending) e.currentTarget.style.color = '#1A1A2E';
