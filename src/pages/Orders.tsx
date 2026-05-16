@@ -4,7 +4,6 @@ import { supabase } from '../supabaseClient';
 export default function Orders() {
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [orderToDelete, setOrderToDelete] = useState<string | null>(null);
   const [activeFilter, setActiveFilter] = useState('Todos');
 
   const fetchOrders = async () => {
@@ -239,7 +238,7 @@ export default function Orders() {
                     <span style={{ fontSize: '0.6rem', color: 'var(--secondary)' }}>TOTAL A COBRAR</span>
                     <span style={{ fontSize: '1.2rem', fontWeight: 900, color: 'var(--primary)' }}>{order.total}</span>
                   </div>
-                  <button onClick={() => setOrderToDelete(order.id)} style={{ background: 'none', border: 'none', color: 'var(--error)', opacity: 0.6, cursor: 'pointer' }}>
+                  <button style={{ background: 'none', border: 'none', color: 'var(--error)', opacity: 0.6, cursor: 'default' }}>
                     <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>delete</span>
                   </button>
                 </div>

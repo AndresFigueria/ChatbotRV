@@ -275,7 +275,7 @@ export default function History() {
              </p>
 
              <div className="flex flex-col gap-3">
-               {systemLogs.map((log: Log) => (
+               {systemLogs.map((log: any) => (
                  <div key={log.id} style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '1rem', border: '1px solid var(--surface-container-highest)', borderRadius: '0.5rem', backgroundColor: 'var(--surface-container-low)' }}>
                    <div style={{ padding: '0.5rem', borderRadius: '50%', display: 'flex', backgroundColor: log.type === 'bot' ? 'rgba(255, 90, 31, 0.1)' : (log.type === 'alert' ? 'rgba(239, 68, 68, 0.1)' : 'var(--surface-container-high)'), color: log.type === 'bot' ? 'var(--primary)' : (log.type === 'alert' ? 'var(--error)' : 'var(--secondary)') }}>
                      <span className="material-symbols-outlined" style={{ fontSize: '1.2rem' }}>
