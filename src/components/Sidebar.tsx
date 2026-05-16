@@ -15,6 +15,7 @@ const navGroups = [
       { path: '/whatsapp', label: 'Canal WhatsApp', icon: 'forum' },
       { path: '/notifications', label: 'Centro de Alertas', icon: 'notifications' },
       { path: '/analytics', label: 'Estadísticas IA', icon: 'psychology' },
+      { path: '/history', label: 'Historial de Auditoría', icon: 'history' },
     ]
   },
   {
