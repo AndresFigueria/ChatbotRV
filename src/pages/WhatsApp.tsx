@@ -7,6 +7,7 @@ interface Chat {
   contact_name: string;
   last_message_at: string;
   unread_count: number;
+  is_bot_active: boolean;
 }
 
 interface Message {
@@ -18,6 +19,17 @@ interface Message {
   status: string;
 }
 
+const renderFormattedMessage = (text: string) => {
+  if (!text) return '';
+  const parts = text.split(/(\*[^*]+\*)/g);
+  return parts.map((part, index) => {
+    if (part.startsWith('*') && part.endsWith('*')) {
+      return <strong key={index}>{part.slice(1, -1)}</strong>;
+    }
+    return part;
+  });
+};
+
 export default function WhatsApp() {
   const [chats, setChats] = useState<Chat[]>([]);
   const [activeChatId, setActiveChatId] = useState<string | null>(null);
@@ -25,6 +37,9 @@ export default function WhatsApp() {
   const [replyText, setReplyText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const activeChat = chats.find(c => c.id === activeChatId);
+  const isHumanControlled = activeChat ? !activeChat.is_bot_active : false;
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -40,7 +55,7 @@ export default function WhatsApp() {
     
     // Suscripción de Realtime a nuevos chats
     const chatSubscription = supabase
-      .channel('public:whatsapp_chats')
+      .channel('dashboard-whatsapp-chats-list')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'whatsapp_chats' }, () => {
         fetchChats();
       })
@@ -58,7 +73,7 @@ export default function WhatsApp() {
 
       // Usar Supabase Realtime para capturar nuevos mensajes al vuelo!
       const msgSubscription = supabase
-        .channel(`public:whatsapp_messages`)
+        .channel(`chat-messages-${activeChatId}`)
         .on('postgres_changes', { 
             event: 'INSERT', 
             schema: 'public', 
@@ -115,6 +130,22 @@ export default function WhatsApp() {
     }]);
   };
 
+  const toggleHumanMode = async () => {
+    if (!activeChatId || !activeChat) return;
+    
+    // Actualizamos en la DB para que n8n se entere inmediatamente
+    const { error } = await supabase
+      .from('whatsapp_chats')
+      .update({ is_bot_active: !activeChat.is_bot_active })
+      .eq('id', activeChatId);
+
+    if (error) {
+      console.error('Error toggling bot:', error);
+    } else {
+      fetchChats(); // Refrescar UI
+    }
+  };
+
   return (
     <div className="page-container" style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
       <header className="page-header">
@@ -153,7 +184,19 @@ export default function WhatsApp() {
                     {new Date(chat.last_message_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
                   </div>
                 </div>
-                <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>+{chat.phone_number}</div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>+{chat.phone_number}</div>
+                  <span style={{ 
+                    fontSize: '0.6rem', 
+                    fontWeight: 800, 
+                    padding: '2px 6px', 
+                    borderRadius: '10px',
+                    backgroundColor: chat.is_bot_active ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+                    color: chat.is_bot_active ? '#10b981' : '#ef4444'
+                  }}>
+                    {chat.is_bot_active ? 'BOT' : 'HUMANO'}
+                  </span>
+                </div>
               </div>
             ))}
           </div>
@@ -164,14 +207,33 @@ export default function WhatsApp() {
           {activeChatId ? (
             <>
               {/* Header del chat */}
-              <div style={{ padding: '1rem', borderBottom: '1px solid var(--border-color)', backgroundColor: 'var(--bg-card)', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                 <div style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: 'rgba(16, 185, 129, 0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
-                    <span className="material-symbols-outlined" style={{color: '#10b981'}}>account_circle</span>
+              <div style={{ padding: '1rem', borderBottom: '1px solid var(--border-color)', backgroundColor: 'var(--bg-card)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                   <div style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: 'rgba(16, 185, 129, 0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+                      <span className="material-symbols-outlined" style={{color: '#10b981'}}>account_circle</span>
+                   </div>
+                   <div>
+                      <div style={{ fontWeight: 600, fontSize: '1.1rem' }}>{chats.find(c => c.id === activeChatId)?.contact_name}</div>
+                      <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)'}}>Cliente Frecuente</div>
+                   </div>
                  </div>
-                 <div>
-                    <div style={{ fontWeight: 600, fontSize: '1.1rem' }}>{chats.find(c => c.id === activeChatId)?.contact_name}</div>
-                    <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)'}}>Cliente Frecuente</div>
-                 </div>
+                 
+                 <button 
+                   onClick={toggleHumanMode} 
+                   className={isHumanControlled ? "btn-primary" : "btn-secondary"} 
+                   style={{ 
+                     display: 'flex', 
+                     alignItems: 'center', 
+                     gap: '8px',
+                     backgroundColor: isHumanControlled ? 'var(--error)' : undefined,
+                     boxShadow: isHumanControlled ? '0 0 15px rgba(239, 68, 68, 0.3)' : undefined
+                   }}
+                 >
+                   <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>
+                     {isHumanControlled ? 'smart_toy' : 'support_agent'}
+                   </span>
+                   {isHumanControlled ? 'Devolver al Bot' : 'Tomar Control Humano'}
+                 </button>
               </div>
               
               {/* Burbujas de mensajes */}
@@ -196,7 +258,7 @@ export default function WhatsApp() {
                           boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
                           lineHeight: 1.4
                       }}>
-                        <div style={{wordBreak: 'break-word'}}>{msg.message_body}</div>
+                        <div style={{wordBreak: 'break-word', whiteSpace: 'pre-wrap'}}>{renderFormattedMessage(msg.message_body)}</div>
                         <div style={{fontSize: '0.65rem', textAlign: 'right', marginTop: '6px', opacity: 0.6, letterSpacing: '0.5px', color: '#ffffff'}}>
                           {new Date(msg.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
                           {!isInbound && <span className="material-symbols-outlined" style={{fontSize: '12px', verticalAlign: 'middle', marginLeft: '4px'}}>done_all</span>}
@@ -205,6 +267,7 @@ export default function WhatsApp() {
                     </div>
                   );
                 })}
+
                 {isTyping && (
                   <div className="typing-bubble chat-bubble-anim">
                     <div className="dot-typing"></div>

@@ -141,6 +141,62 @@ footer p{font-size:.85rem;color:var(--text-muted)}
   .hero-stats{gap:24px}
   .stat-n{font-size:1.6rem}
 }
+
+/* CURRENCY TOGGLE */
+.currency-toggle-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  margin: 32px 0 12px;
+}
+.toggle-label {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color 0.3s ease;
+  user-select: none;
+}
+.toggle-label.active {
+  color: var(--text);
+}
+.toggle-switch {
+  width: 54px;
+  height: 28px;
+  background: var(--border);
+  border-radius: 100px;
+  position: relative;
+  cursor: pointer;
+  border: 1px solid #333;
+  transition: background-color 0.3s ease;
+}
+.toggle-switch:hover {
+  border-color: var(--green);
+}
+.toggle-handle {
+  width: 20px;
+  height: 20px;
+  background: var(--green);
+  border-radius: 50%;
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.toggle-switch.pen-active .toggle-handle {
+  transform: translateX(26px);
+}
+.plan-setup-fee {
+  font-size: 0.85rem;
+  color: var(--orange);
+  margin-top: 8px;
+  font-weight: 600;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
+}
 </style>
 </head>
 <body>
@@ -231,55 +287,81 @@ footer p{font-size:.85rem;color:var(--text-muted)}
   <div style="text-align:center;max-width:600px;margin:0 auto">
     <div class="section-label" style="text-align:center">Precios</div>
     <h2 class="section-title">Menos que un <mark>empleado de medio tiempo</mark></h2>
-    <p style="color:var(--text-muted);margin-top:12px">Sin contratos. Sin instalaciones. <mark class="gold">Cancela cuando quieras.</mark></p>
+    <p style="color:var(--text-muted);margin-top:12px">Sin contratos ocultos. <mark class="gold">Cancela cuando quieras.</mark></p>
+    
+    <!-- Currency Toggle -->
+    <div class="currency-toggle-container">
+      <span class="toggle-label active" id="toggle-usd">Dólares (USD)</span>
+      <div class="toggle-switch" id="currency-switch" aria-label="Cambiar moneda">
+        <div class="toggle-handle"></div>
+      </div>
+      <span class="toggle-label" id="toggle-pen">Soles (PEN)</span>
+    </div>
   </div>
+  
   <div class="pricing-grid">
-    <!-- BÁSICO -->
+    <!-- PLAN INICIAL -->
     <div class="plan">
-      <div class="plan-name">Básico</div>
-      <div class="plan-price"><span class="count-up" data-target="49" data-prefix="$">$49</span><span>/mes</span></div>
-      <p class="plan-desc">Para dark kitchens y restaurantes que dan su primer paso hacia la automatización.</p>
+      <div class="plan-name">Inicial</div>
+      <div class="plan-price">
+        <span class="price-val count-up" data-target="49" data-prefix="$" data-usd="49" data-pen="180">$49</span><span>/mes</span>
+      </div>
+      <div class="plan-setup-fee">
+        <span>+ </span><span class="setup-val" data-usd="29" data-pen="110">$29</span><span> Setup (Único)</span>
+      </div>
+      <p class="plan-desc">Para negocios pequeños y profesionales que necesitan responder consultas frecuentes por WhatsApp.</p>
       <ul class="plan-features">
-        <li>Bot IA con hasta 30 productos</li>
-        <li>500 conversaciones/mes</li>
-        <li>Dashboard de pedidos (Kanban)</li>
-        <li>CRM básico (200 clientes)</li>
+        <li>Bot IA con base de conocimientos (FAQs)</li>
+        <li>1 Agente de atención</li>
+        <li>Respuestas automáticas ilimitadas</li>
+        <li>Bandeja de entrada básica</li>
         <li>Soporte por email</li>
       </ul>
-      <a href="#" class="plan-btn outline">Empezar gratis</a>
+      <a href="https://wa.me/51987654321?text=Hola,%20quiero%20más%20información%20sobre%20el%20Plan%20Inicial%20de%20Robotina-Central" class="plan-btn outline" target="_blank">Adquirir Plan Inicial</a>
     </div>
-    <!-- PRO -->
+    
+    <!-- PLAN PRO -->
     <div class="plan featured">
-      <div class="plan-badge">⭐ Más popular</div>
+      <div class="plan-badge">⭐ Recomendado</div>
       <div class="plan-name">Pro</div>
-      <div class="plan-price"><span class="count-up" data-target="149" data-prefix="$">$149</span><span>/mes</span></div>
-      <p class="plan-desc">Para restaurantes con delivery activo y más de 50 pedidos por semana.</p>
+      <div class="plan-price">
+        <span class="price-val count-up" data-target="99" data-prefix="$" data-usd="99" data-pen="370">$99</span><span>/mes</span>
+      </div>
+      <div class="plan-setup-fee">
+        <span>+ </span><span class="setup-val" data-usd="79" data-pen="290">$79</span><span> Setup (Único)</span>
+      </div>
+      <p class="plan-desc">Para negocios y equipos comerciales que necesitan un bot inteligente, CRM y seguimiento comercial.</p>
       <ul class="plan-features">
-        <li>Menú y conversaciones ilimitadas</li>
-        <li>CRM completo con segmentación</li>
-        <li>Campañas WhatsApp (5/mes)</li>
-        <li>Pantalla de cocina KDS</li>
-        <li>Analytics y Business Intelligence</li>
-        <li>Takeover humano</li>
-        <li>Soporte 24/7 por chat</li>
+        <li>IA conversacional inteligente (Contexto completo)</li>
+        <li>Hasta 5 Agentes de atención incluidos</li>
+        <li>CRM completo con embudo y etiquetas</li>
+        <li>Campañas y envíos masivos (500/mes)</li>
+        <li>Panel de control y reportes de ventas</li>
+        <li>Integración básica Google Sheets / n8n</li>
+        <li>Soporte prioritario por WhatsApp</li>
       </ul>
-      <a href="#" class="plan-btn primary">Activar Pro gratis 14 días</a>
+      <a href="https://wa.me/51987654321?text=Hola,%20quiero%20más%20información%20sobre%20el%20Plan%20Pro%20de%20Robotina-Central" class="plan-btn primary" target="_blank">Adquirir Plan Pro</a>
     </div>
-    <!-- ENTERPRISE -->
+    
+    <!-- PLAN EMPRESA -->
     <div class="plan">
-      <div class="plan-name">Enterprise</div>
-      <div class="plan-price"><span class="count-up" data-target="349" data-prefix="$">$349</span><span>/mes</span></div>
-      <p class="plan-desc">Para cadenas y franquicias que necesitan estandarizar múltiples locales.</p>
+      <div class="plan-name">Empresa</div>
+      <div class="plan-price">
+        <span class="price-val count-up" data-target="199" data-prefix="$" data-usd="199" data-pen="740">$199</span><span>/mes</span>
+      </div>
+      <div class="plan-setup-fee">
+        <span>+ Setup desde </span><span class="setup-val" data-usd="199" data-pen="740">$199</span><span> (Único)</span>
+      </div>
+      <p class="plan-desc">Para negocios con más volumen de chats, campañas frecuentes e integraciones complejas.</p>
       <ul class="plan-features">
-        <li>Hasta 5 sucursales</li>
-        <li>Campañas ilimitadas</li>
-        <li>API personalizada (integración POS)</li>
-        <li>Auditoría y cierre de caja</li>
-        <li>Bot con personalidad propia</li>
-        <li>Onboarding 1-a-1 dedicado</li>
-        <li>SLA 99.9% garantizado</li>
+        <li>IA avanzada con múltiples bases de datos</li>
+        <li>Agentes ilimitados</li>
+        <li>Campañas y conversaciones ilimitadas</li>
+        <li>Integraciones a medida (APIs y Webhooks)</li>
+        <li>Onboarding y configuración dedicada 1-a-1</li>
+        <li>Soporte 24/7 con ejecutivo asignado</li>
       </ul>
-      <a href="#" class="plan-btn outline">Hablar con ventas</a>
+      <a href="https://wa.me/51987654321?text=Hola,%20quiero%20más%20información%20sobre%20el%20Plan%20Empresa%20de%20Robotina-Central" class="plan-btn outline" target="_blank">Hablar con Ventas</a>
     </div>
   </div>
 </div>
@@ -332,12 +414,12 @@ document.querySelectorAll('.pain-card,.feat-card,.plan,.step').forEach(el=>{
 });
 
 // 3. Count-up animation
-function animateCounter(el){
-  const target=parseInt(el.dataset.target)||0;
-  const startVal=el.dataset.start!==undefined?parseInt(el.dataset.start):target===0?0:0;
+function animateCounter(el, customTarget = null, customStart = null){
+  const target=customTarget !== null ? customTarget : (parseInt(el.dataset.target)||0);
+  const startVal=customStart !== null ? customStart : (el.dataset.start!==undefined?parseInt(el.dataset.start):target===0?0:0);
   const prefix=el.dataset.prefix||'';
   const suffix=el.dataset.suffix||'';
-  const duration=3000;
+  const duration=1000; // Faster transition for interactive toggles
   const startTime=performance.now();
   const easeOut=t=>1-Math.pow(1-t,3);
   function step(now){
@@ -359,6 +441,51 @@ const counterObs=new IntersectionObserver((entries)=>{
   });
 },{threshold:0.5});
 document.querySelectorAll('.count-up').forEach(el=>counterObs.observe(el));
+
+// 4. Currency Toggle Logic
+const currencySwitch = document.getElementById('currency-switch');
+const toggleUsdLabel = document.getElementById('toggle-usd');
+const togglePenLabel = document.getElementById('toggle-pen');
+let currentCurrency = 'usd';
+
+function updateCurrency(currency) {
+  if (currentCurrency === currency) return;
+  currentCurrency = currency;
+
+  if (currency === 'pen') {
+    currencySwitch.classList.add('pen-active');
+    togglePenLabel.classList.add('active');
+    toggleUsdLabel.classList.remove('active');
+  } else {
+    currencySwitch.classList.remove('pen-active');
+    toggleUsdLabel.classList.add('active');
+    togglePenLabel.classList.remove('active');
+  }
+
+  // Update prices
+  document.querySelectorAll('.price-val').forEach(el => {
+    const startPrice = parseInt(el.textContent.replace(/[^0-9]/g, '')) || 0;
+    const endPrice = currency === 'usd' ? parseInt(el.dataset.usd) : parseInt(el.dataset.pen);
+    const prefix = currency === 'usd' ? '$' : 'S/. ';
+    el.dataset.prefix = prefix;
+    animateCounter(el, endPrice, startPrice);
+  });
+
+  // Update setups
+  document.querySelectorAll('.setup-val').forEach(el => {
+    const endSetup = currency === 'usd' ? parseInt(el.dataset.usd) : parseInt(el.dataset.pen);
+    const prefix = currency === 'usd' ? '$' : 'S/. ';
+    el.textContent = prefix + endSetup;
+  });
+}
+
+if (currencySwitch) {
+  currencySwitch.addEventListener('click', () => {
+    updateCurrency(currentCurrency === 'usd' ? 'pen' : 'usd');
+  });
+  toggleUsdLabel.addEventListener('click', () => updateCurrency('usd'));
+  togglePenLabel.addEventListener('click', () => updateCurrency('pen'));
+}
 </script>
 </body>
 </html>

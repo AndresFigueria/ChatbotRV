@@ -5,6 +5,21 @@ export default function Orders() {
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState('Todos');
+  const [botEfficiency, setBotEfficiency] = useState<number>(0);
+  const [orderToDelete, setOrderToDelete] = useState<string | null>(null);
+
+  const fetchBotEfficiency = async () => {
+    const { data, error } = await supabase
+      .from('whatsapp_chats')
+      .select('is_bot_active');
+    
+    if (!error && data) {
+      const total = data.length;
+      const active = data.filter(c => c.is_bot_active).length;
+      const efficiency = total > 0 ? (active / total) * 100 : 0;
+      setBotEfficiency(efficiency);
+    }
+  };
 
   const fetchOrders = async () => {
     const { data, error } = await supabase
@@ -37,6 +52,8 @@ export default function Orders() {
 
   useEffect(() => {
     fetchOrders();
+    fetchBotEfficiency();
+
     const channel = supabase
       .channel('public:orders')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, _payload => {
@@ -44,40 +61,19 @@ export default function Orders() {
       })
       .subscribe();
 
-    return () => { supabase.removeChannel(channel); };
+    const chatsChannel = supabase
+      .channel('orders-chats-realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'whatsapp_chats' }, _payload => {
+        fetchBotEfficiency();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+      supabase.removeChannel(chatsChannel);
+    };
   }, []);
 
-  const handleSimulateOrder = async () => {
-    try {
-      const { data: custData } = await supabase.from('customers').select('id').limit(1);
-      const customerId = custData?.[0]?.id;
-      if (!customerId) return alert("Necesitas un cliente en Supabase.");
-
-      const randomCode = '#' + Math.floor(Math.random() * 10000).toString().padStart(4, '0');
-      
-      // Simulación de detalle real de productos
-      const mockMenu = ['Hamburguesa Robotina', 'Pizza Cyber-Pepperoni', 'Papas Megabyte', 'Limonada Galáctica'];
-      const numItems = Math.floor(Math.random() * 3) + 1;
-      const fakeItems = [];
-      for(let i=0; i<numItems; i++) {
-         fakeItems.push({ 
-            name: mockMenu[Math.floor(Math.random() * mockMenu.length)], 
-            qty: Math.floor(Math.random() * 2) + 1 
-         });
-      }
-
-      await supabase.from('orders').insert({
-        order_code: randomCode,
-        customer_id: customerId,
-        items_count: fakeItems.reduce((acc, curr) => acc + curr.qty, 0),
-        items_json: fakeItems,
-        total_amount: (Math.random() * 40 + 10).toFixed(2),
-        status: 'Pendiente'
-      });
-    } catch (err: any) {
-      alert("Error crítico: " + err.message);
-    }
-  };
 
 
   const handleStatusChange = async (orderCode: string, currentStatus: string) => {
@@ -90,6 +86,18 @@ export default function Orders() {
     await supabase.from('orders').update({ status: newStatus }).eq('order_code', orderCode);
   };
 
+  const handleDeleteOrder = (orderCode: string) => {
+    setOrderToDelete(orderCode);
+  };
+
+  const confirmDelete = async () => {
+    if (!orderToDelete) return;
+    const { error } = await supabase.from('orders').delete().eq('order_code', orderToDelete);
+    if (error) {
+      console.error('Error deleting order:', error);
+    }
+    setOrderToDelete(null);
+  };
 
   if (loading) return (
     <div className="p-8" style={{ backgroundColor: 'var(--surface-container-low)', minHeight: '100vh', color: 'var(--on-surface)' }}>
@@ -116,11 +124,7 @@ export default function Orders() {
             Control logístico y comercial de alta precisión • <span style={{ color: 'var(--tertiary)', fontWeight: 600 }}>En Vivo</span>
           </p>
         </div>
-        <div className="flex gap-3">
-          <button onClick={handleSimulateOrder} className="btn-primary" style={{ backgroundColor: '#C9A84C', border: 'none', color: '#1A1A2E', fontWeight: 800, padding: '0.75rem 1.5rem', borderRadius: '12px', boxShadow: '0 0 20px rgba(201, 168, 76, 0.3)' }}>
-            <span className="material-symbols-outlined" style={{ verticalAlign: 'middle', marginRight: '8px' }}>smart_toy</span> Simular Acción IA
-          </button>
-        </div>
+
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.5rem', marginBottom: '3rem' }}>
@@ -138,7 +142,7 @@ export default function Orders() {
         </div>
         <div style={{ padding: '1.5rem', borderRadius: '16px', background: 'var(--surface-container)', border: '1px solid var(--surface-container-highest)', boxShadow: 'var(--shadow-sm)' }}>
           <p style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--primary)', letterSpacing: '1px' }}>Eficiencia Bot</p>
-          <h3 style={{ fontSize: '2.5rem', margin: '0.5rem 0', color: 'var(--on-surface)' }}>98.4%</h3>
+          <h3 style={{ fontSize: '2.5rem', margin: '0.5rem 0', color: 'var(--on-surface)' }}>{botEfficiency.toFixed(1)}%</h3>
           <p style={{ fontSize: '0.8rem', opacity: 0.5 }}>Precisión en toma de pedidos</p>
         </div>
       </div>
@@ -238,7 +242,13 @@ export default function Orders() {
                     <span style={{ fontSize: '0.6rem', color: 'var(--secondary)' }}>TOTAL A COBRAR</span>
                     <span style={{ fontSize: '1.2rem', fontWeight: 900, color: 'var(--primary)' }}>{order.total}</span>
                   </div>
-                  <button style={{ background: 'none', border: 'none', color: 'var(--error)', opacity: 0.6, cursor: 'default' }}>
+                  <button 
+                    onClick={() => handleDeleteOrder(order.id)}
+                    style={{ background: 'none', border: 'none', color: 'var(--error)', opacity: 0.8, cursor: 'pointer', transition: 'opacity 0.2s' }}
+                    onMouseEnter={(e) => e.currentTarget.style.opacity = '1'}
+                    onMouseLeave={(e) => e.currentTarget.style.opacity = '0.8'}
+                    title="Eliminar pedido"
+                  >
                     <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>delete</span>
                   </button>
                 </div>
@@ -270,6 +280,62 @@ export default function Orders() {
           );
         })}
       </div>
+
+      {/* Modal de confirmación de eliminación */}
+      {orderToDelete && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.7)', backdropFilter: 'blur(5px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000
+        }}>
+          <div style={{
+            background: 'var(--surface-container-high)', border: '1px solid rgba(255, 82, 82, 0.3)',
+            borderRadius: '24px', padding: '2rem', maxWidth: '380px', width: '90%',
+            boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)',
+            textAlign: 'center'
+          }}>
+            <div style={{ 
+              width: '64px', height: '64px', borderRadius: '50%', backgroundColor: 'rgba(255, 82, 82, 0.1)', 
+              color: 'var(--error)', display: 'flex', alignItems: 'center', justifyContent: 'center', 
+              margin: '0 auto 1.5rem auto' 
+            }}>
+              <span className="material-symbols-outlined" style={{ fontSize: '32px' }}>delete_forever</span>
+            </div>
+            <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1.25rem', fontWeight: 800, color: 'var(--on-surface)' }}>¿Eliminar Pedido?</h3>
+            <p style={{ margin: '0 0 2rem 0', fontSize: '0.9rem', color: 'var(--secondary)', lineHeight: '1.5' }}>
+              Estás a punto de borrar el pedido <strong style={{ color: 'var(--error)' }}>{orderToDelete}</strong>. Esta acción es irreversible.
+            </p>
+            <div style={{ display: 'flex', gap: '1rem' }}>
+              <button 
+                onClick={() => setOrderToDelete(null)}
+                style={{
+                  flex: 1, padding: '0.8rem', borderRadius: '12px', border: '1px solid var(--surface-container-highest)',
+                  background: 'var(--surface-container)', color: 'var(--on-surface)', fontWeight: 600, cursor: 'pointer',
+                  transition: 'background 0.2s'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--surface-container-highest)'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--surface-container)'}
+              >
+                Cancelar
+              </button>
+              <button 
+                onClick={confirmDelete}
+                style={{
+                  flex: 1, padding: '0.8rem', borderRadius: '12px', border: 'none',
+                  background: 'var(--error)', color: '#fff', fontWeight: 600, cursor: 'pointer',
+                  boxShadow: '0 4px 15px rgba(255, 82, 82, 0.2)', transition: 'transform 0.1s, opacity 0.2s'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.opacity = '0.9'}
+                onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
+                onMouseDown={(e) => e.currentTarget.style.transform = 'scale(0.96)'}
+                onMouseUp={(e) => e.currentTarget.style.transform = 'scale(1)'}
+              >
+                Eliminar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

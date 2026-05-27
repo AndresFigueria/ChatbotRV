@@ -16,6 +16,11 @@ import Bookings from './pages/Bookings';
 import WhatsApp from './pages/WhatsApp';
 import Login from './pages/Login';
 import Notifications from './pages/Notifications';
+import Register from './pages/Register';
+import Onboarding from './pages/Onboarding';
+import NotificationToast from './components/NotificationToast';
+import Landing from './pages/Landing';
+
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
@@ -27,41 +32,59 @@ function App() {
     localStorage.setItem('isAuthenticated', 'true');
     setIsAuthenticated(true);
   };
+
+  // const handleLogout = () => {
+  //   localStorage.removeItem('isAuthenticated');
+  //   setIsAuthenticated(false);
+  // };
+
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-
-  if (!isAuthenticated) {
-    return <Login onLogin={handleLogin} />;
-  }
-
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
   const closeSidebar = () => setIsSidebarOpen(false);
 
-  return (
-    <div className="app-container">
-      <div 
-        className={`sidebar-overlay ${isSidebarOpen ? 'visible' : ''}`} 
-        onClick={closeSidebar}
-      />
-      <Sidebar isOpen={isSidebarOpen} onClose={closeSidebar} />
-      <div className="main-canvas">
-        <Topbar onMenuClick={toggleSidebar} />
-        <Routes>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/orders" element={<Orders />} />
-          <Route path="/bookings" element={<Bookings />} />
-          <Route path="/operations" element={<Operations />} />
-          <Route path="/customers" element={<Customers />} />
-          <Route path="/marketing" element={<Marketing />} />
-          <Route path="/catalog" element={<Catalog />} />
-          <Route path="/analytics" element={<Analytics />} />
-          <Route path="/history" element={<History />} />
-          <Route path="/settings" element={<Settings />} />
-          <Route path="/bot-status" element={<BotStatus />} />
-          <Route path="/whatsapp" element={<WhatsApp />} />
-          <Route path="/notifications" element={<Notifications />} />
-        </Routes>
+  // Componente interno para el layout principal
+  const MainLayout = () => {
+    if (!isAuthenticated) {
+      return <Login onLogin={handleLogin} />;
+    }
+    return (
+      <div className="app-container">
+        <div 
+          className={`sidebar-overlay ${isSidebarOpen ? 'visible' : ''}`} 
+          onClick={closeSidebar}
+        />
+        <Sidebar isOpen={isSidebarOpen} onClose={closeSidebar} />
+        <div className="main-canvas">
+          <Topbar onMenuClick={toggleSidebar} />
+          <Routes>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/orders" element={<Orders />} />
+            <Route path="/bookings" element={<Bookings />} />
+            <Route path="/operations" element={<Operations />} />
+            <Route path="/customers" element={<Customers />} />
+            <Route path="/marketing" element={<Marketing />} />
+            <Route path="/catalog" element={<Catalog />} />
+            <Route path="/analytics" element={<Analytics />} />
+            <Route path="/history" element={<History />} />
+            <Route path="/settings" element={<Settings />} />
+            <Route path="/bot-status" element={<BotStatus />} />
+            <Route path="/whatsapp" element={<WhatsApp />} />
+            <Route path="/notifications" element={<Notifications />} />
+          </Routes>
+        </div>
+        <NotificationToast />
       </div>
-    </div>
+    );
+  };
+
+  return (
+    <Routes>
+      <Route path="/" element={isAuthenticated ? <MainLayout /> : <Landing />} />
+      <Route path="/login" element={<Login onLogin={handleLogin} />} />
+      <Route path="/register" element={<Register />} />
+      <Route path="/onboarding" element={isAuthenticated ? <Onboarding onComplete={() => {}} /> : <Login onLogin={handleLogin} />} />
+      <Route path="/*" element={<MainLayout />} />
+    </Routes>
   );
 }
 

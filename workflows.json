@@ -1,0 +1,3908 @@
+[
+  {
+    "updatedAt": "2026-05-18T20:34:31.860Z",
+    "createdAt": "2026-05-06T02:29:57.897Z",
+    "id": "CFNI5u9l6blnNkG0",
+    "name": "Robotina WhatsApp Restaurante V1 - Seguro y Escalable",
+    "description": null,
+    "active": false,
+    "isArchived": false,
+    "nodes": [
+      {
+        "parameters": {
+          "httpMethod": "POST",
+          "path": "whatsapp-webhook",
+          "options": {
+            "rawBody": true
+          }
+        },
+        "id": "49a42e3b-757b-4d69-a389-1684d8233400",
+        "name": "WhatsApp Webhook POST",
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 1,
+        "position": [
+          -48,
+          416
+        ],
+        "webhookId": "REPLACE_WITH_N8N_WEBHOOK_ID"
+      },
+      {
+        "parameters": {
+          "jsCode": "// Normaliza el payload de WhatsApp Cloud API para que el agente reciba datos limpios.\n// No pegues tokens aquí. Todo debe ir en Credentials o variables de entorno.\n\nconst body = $json.body || $json;\n\nconst value = body?.entry?.[0]?.changes?.[0]?.value || {};\nconst message = value?.messages?.[0] || null;\nconst contact = value?.contacts?.[0] || {};\nconst status = value?.statuses?.[0] || null;\n\n// Si llega un status de WhatsApp, por ejemplo delivered/read/sent, lo ignoramos.\nif (status && !message) {\n  return [{\n    json: {\n      is_valid_message: false,\n      event_type: 'status',\n      reason: 'WhatsApp status event ignored',\n      status_id: status.id || null,\n      status_value: status.status || null,\n      raw: body\n    }\n  }];\n}\n\n// Si no hay mensaje, no seguimos al agente.\nif (!message) {\n  return [{\n    json: {\n      is_valid_message: false,\n      event_type: 'unknown',\n      reason: 'No message object found',\n      raw: body\n    }\n  }];\n}\n\nconst type = message.type;\nlet text = '';\nlet media_id = null;\n\nif (type === 'text') {\n  text = message?.text?.body || '';\n}\n\nif (type === 'audio') {\n  media_id = message?.audio?.id || null;\n}\n\nif (type === 'image') {\n  text = message?.image?.caption || '';\n  media_id = message?.image?.id || null;\n}\n\nif (type === 'document') {\n  text = message?.document?.caption || '';\n  media_id = message?.document?.id || null;\n}\n\nreturn [{\n  json: {\n    is_valid_message: true,\n    event_type: 'message',\n    from: message.from,\n    customer_name: contact?.profile?.name || null,\n    message_id: message.id,\n    message_type: type,\n    text,\n    media_id,\n    timestamp: message.timestamp,\n    session_id: message.from,\n    business_phone_number_id: value?.metadata?.phone_number_id || null,\n    display_phone_number: value?.metadata?.display_phone_number || null,\n    raw_message: message\n  }\n}];"
+        },
+        "id": "04ceb4bb-5849-4e58-87b8-c45193430dbd",
+        "name": "Normalize WhatsApp Message",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          128,
+          416
+        ]
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "boolean": [
+              {
+                "value1": "={{$json.is_valid_message}}",
+                "value2": true
+              }
+            ]
+          }
+        },
+        "id": "105f0339-6fbb-410c-97dd-4c66eb107b9d",
+        "name": "IF Valid Message",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 1,
+        "position": [
+          272,
+          416
+        ]
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "string": [
+              {
+                "value1": "={{$json.message_type}}",
+                "value2": "text"
+              }
+            ]
+          }
+        },
+        "id": "5f286962-0377-4161-b0ad-3d52a4d6eb91",
+        "name": "IF Text Message",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 1,
+        "position": [
+          464,
+          400
+        ]
+      },
+      {
+        "parameters": {
+          "url": "=https://vijzjcpkypsmkhywndus.supabase.co/rest/v1/processed_messages?select=id&whatsapp_message_id=eq.{{$json.message_id}}",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "apikey",
+                "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpanpqY3BreXBzbWtoeXduZHVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NzEzODMsImV4cCI6MjA5MDI0NzM4M30.SiFNNR3ixkITh2y5tHbFiCymhRQmAny1CrlMojm3HkA"
+              },
+              {
+                "name": "Authorization",
+                "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpanpqY3BreXBzbWtoeXduZHVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NzEzODMsImV4cCI6MjA5MDI0NzM4M30.SiFNNR3ixkITh2y5tHbFiCymhRQmAny1CrlMojm3HkA"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "id": "7ed36e5b-22ff-4e6d-8b09-f24906760a72",
+        "name": "Check Duplicate Message",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4,
+        "position": [
+          528,
+          160
+        ],
+        "alwaysOutputData": true,
+        "notes": "Consulta processed_messages. Si devuelve filas, no se debe responder otra vez."
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "=https://vijzjcpkypsmkhywndus.supabase.co/rest/v1/processed_messages",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "apikey",
+                "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpanpqY3BreXBzbWtoeXduZHVzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NDY3MTM4MywiZXhwIjoyMDkwMjQ3MzgzfQ.PyYU30n4yp2z_wtIJHnzunMtc_hX8rD7xWdPNxSYTHw"
+              },
+              {
+                "name": "Authorization",
+                "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpanpqY3BreXBzbWtoeXduZHVzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NDY3MTM4MywiZXhwIjoyMDkwMjQ3MzgzfQ.PyYU30n4yp2z_wtIJHnzunMtc_hX8rD7xWdPNxSYTHw"
+              },
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "name": "Prefer",
+                "value": "return=representation"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={\n  \"whatsapp_message_id\": \"{{$node['Normalize WhatsApp Message'].json.message_id}}\",\n  \"phone\": \"{{$node['Normalize WhatsApp Message'].json.from}}\"\n}",
+          "options": {}
+        },
+        "id": "e857efac-ab4a-4ec2-ab8e-d60de683ea99",
+        "name": "Insert Processed Message",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4,
+        "position": [
+          736,
+          160
+        ],
+        "alwaysOutputData": true,
+        "notes": "MVP: en producción conviene insertar antes de llamar al agente y manejar conflicto 409 como duplicado."
+      },
+      {
+        "parameters": {
+          "model": "gpt-4o-mini",
+          "options": {
+            "temperature": 0.2
+          }
+        },
+        "id": "0203b614-2279-4c8e-ab5f-4382968b3b64",
+        "name": "OpenAI Chat Model",
+        "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+        "typeVersion": 1,
+        "position": [
+          1376,
+          416
+        ],
+        "credentials": {
+          "openAiApi": {
+            "id": "CFMyPrlFJum28GvJ",
+            "name": "OpenAI account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "sessionKey": "={{ $json.from }}",
+          "contextWindowLength": 10
+        },
+        "id": "f02be29d-4837-456c-b721-28c0cf9fad12",
+        "name": "Memory by WhatsApp Number",
+        "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+        "typeVersion": 1,
+        "position": [
+          1536,
+          400
+        ],
+        "notes": "Para producción fuerte, reemplazar por Redis/Postgres memory. Session key = número de WhatsApp."
+      },
+      {
+        "parameters": {
+          "jsCode": "const input = $json;\n\nlet reply = input.output || input.reply || input.text || '';\n\nif (!reply) {\n  reply = 'Gracias por escribirnos. ¿En qué puedo ayudarte?';\n}\n\nif (reply.length > 3500) {\n  reply = reply.slice(0, 3400) + '\\n\\nTe resumo lo principal arriba. Si deseas, te puedo dar más detalle.';\n}\n\nreply = reply\n  .replace(/\\*\\*/g, '*')\n  .replace(/#{1,6}\\s/g, '')\n  .trim();\n\nlet from = input.from || input.customer_phone || input.phone || '';\n\ntry {\n  const normalize = $('Normalize WhatsApp Message').first().json;\n  from = from || normalize.from || normalize.customer_phone || normalize.phone || '';\n} catch (error) {\n  // Si se ejecuta manualmente y el nodo anterior no existe, no rompe.\n}\n\nreturn [\n  {\n    json: {\n      from,\n      reply\n    }\n  }\n];"
+        },
+        "id": "49c385b8-08f8-49be-81ee-0dd5fa28189e",
+        "name": "Format WhatsApp Response",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1808,
+          224
+        ]
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "https://graph.facebook.com/v21.0/1111633475368085/messages",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Authorization",
+                "value": "Bearer EAAdRNS7bknMBRZAPLql3WC88kOZAoNZB96d5t2DdoOTAe040ZCPut8R3ZBWTHdcqAbi7aapNzZCcLzUXccJ2lZCUbu3IBtvsk0P292mzWmpnG72KgmDtQvqyU5dLfLk6e5WxKvDAL63DLwbICB8ijDq109MJkRZCVWfzJp1rPs8va1fZC2MyaOKsguJCZAymis4buKZC6li0OGooTZB0lUnGybcMt2HzQJ4Did7XTYroBR3erwxlj4ZByo7AR"
+              },
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={\n  \"messaging_product\": \"whatsapp\",\n  \"to\": \"{{ $json.from }}\",\n  \"type\": \"text\",\n  \"text\": {\n    \"body\": {{ JSON.stringify($json.reply) }}\n  }\n}",
+          "options": {}
+        },
+        "id": "5d20a51f-b7d5-442c-8d1b-28f4436232cf",
+        "name": "Send WhatsApp Message",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4,
+        "position": [
+          2048,
+          224
+        ]
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "https://vijzjcpkypsmkhywndus.supabase.co/rest/v1/conversation_logs",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "apikey",
+                "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpanpqY3BreXBzbWtoeXduZHVzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NDY3MTM4MywiZXhwIjoyMDkwMjQ3MzgzfQ.PyYU30n4yp2z_wtIJHnzunMtc_hX8rD7xWdPNxSYTHw"
+              },
+              {
+                "name": "Authorization",
+                "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpanpqY3BreXBzbWtoeXduZHVzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NDY3MTM4MywiZXhwIjoyMDkwMjQ3MzgzfQ.PyYU30n4yp2z_wtIJHnzunMtc_hX8rD7xWdPNxSYTHw"
+              },
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "name": "Prefer",
+                "value": "return=minimal"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={\n  \"phone\": \"{{$node['Format WhatsApp Response'].json.from}}\",\n  \"customer_name\": \"{{$node['Format WhatsApp Response'].json.customer_name}}\",\n  \"inbound_message\": \"{{$node['Format WhatsApp Response'].json.inbound_message}}\",\n  \"inbound_type\": \"{{$node['Format WhatsApp Response'].json.inbound_type}}\",\n  \"agent_response\": \"{{$node['Format WhatsApp Response'].json.reply}}\",\n  \"status\": \"ok\"\n}",
+          "options": {}
+        },
+        "id": "37fbdf2e-939c-496c-8a5e-18506692317e",
+        "name": "Log Conversation",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4,
+        "position": [
+          2496,
+          224
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "return [{\n  json: {\n    from: $node['Normalize WhatsApp Message'].json.from,\n    reply: 'Por ahora puedo atender mensajes de texto. En breve activaremos audios e imágenes.'\n  }\n}];"
+        },
+        "id": "746f6b19-1abf-440e-8766-955f059c04d8",
+        "name": "Unsupported Message Fallback",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          928,
+          368
+        ]
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "29d36401-a90d-446e-ba76-d3aa7b7fd147",
+                "name": "text",
+                "value": "Hola, ¿qué hamburguesas tienen?",
+                "type": "string"
+              },
+              {
+                "id": "99741e1a-bdaa-435a-af9b-4d6f5c8dbe76",
+                "name": "from",
+                "value": "15551868964",
+                "type": "string"
+              },
+              {
+                "id": "4d780408-0a9c-453a-909c-f3dd5177fc13",
+                "name": "customer_name",
+                "value": "Cliente Prueba",
+                "type": "string"
+              },
+              {
+                "id": "2488ff78-4404-497c-aed5-a2529884c5d6",
+                "name": "session_id",
+                "value": "15551868964",
+                "type": "string"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          1936,
+          -32
+        ],
+        "id": "ed977d21-b1c2-4230-80a5-e4319f9359ec",
+        "name": "Edit Fields"
+      },
+      {
+        "parameters": {
+          "path": "whatsapp-webhook",
+          "responseMode": "responseNode",
+          "options": {}
+        },
+        "id": "dc916c9b-6410-486a-ae2f-82b2edadbc52",
+        "name": "WhatsApp Webhook POST1",
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 1,
+        "position": [
+          16,
+          624
+        ],
+        "webhookId": "REPLACE_WITH_N8N_WEBHOOK_ID"
+      },
+      {
+        "parameters": {
+          "respondWith": "text",
+          "responseBody": "={{$json.query[\"hub.challenge\"]}}",
+          "options": {
+            "responseCode": 200
+          }
+        },
+        "type": "n8n-nodes-base.respondToWebhook",
+        "typeVersion": 1.5,
+        "position": [
+          320,
+          640
+        ],
+        "id": "83f267d2-019c-4e8a-a107-b94dd1118009",
+        "name": "Respond to Webhook"
+      },
+      {
+        "parameters": {
+          "jsCode": "const normalize = $('Normalize WhatsApp Message').first().json;\n\nreturn [\n  {\n    json: {\n      is_valid_message: normalize.is_valid_message,\n      event_type: normalize.event_type,\n      from: normalize.from,\n      customer_name: normalize.customer_name,\n      message_id: normalize.message_id,\n      message_type: normalize.message_type,\n      text: normalize.text,\n      media_id: normalize.media_id,\n      timestamp: normalize.timestamp,\n      session_id: normalize.session_id,\n      business_phone_number_id: normalize.business_phone_number_id,\n      display_phone_number: normalize.display_phone_number,\n      raw_message: normalize.raw_message\n    }\n  }\n];"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          928,
+          160
+        ],
+        "id": "3bc2b9e9-954d-4fa6-873c-4875d20b9561",
+        "name": "Restore WhatsApp Context"
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "https://vijzjcpkypsmkhywndus.supabase.co/rest/v1/rpc/registrar_mensaje",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "apikey",
+                "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpanpqY3BreXBzbWtoeXduZHVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NzEzODMsImV4cCI6MjA5MDI0NzM4M30.SiFNNR3ixkITh2y5tHbFiCymhRQmAny1CrlMojm3HkA"
+              },
+              {
+                "name": "Authorization",
+                "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpanpqY3BreXBzbWtoeXduZHVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NzEzODMsImV4cCI6MjA5MDI0NzM4M30.SiFNNR3ixkITh2y5tHbFiCymhRQmAny1CrlMojm3HkA"
+              },
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "name": "prefer",
+                "value": "return=representation"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={\n  \"p_phone\": \"{{$node['Normalize WhatsApp Message'].json.from}}\",\n  \"p_message\": \"{{$node['Normalize WhatsApp Message'].json.text}}\",\n  \"p_direction\": \"inbound\",\n  \"p_customer_name\": \"{{$node['Normalize WhatsApp Message'].json.customer_name}}\"\n}",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.4,
+        "position": [
+          352,
+          160
+        ],
+        "id": "4614c3ec-9277-4fa9-b4da-a7d1472288c6",
+        "name": "Guardar Mensaje Cliente"
+      },
+      {
+        "parameters": {
+          "url": "https://vijzjcpkypsmkhywndus.supabase.co/rest/v1/whatsapp_chats?phone=eq.{{ $json.from }}&select=is_bot_active",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "apikey",
+                "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpanpqY3BreXBzbWtoeXduZHVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NzEzODMsImV4cCI6MjA5MDI0NzM4M30.SiFNNR3ixkITh2y5tHbFiCymhRQmAny1CrlMojm3HkA"
+              },
+              {
+                "name": "Authorization",
+                "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpanpqY3BreXBzbWtoeXduZHVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NzEzODMsImV4cCI6MjA5MDI0NzM4M30.SiFNNR3ixkITh2y5tHbFiCymhRQmAny1CrlMojm3HkA"
+              },
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.4,
+        "position": [
+          1104,
+          160
+        ],
+        "id": "d1ec6692-aaa4-4420-91e9-9af37404a994",
+        "name": "Consultar Modo Humano",
+        "alwaysOutputData": true
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "loose",
+              "version": 3
+            },
+            "conditions": [
+              {
+                "id": "e9e156f3-885b-4093-a64e-795edcb85743",
+                "leftValue": "={{ $json.is_bot_active !== false }}",
+                "rightValue": "true",
+                "operator": {
+                  "type": "boolean",
+                  "operation": "true",
+                  "singleValue": true
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "looseTypeValidation": true,
+          "options": {}
+        },
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.3,
+        "position": [
+          1312,
+          160
+        ],
+        "id": "87338b3d-d718-4a2c-97ba-69cd6ee0a396",
+        "name": "Bot Activo?"
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "https://vijzjcpkypsmkhywndus.supabase.co/rest/v1/rpc/registrar_mensaje",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "apikey",
+                "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpanpqY3BreXBzbWtoeXduZHVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NzEzODMsImV4cCI6MjA5MDI0NzM4M30.SiFNNR3ixkITh2y5tHbFiCymhRQmAny1CrlMojm3HkA"
+              },
+              {
+                "name": "Authorization",
+                "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpanpqY3BreXBzbWtoeXduZHVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NzEzODMsImV4cCI6MjA5MDI0NzM4M30.SiFNNR3ixkITh2y5tHbFiCymhRQmAny1CrlMojm3HkA"
+              },
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "name": "prefer",
+                "value": "return=representation"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={\n  \"p_phone\": \"{{$node['Format WhatsApp Response'].json.from}}\",\n  \"p_message\": {{ JSON.stringify($node['Format WhatsApp Response'].json.reply) }},\n  \"p_direction\": \"outbound\",\n  \"p_customer_name\": \"{{$node['Normalize WhatsApp Message'].json.customer_name}}\"\n}",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.4,
+        "position": [
+          2256,
+          224
+        ],
+        "id": "30636fe6-9595-4018-b6ad-4d9324df53c8",
+        "name": "Guardar Respuesta Bot"
+      },
+      {
+        "parameters": {
+          "promptType": "define",
+          "text": "==Cliente WhatsApp: {{$('Normalize WhatsApp Message').first().json.from}}\nNombre cliente: {{$('Normalize WhatsApp Message').first().json.customer_name || ''}}\nMensaje cliente: {{$('Normalize WhatsApp Message').first().json.text}}\n",
+          "options": {
+            "systemMessage": "Eres Robotina, asistente de un restaurante. Responde siempre en español. Si el cliente confirma un pedido, usa la herramienta Crear Pedido con phone, customer_name, items y total.\n"
+          }
+        },
+        "type": "@n8n/n8n-nodes-langchain.agent",
+        "typeVersion": 3.1,
+        "position": [
+          1520,
+          224
+        ],
+        "id": "73ba32e1-867f-4ffc-8d82-47fe990db3b1",
+        "name": "AI Agent"
+      },
+      {
+        "parameters": {
+          "toolDescription": "Consulta el catálogo maestro de productos o servicios disponibles en el negocio. Úsala cuando el cliente pregunte qué vendemos, qué servicios ofrecemos, precios, detalles, inventario o sugerencias.",
+          "url": "https://vijzjcpkypsmkhywndus.supabase.co/rest/v1/menu_items?select=item_code,name,description,price,category,img_url,stock_status,is_available,sales_30d,keywords&is_available=eq.true",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "apikey",
+                "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpanpqY3BreXBzbWtoeXduZHVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NzEzODMsImV4cCI6MjA5MDI0NzM4M30.SiFNNR3ixkITh2y5tHbFiCymhRQmAny1CrlMojm3HkA"
+              },
+              {
+                "name": "Authorization",
+                "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpanpqY3BreXBzbWtoeXduZHVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NzEzODMsImV4cCI6MjA5MDI0NzM4M30.SiFNNR3ixkITh2y5tHbFiCymhRQmAny1CrlMojm3HkA"
+              },
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequestTool",
+        "typeVersion": 4.4,
+        "position": [
+          1488,
+          592
+        ],
+        "id": "6d617870-e233-4835-aaf7-9540fea0187c",
+        "name": "Consultar Catálogo"
+      },
+      {
+        "parameters": {
+          "toolDescription": "Consulta las sucursales, oficinas o locales activos del negocio, incluyendo dirección física, link de mapa y horarios de atención.",
+          "url": "https://vijzjcpkypsmkhywndus.supabase.co/rest/v1/branches?select=id,name,address,google_maps_url,opening_hours,is_active&is_active=eq.true",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "apikey",
+                "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpanpqY3BreXBzbWtoeXduZHVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NzEzODMsImV4cCI6MjA5MDI0NzM4M30.SiFNNR3ixkITh2y5tHbFiCymhRQmAny1CrlMojm3HkA"
+              },
+              {
+                "name": "Authorization",
+                "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpanpqY3BreXBzbWtoeXduZHVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NzEzODMsImV4cCI6MjA5MDI0NzM4M30.SiFNNR3ixkITh2y5tHbFiCymhRQmAny1CrlMojm3HkA"
+              },
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequestTool",
+        "typeVersion": 4.4,
+        "position": [
+          1664,
+          576
+        ],
+        "id": "d38033ec-9761-4a3d-a6a4-89ab5cc3f943",
+        "name": "Consultar Sucursales"
+      },
+      {
+        "parameters": {
+          "description": "Crea una solicitud de cita, turno o reserva en el sistema cuando el cliente quiera agendar o reservar un día y una hora específicos.",
+          "jsCode": "const response = await this.helpers.httpRequest({\n  method: 'POST',\n  url: 'https://vijzjcpkypsmkhywndus.supabase.co/rest/v1/reservations',\n  headers: {\n    'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpanpqY3BreXBzbWtoeXduZHVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NzEzODMsImV4cCI6MjA5MDI0NzM4M30.SiFNNR3ixkITh2y5tHbFiCymhRQmAny1CrlMojm3HkA',\n    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpanpqY3BreXBzbWtoeXduZHVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NzEzODMsImV4cCI6MjA5MDI0NzM4M30.SiFNNR3ixkITh2y5tHbFiCymhRQmAny1CrlMojm3HkA',\n    'Content-Type': 'application/json',\n    'Prefer': 'return=representation'\n  },\n  body: {\n    customer_name: customer_name,\n    phone: phone,\n    reservation_date: reservation_date,\n    reservation_time: reservation_time,\n    guest_count: Number(guest_count),\n    notes: notes || '',\n    source: 'whatsapp'\n  },\n  json: true\n});\n\nreturn `Cita o Reserva registrada con éxito para ${customer_name} el día ${reservation_date} a las ${reservation_time}.`;\n",
+          "specifyInputSchema": true,
+          "jsonSchemaExample": "{\n  \"customer_name\": \"Andres Figueroa\",\n  \"phone\": \"51957363566\",\n  \"reservation_date\": \"2026-05-18\",\n  \"reservation_time\": \"15:00\",\n  \"guest_count\": 2,\n  \"notes\": \"Mesa cerca de la ventana\"\n}\n"
+        },
+        "type": "@n8n/n8n-nodes-langchain.toolCode",
+        "typeVersion": 1.3,
+        "position": [
+          1888,
+          448
+        ],
+        "id": "3ac8c31c-c6a5-444d-bbd7-d44831eb8da9",
+        "name": "Registrar Cita o Reserva"
+      },
+      {
+        "parameters": {
+          "description": "Registra una venta o crea un pedido en el sistema cuando el cliente confirme qué productos quiere comprar y tengamos los detalles necesarios.",
+          "jsCode": "const response = await this.helpers.httpRequest({\n  method: 'POST',\n  url: 'https://vijzjcpkypsmkhywndus.supabase.co/rest/v1/rpc/crear_pedido',\n  headers: {\n    'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpanpqY3BreXBzbWtoeXduZHVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NzEzODMsImV4cCI6MjA5MDI0NzM4M30.SiFNNR3ixkITh2y5tHbFiCymhRQmAny1CrlMojm3HkA',\n    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpanpqY3BreXBzbWtoeXduZHVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NzEzODMsImV4cCI6MjA5MDI0NzM4M30.SiFNNR3ixkITh2y5tHbFiCymhRQmAny1CrlMojm3HkA',\n    'Content-Type': 'application/json'\n  },\n  body: {\n    p_phone: phone,\n    p_customer_name: customer_name,\n    p_items: items,\n    p_total: Number(total),\n    p_source: 'whatsapp'\n  },\n  json: true\n});\n\nreturn `Pedido creado con éxito. Código de pedido: ${response.order_code}`;\n",
+          "specifyInputSchema": true,
+          "jsonSchemaExample": "{\n  \"phone\": \"51957363566\",\n  \"customer_name\": \"Andres Figueroa\",\n  \"items\": \"1x Hamburguesa Clásica, 1x Coca Cola\",\n  \"total\": 15.50\n}\n"
+        },
+        "type": "@n8n/n8n-nodes-langchain.toolCode",
+        "typeVersion": 1.3,
+        "position": [
+          1728,
+          448
+        ],
+        "id": "2af1669c-8369-427e-8b1e-d8fa8a83b635",
+        "name": "Crear Pedido"
+      }
+    ],
+    "connections": {
+      "WhatsApp Webhook POST": {
+        "main": [
+          [
+            {
+              "node": "Normalize WhatsApp Message",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Normalize WhatsApp Message": {
+        "main": [
+          [
+            {
+              "node": "IF Valid Message",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "IF Valid Message": {
+        "main": [
+          [
+            {
+              "node": "IF Text Message",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "IF Text Message": {
+        "main": [
+          [
+            {
+              "node": "Guardar Mensaje Cliente",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Unsupported Message Fallback",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Check Duplicate Message": {
+        "main": [
+          [
+            {
+              "node": "Insert Processed Message",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Insert Processed Message": {
+        "main": [
+          [
+            {
+              "node": "Restore WhatsApp Context",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "OpenAI Chat Model": {
+        "ai_languageModel": [
+          [
+            {
+              "node": "AI Agent",
+              "type": "ai_languageModel",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Memory by WhatsApp Number": {
+        "ai_memory": [
+          [
+            {
+              "node": "AI Agent",
+              "type": "ai_memory",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Format WhatsApp Response": {
+        "main": [
+          [
+            {
+              "node": "Send WhatsApp Message",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Send WhatsApp Message": {
+        "main": [
+          [
+            {
+              "node": "Guardar Respuesta Bot",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Unsupported Message Fallback": {
+        "main": [
+          [
+            {
+              "node": "Send WhatsApp Message",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Edit Fields": {
+        "main": [
+          []
+        ]
+      },
+      "WhatsApp Webhook POST1": {
+        "main": [
+          [
+            {
+              "node": "Respond to Webhook",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Restore WhatsApp Context": {
+        "main": [
+          [
+            {
+              "node": "Consultar Modo Humano",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Guardar Mensaje Cliente": {
+        "main": [
+          [
+            {
+              "node": "Check Duplicate Message",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Bot Activo?": {
+        "main": [
+          [
+            {
+              "node": "Format WhatsApp Response",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "AI Agent",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Consultar Modo Humano": {
+        "main": [
+          [
+            {
+              "node": "Bot Activo?",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Guardar Respuesta Bot": {
+        "main": [
+          [
+            {
+              "node": "Log Conversation",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Consultar Catálogo": {
+        "ai_tool": [
+          [
+            {
+              "node": "AI Agent",
+              "type": "ai_tool",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Consultar Sucursales": {
+        "ai_tool": [
+          [
+            {
+              "node": "AI Agent",
+              "type": "ai_tool",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Registrar Cita o Reserva": {
+        "ai_tool": [
+          [
+            {
+              "node": "AI Agent",
+              "type": "ai_tool",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Crear Pedido": {
+        "ai_tool": [
+          [
+            {
+              "node": "AI Agent",
+              "type": "ai_tool",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "settings": {
+      "executionOrder": "v1",
+      "binaryMode": "separate",
+      "timeSavedMode": "fixed",
+      "callerPolicy": "workflowsFromSameOwner",
+      "availableInMCP": false
+    },
+    "staticData": null,
+    "meta": {
+      "templateCredsSetupCompleted": true
+    },
+    "pinData": {},
+    "versionId": "f2e54549-0ced-4c80-b236-ec994189def1",
+    "activeVersionId": null,
+    "versionCounter": 717,
+    "triggerCount": 2,
+    "tags": [],
+    "shared": [
+      {
+        "updatedAt": "2026-05-06T02:29:57.900Z",
+        "createdAt": "2026-05-06T02:29:57.900Z",
+        "role": "workflow:owner",
+        "workflowId": "CFNI5u9l6blnNkG0",
+        "projectId": "OC9e9AC77znyWouQ",
+        "project": {
+          "updatedAt": "2026-05-06T01:41:38.060Z",
+          "createdAt": "2026-05-06T01:39:00.015Z",
+          "id": "OC9e9AC77znyWouQ",
+          "name": "Andres Figueroa <andresfuigueroaz@gmail.com>",
+          "type": "personal",
+          "icon": null,
+          "description": null,
+          "creatorId": "d9004f33-a5b8-4a1d-90bf-87e726ca1bee"
+        }
+      }
+    ],
+    "versionMetadata": {
+      "name": null,
+      "description": null
+    }
+  },
+  {
+    "updatedAt": "2026-05-18T23:07:49.339Z",
+    "createdAt": "2026-05-18T20:57:47.933Z",
+    "id": "AKqQ8uazt8Ijv8rX",
+    "name": "Robotina WhatsApp Restaurante V1 - Seguro y Escalable",
+    "description": null,
+    "active": false,
+    "isArchived": false,
+    "nodes": [
+      {
+        "parameters": {
+          "httpMethod": "POST",
+          "path": "whatsapp-webhook",
+          "options": {
+            "rawBody": true
+          }
+        },
+        "id": "d4433234-b48b-4b02-8b92-173c8de73ed3",
+        "name": "WhatsApp Webhook POST",
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 1,
+        "position": [
+          4320,
+          6576
+        ],
+        "webhookId": "REPLACE_WITH_N8N_WEBHOOK_ID"
+      },
+      {
+        "parameters": {
+          "jsCode": "// Normaliza el payload de WhatsApp Cloud API para que el agente reciba datos limpios.\n// No pegues tokens aquí. Todo debe ir en Credentials o variables de entorno.\n\nconst body = $json.body || $json;\n\nconst value = body?.entry?.[0]?.changes?.[0]?.value || {};\nconst message = value?.messages?.[0] || null;\nconst contact = value?.contacts?.[0] || {};\nconst status = value?.statuses?.[0] || null;\n\n// Si llega un status de WhatsApp, por ejemplo delivered/read/sent, lo ignoramos.\nif (status && !message) {\n  return [{\n    json: {\n      is_valid_message: false,\n      event_type: 'status',\n      reason: 'WhatsApp status event ignored',\n      status_id: status.id || null,\n      status_value: status.status || null,\n      raw: body\n    }\n  }];\n}\n\n// Si no hay mensaje, no seguimos al agente.\nif (!message) {\n  return [{\n    json: {\n      is_valid_message: false,\n      event_type: 'unknown',\n      reason: 'No message object found',\n      raw: body\n    }\n  }];\n}\n\nconst type = message.type;\nlet text = '';\nlet media_id = null;\n\nif (type === 'text') {\n  text = message?.text?.body || '';\n}\n\nif (type === 'audio') {\n  media_id = message?.audio?.id || null;\n}\n\nif (type === 'image') {\n  text = message?.image?.caption || '';\n  media_id = message?.image?.id || null;\n}\n\nif (type === 'document') {\n  text = message?.document?.caption || '';\n  media_id = message?.document?.id || null;\n}\n\nreturn [{\n  json: {\n    is_valid_message: true,\n    event_type: 'message',\n    from: message.from,\n    customer_name: contact?.profile?.name || null,\n    message_id: message.id,\n    message_type: type,\n    text,\n    media_id,\n    timestamp: message.timestamp,\n    session_id: message.from,\n    business_phone_number_id: value?.metadata?.phone_number_id || null,\n    display_phone_number: value?.metadata?.display_phone_number || null,\n    raw_message: message\n  }\n}];"
+        },
+        "id": "d939aeeb-768a-470e-b784-13f7df0c474b",
+        "name": "Normalize WhatsApp Message",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          4496,
+          6576
+        ]
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "boolean": [
+              {
+                "value1": "={{$json.is_valid_message}}",
+                "value2": true
+              }
+            ]
+          }
+        },
+        "id": "da751b80-8735-415d-81bf-e9be1b54e2a4",
+        "name": "IF Valid Message",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 1,
+        "position": [
+          4640,
+          6576
+        ]
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "string": [
+              {
+                "value1": "={{$json.message_type}}",
+                "value2": "text"
+              }
+            ]
+          }
+        },
+        "id": "9be3283a-2fdf-4ddb-9db3-a4934c606f30",
+        "name": "IF Text Message",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 1,
+        "position": [
+          4832,
+          6560
+        ]
+      },
+      {
+        "parameters": {
+          "url": "=https://vijzjcpkypsmkhywndus.supabase.co/rest/v1/processed_messages?select=id&whatsapp_message_id=eq.{{$json.message_id}}",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "apikey",
+                "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpanpqY3BreXBzbWtoeXduZHVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NzEzODMsImV4cCI6MjA5MDI0NzM4M30.SiFNNR3ixkITh2y5tHbFiCymhRQmAny1CrlMojm3HkA"
+              },
+              {
+                "name": "Authorization",
+                "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpanpqY3BreXBzbWtoeXduZHVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NzEzODMsImV4cCI6MjA5MDI0NzM4M30.SiFNNR3ixkITh2y5tHbFiCymhRQmAny1CrlMojm3HkA"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "id": "81c5d1a0-2a57-4156-9af0-2a06328be49e",
+        "name": "Check Duplicate Message",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4,
+        "position": [
+          4896,
+          6320
+        ],
+        "alwaysOutputData": true,
+        "notes": "Consulta processed_messages. Si devuelve filas, no se debe responder otra vez."
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "=https://vijzjcpkypsmkhywndus.supabase.co/rest/v1/processed_messages",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "apikey",
+                "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpanpqY3BreXBzbWtoeXduZHVzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NDY3MTM4MywiZXhwIjoyMDkwMjQ3MzgzfQ.PyYU30n4yp2z_wtIJHnzunMtc_hX8rD7xWdPNxSYTHw"
+              },
+              {
+                "name": "Authorization",
+                "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpanpqY3BreXBzbWtoeXduZHVzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NDY3MTM4MywiZXhwIjoyMDkwMjQ3MzgzfQ.PyYU30n4yp2z_wtIJHnzunMtc_hX8rD7xWdPNxSYTHw"
+              },
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "name": "Prefer",
+                "value": "return=representation"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={\n  \"whatsapp_message_id\": \"{{$node['Normalize WhatsApp Message'].json.message_id}}\",\n  \"phone\": \"{{$node['Normalize WhatsApp Message'].json.from}}\"\n}",
+          "options": {}
+        },
+        "id": "43754f0f-a67b-4e86-8b7a-111f049634b2",
+        "name": "Insert Processed Message",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4,
+        "position": [
+          5104,
+          6320
+        ],
+        "alwaysOutputData": true,
+        "notes": "MVP: en producción conviene insertar antes de llamar al agente y manejar conflicto 409 como duplicado."
+      },
+      {
+        "parameters": {
+          "model": "gpt-4o-mini",
+          "options": {
+            "temperature": 0.2
+          }
+        },
+        "id": "2efe1532-3013-4fcf-aace-0a1cb479e7ae",
+        "name": "OpenAI Chat Model",
+        "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+        "typeVersion": 1,
+        "position": [
+          5744,
+          6576
+        ],
+        "credentials": {
+          "openAiApi": {
+            "id": "CFMyPrlFJum28GvJ",
+            "name": "OpenAI account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "sessionKey": "={{ $json.from }}",
+          "contextWindowLength": 10
+        },
+        "id": "e4a1fa41-94b7-43d7-a541-9800368060ab",
+        "name": "Memory by WhatsApp Number",
+        "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+        "typeVersion": 1,
+        "position": [
+          5904,
+          6560
+        ],
+        "notes": "Para producción fuerte, reemplazar por Redis/Postgres memory. Session key = número de WhatsApp."
+      },
+      {
+        "parameters": {
+          "jsCode": "const input = $json;\n\nlet reply = input.output || input.reply || input.text || '';\n\nif (!reply) {\n  reply = 'Gracias por escribirnos. ¿En qué puedo ayudarte?';\n}\n\nif (reply.length > 3500) {\n  reply = reply.slice(0, 3400) + '\\n\\nTe resumo lo principal arriba. Si deseas, te puedo dar más detalle.';\n}\n\nreply = reply\n  .replace(/\\*\\*/g, '*')\n  .replace(/#{1,6}\\s/g, '')\n  .trim();\n\nlet from = input.from || input.customer_phone || input.phone || '';\n\ntry {\n  const normalize = $('Normalize WhatsApp Message').first().json;\n  from = from || normalize.from || normalize.customer_phone || normalize.phone || '';\n} catch (error) {\n  // Si se ejecuta manualmente y el nodo anterior no existe, no rompe.\n}\n\nreturn [\n  {\n    json: {\n      from,\n      reply\n    }\n  }\n];"
+        },
+        "id": "425c99d6-d2de-4eb9-a1cb-7c7ce8ddf066",
+        "name": "Format WhatsApp Response",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          6176,
+          6384
+        ]
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "https://graph.facebook.com/v21.0/1111633475368085/messages",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Authorization",
+                "value": "Bearer EAAdRNS7bknMBRZAPLql3WC88kOZAoNZB96d5t2DdoOTAe040ZCPut8R3ZBWTHdcqAbi7aapNzZCcLzUXccJ2lZCUbu3IBtvsk0P292mzWmpnG72KgmDtQvqyU5dLfLk6e5WxKvDAL63DLwbICB8ijDq109MJkRZCVWfzJp1rPs8va1fZC2MyaOKsguJCZAymis4buKZC6li0OGooTZB0lUnGybcMt2HzQJ4Did7XTYroBR3erwxlj4ZByo7AR"
+              },
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={\n  \"messaging_product\": \"whatsapp\",\n  \"to\": \"{{ $json.from }}\",\n  \"type\": \"text\",\n  \"text\": {\n    \"body\": {{ JSON.stringify($json.reply) }}\n  }\n}",
+          "options": {}
+        },
+        "id": "3d52ab1f-f997-4c67-9261-af746b956c6f",
+        "name": "Send WhatsApp Message",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4,
+        "position": [
+          6416,
+          6384
+        ]
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "https://vijzjcpkypsmkhywndus.supabase.co/rest/v1/conversation_logs",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "apikey",
+                "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpanpqY3BreXBzbWtoeXduZHVzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NDY3MTM4MywiZXhwIjoyMDkwMjQ3MzgzfQ.PyYU30n4yp2z_wtIJHnzunMtc_hX8rD7xWdPNxSYTHw"
+              },
+              {
+                "name": "Authorization",
+                "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpanpqY3BreXBzbWtoeXduZHVzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NDY3MTM4MywiZXhwIjoyMDkwMjQ3MzgzfQ.PyYU30n4yp2z_wtIJHnzunMtc_hX8rD7xWdPNxSYTHw"
+              },
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "name": "Prefer",
+                "value": "return=minimal"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={\n  \"phone\": \"{{$node['Format WhatsApp Response'].json.from}}\",\n  \"customer_name\": \"{{$node['Format WhatsApp Response'].json.customer_name}}\",\n  \"inbound_message\": \"{{$node['Format WhatsApp Response'].json.inbound_message}}\",\n  \"inbound_type\": \"{{$node['Format WhatsApp Response'].json.inbound_type}}\",\n  \"agent_response\": \"{{$node['Format WhatsApp Response'].json.reply}}\",\n  \"status\": \"ok\"\n}",
+          "options": {}
+        },
+        "id": "2389f27b-877f-47ff-8012-5b04443ab030",
+        "name": "Log Conversation",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4,
+        "position": [
+          6864,
+          6384
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "return [{\n  json: {\n    from: $node['Normalize WhatsApp Message'].json.from,\n    reply: 'Por ahora puedo atender mensajes de texto. En breve activaremos audios e imágenes.'\n  }\n}];"
+        },
+        "id": "c6956ad4-a7c7-4eba-8cd2-2d2a4fbf0314",
+        "name": "Unsupported Message Fallback",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          5296,
+          6528
+        ]
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "29d36401-a90d-446e-ba76-d3aa7b7fd147",
+                "name": "text",
+                "value": "Hola, ¿qué hamburguesas tienen?",
+                "type": "string"
+              },
+              {
+                "id": "99741e1a-bdaa-435a-af9b-4d6f5c8dbe76",
+                "name": "from",
+                "value": "15551868964",
+                "type": "string"
+              },
+              {
+                "id": "4d780408-0a9c-453a-909c-f3dd5177fc13",
+                "name": "customer_name",
+                "value": "Cliente Prueba",
+                "type": "string"
+              },
+              {
+                "id": "2488ff78-4404-497c-aed5-a2529884c5d6",
+                "name": "session_id",
+                "value": "15551868964",
+                "type": "string"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          6304,
+          6128
+        ],
+        "id": "6eed638b-1778-4bc3-bcfe-8f2f3036f513",
+        "name": "Edit Fields"
+      },
+      {
+        "parameters": {
+          "path": "whatsapp-webhook",
+          "responseMode": "responseNode",
+          "options": {}
+        },
+        "id": "4e265429-d57b-466f-9bd1-04036ad62dcb",
+        "name": "WhatsApp Webhook POST1",
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 1,
+        "position": [
+          4384,
+          6784
+        ],
+        "webhookId": "REPLACE_WITH_N8N_WEBHOOK_ID"
+      },
+      {
+        "parameters": {
+          "respondWith": "text",
+          "responseBody": "={{$json.query[\"hub.challenge\"]}}",
+          "options": {
+            "responseCode": 200
+          }
+        },
+        "type": "n8n-nodes-base.respondToWebhook",
+        "typeVersion": 1.5,
+        "position": [
+          4688,
+          6800
+        ],
+        "id": "8d78adf3-32c4-465c-a9c1-82f22919da83",
+        "name": "Respond to Webhook"
+      },
+      {
+        "parameters": {
+          "jsCode": "const normalize = $('Normalize WhatsApp Message').first().json;\n\nreturn [\n  {\n    json: {\n      is_valid_message: normalize.is_valid_message,\n      event_type: normalize.event_type,\n      from: normalize.from,\n      customer_name: normalize.customer_name,\n      message_id: normalize.message_id,\n      message_type: normalize.message_type,\n      text: normalize.text,\n      media_id: normalize.media_id,\n      timestamp: normalize.timestamp,\n      session_id: normalize.session_id,\n      business_phone_number_id: normalize.business_phone_number_id,\n      display_phone_number: normalize.display_phone_number,\n      raw_message: normalize.raw_message\n    }\n  }\n];"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          5296,
+          6320
+        ],
+        "id": "d2854a83-23bc-4f55-92aa-4f427acd7fce",
+        "name": "Restore WhatsApp Context"
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "https://vijzjcpkypsmkhywndus.supabase.co/rest/v1/rpc/registrar_mensaje",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "apikey",
+                "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpanpqY3BreXBzbWtoeXduZHVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NzEzODMsImV4cCI6MjA5MDI0NzM4M30.SiFNNR3ixkITh2y5tHbFiCymhRQmAny1CrlMojm3HkA"
+              },
+              {
+                "name": "Authorization",
+                "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpanpqY3BreXBzbWtoeXduZHVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NzEzODMsImV4cCI6MjA5MDI0NzM4M30.SiFNNR3ixkITh2y5tHbFiCymhRQmAny1CrlMojm3HkA"
+              },
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "name": "prefer",
+                "value": "return=representation"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={\n  \"p_phone\": \"{{$node['Normalize WhatsApp Message'].json.from}}\",\n  \"p_message\": \"{{$node['Normalize WhatsApp Message'].json.text}}\",\n  \"p_direction\": \"inbound\",\n  \"p_customer_name\": \"{{$node['Normalize WhatsApp Message'].json.customer_name}}\"\n}",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.4,
+        "position": [
+          4720,
+          6320
+        ],
+        "id": "1cc27cdf-40d6-47a3-9ac5-f65e55439ad6",
+        "name": "Guardar Mensaje Cliente"
+      },
+      {
+        "parameters": {
+          "url": "https://vijzjcpkypsmkhywndus.supabase.co/rest/v1/whatsapp_chats?phone=eq.{{ $json.from }}&select=is_bot_active",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "apikey",
+                "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpanpqY3BreXBzbWtoeXduZHVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NzEzODMsImV4cCI6MjA5MDI0NzM4M30.SiFNNR3ixkITh2y5tHbFiCymhRQmAny1CrlMojm3HkA"
+              },
+              {
+                "name": "Authorization",
+                "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpanpqY3BreXBzbWtoeXduZHVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NzEzODMsImV4cCI6MjA5MDI0NzM4M30.SiFNNR3ixkITh2y5tHbFiCymhRQmAny1CrlMojm3HkA"
+              },
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.4,
+        "position": [
+          5472,
+          6320
+        ],
+        "id": "4203417b-2576-4710-8cb6-c8ce2afc02b5",
+        "name": "Consultar Modo Humano",
+        "alwaysOutputData": true
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "loose",
+              "version": 3
+            },
+            "conditions": [
+              {
+                "id": "e9e156f3-885b-4093-a64e-795edcb85743",
+                "leftValue": "={{ $json.is_bot_active !== false }}",
+                "rightValue": "true",
+                "operator": {
+                  "type": "boolean",
+                  "operation": "true",
+                  "singleValue": true
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "looseTypeValidation": true,
+          "options": {}
+        },
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.3,
+        "position": [
+          5680,
+          6320
+        ],
+        "id": "7e5497cb-5335-4ab1-ac97-ab8784dc2312",
+        "name": "Bot Activo?"
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "https://vijzjcpkypsmkhywndus.supabase.co/rest/v1/rpc/registrar_mensaje",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "apikey",
+                "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpanpqY3BreXBzbWtoeXduZHVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NzEzODMsImV4cCI6MjA5MDI0NzM4M30.SiFNNR3ixkITh2y5tHbFiCymhRQmAny1CrlMojm3HkA"
+              },
+              {
+                "name": "Authorization",
+                "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpanpqY3BreXBzbWtoeXduZHVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NzEzODMsImV4cCI6MjA5MDI0NzM4M30.SiFNNR3ixkITh2y5tHbFiCymhRQmAny1CrlMojm3HkA"
+              },
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "name": "prefer",
+                "value": "return=representation"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={\n  \"p_phone\": \"{{$node['Format WhatsApp Response'].json.from}}\",\n  \"p_message\": {{ JSON.stringify($node['Format WhatsApp Response'].json.reply) }},\n  \"p_direction\": \"outbound\",\n  \"p_customer_name\": \"{{$node['Normalize WhatsApp Message'].json.customer_name}}\"\n}",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.4,
+        "position": [
+          6624,
+          6384
+        ],
+        "id": "fca2dc41-26fb-458a-95a9-c13198794ccc",
+        "name": "Guardar Respuesta Bot"
+      },
+      {
+        "parameters": {
+          "promptType": "define",
+          "text": "=Cliente WhatsApp: {{$('Normalize WhatsApp Message').first().json.from}}\nNombre cliente: {{$('Normalize WhatsApp Message').first().json.customer_name || ''}}\nMensaje cliente: {{$('Normalize WhatsApp Message').first().json.text}}\n",
+          "options": {
+            "systemMessage": "Eres Robotina, asistente de un restaurante. Responde siempre en español. Si el cliente confirma un pedido, usa la herramienta Crear Pedido con phone, customer_name, items y total.\n"
+          }
+        },
+        "type": "@n8n/n8n-nodes-langchain.agent",
+        "typeVersion": 3.1,
+        "position": [
+          5888,
+          6384
+        ],
+        "id": "4fdfbbec-2cbf-443f-a228-54e35a9d7251",
+        "name": "AI Agent"
+      },
+      {
+        "parameters": {
+          "toolDescription": "Consulta el catálogo maestro de productos o servicios disponibles en el negocio. Úsala cuando el cliente pregunte qué vendemos, qué servicios ofrecemos, precios, detalles, inventario o sugerencias.",
+          "url": "https://vijzjcpkypsmkhywndus.supabase.co/rest/v1/menu_items?select=item_code,name,description,price,category,img_url,stock_status,is_available,sales_30d,keywords&is_available=eq.true",
+          "sendHeaders": true,
+          "parametersHeaders": {
+            "values": [
+              {
+                "name": "apikey",
+                "valueProvider": "fieldValue",
+                "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpanpqY3BreXBzbWtoeXduZHVzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NDY3MTM4MywiZXhwIjoyMDkwMjQ3MzgzfQ.PyYU30n4yp2z_wtIJHnzunMtc_hX8rD7xWdPNxSYTHw"
+              },
+              {
+                "name": "Authorization",
+                "valueProvider": "fieldValue",
+                "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpanpqY3BreXBzbWtoeXduZHVzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NDY3MTM4MywiZXhwIjoyMDkwMjQ3MzgzfQ.PyYU30n4yp2z_wtIJHnzunMtc_hX8rD7xWdPNxSYTHw"
+              }
+            ]
+          }
+        },
+        "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
+        "typeVersion": 1,
+        "position": [
+          5856,
+          6752
+        ],
+        "id": "709f4a01-be36-4d0c-a349-da6a41f162ee",
+        "name": "Consultar Catálogo"
+      },
+      {
+        "parameters": {
+          "toolDescription": "Consulta las sucursales, oficinas o locales activos del negocio, incluyendo dirección física, link de mapa y horarios de atención.",
+          "url": "https://vijzjcpkypsmkhywndus.supabase.co/rest/v1/branches?select=id,name,address,google_maps_url,opening_hours,is_active&is_active=eq.true",
+          "sendHeaders": true,
+          "parametersHeaders": {
+            "values": [
+              {
+                "name": "apikey",
+                "valueProvider": "fieldValue",
+                "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpanpqY3BreXBzbWtoeXduZHVzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NDY3MTM4MywiZXhwIjoyMDkwMjQ3MzgzfQ.PyYU30n4yp2z_wtIJHnzunMtc_hX8rD7xWdPNxSYTHw"
+              },
+              {
+                "name": "Authorization",
+                "valueProvider": "fieldValue",
+                "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpanpqY3BreXBzbWtoeXduZHVzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NDY3MTM4MywiZXhwIjoyMDkwMjQ3MzgzfQ.PyYU30n4yp2z_wtIJHnzunMtc_hX8rD7xWdPNxSYTHw"
+              }
+            ]
+          }
+        },
+        "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
+        "typeVersion": 1,
+        "position": [
+          6032,
+          6736
+        ],
+        "id": "975d390d-d50a-4aca-8ee2-e42c4374fea1",
+        "name": "Consultar Sucursales"
+      },
+      {
+        "parameters": {
+          "toolDescription": "Crea una solicitud de cita, turno o reserva en el sistema cuando el cliente quiera agendar o reservar un día y una hora específicos. Requiere: customer_name (nombre), phone (teléfono), reservation_date (YYYY-MM-DD), reservation_time (HH:mm), guest_count (número de personas), notes (notas opcionales).",
+          "method": "POST",
+          "url": "https://vijzjcpkypsmkhywndus.supabase.co/rest/v1/rpc/crear_reserva",
+          "sendHeaders": true,
+          "parametersHeaders": {
+            "values": [
+              {
+                "name": "apikey",
+                "valueProvider": "fieldValue",
+                "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpanpqY3BreXBzbWtoeXduZHVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NzEzODMsImV4cCI6MjA5MDI0NzM4M30.SiFNNR3ixkITh2y5tHbFiCymhRQmAny1CrlMojm3HkA"
+              },
+              {
+                "name": "Authorization",
+                "valueProvider": "fieldValue",
+                "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpanpqY3BreXBzbWtoeXduZHVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NzEzODMsImV4cCI6MjA5MDI0NzM4M30.SiFNNR3ixkITh2y5tHbFiCymhRQmAny1CrlMojm3HkA"
+              },
+              {
+                "name": "Content-Type",
+                "valueProvider": "fieldValue",
+                "value": "application/json"
+              },
+              {
+                "name": "Prefer",
+                "valueProvider": "fieldValue",
+                "value": "return=representation"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={\n  \"p_customer_name\": \"{{$fromAI('customer_name', 'Nombre del cliente para la reserva', 'string')}}\",\n  \"p_phone\": \"{{$fromAI('phone', 'Número de WhatsApp del cliente', 'string')}}\",\n  \"p_reservation_date\": \"{{$fromAI('reservation_date', 'Fecha de reserva en formato YYYY-MM-DD', 'string')}}\",\n  \"p_reservation_time\": \"{{$fromAI('reservation_time', 'Hora de reserva en formato HH:mm', 'string')}}\",\n  \"p_guest_count\": {{$fromAI('guest_count', 'Cantidad de personas', 'number')}},\n  \"p_notes\": \"{{$fromAI('notes', 'Notas u observaciones. Si no hay, usa texto vacío.', 'string')}}\"\n}"
+        },
+        "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
+        "typeVersion": 1,
+        "position": [
+          6256,
+          6608
+        ],
+        "id": "984b963c-3657-43f7-aab4-490c3835403a",
+        "name": "Registrar Cita o Reserva"
+      },
+      {
+        "parameters": {
+          "toolDescription": "Crea un pedido en Supabase cuando el cliente confirme qué productos quiere pedir. Usa esta herramienta solo cuando tengas el teléfono del cliente y una lista clara de productos con cantidades. El campo items debe ser un arreglo JSON con objetos que tengan name y qty. No inventes productos ni cantidades.",
+          "method": "POST",
+          "url": "https://vijzjcpkypsmkhywndus.supabase.co/rest/v1/rpc/crear_pedido",
+          "sendHeaders": true,
+          "parametersHeaders": {
+            "values": [
+              {
+                "name": "apikey",
+                "valueProvider": "fieldValue",
+                "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpanpqY3BreXBzbWtoeXduZHVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NzEzODMsImV4cCI6MjA5MDI0NzM4M30.SiFNNR3ixkITh2y5tHbFiCymhRQmAny1CrlMojm3HkA"
+              },
+              {
+                "name": "Authorization",
+                "valueProvider": "fieldValue",
+                "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpanpqY3BreXBzbWtoeXduZHVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NzEzODMsImV4cCI6MjA5MDI0NzM4M30.SiFNNR3ixkITh2y5tHbFiCymhRQmAny1CrlMojm3HkA"
+              },
+              {
+                "name": "Content-Type",
+                "valueProvider": "fieldValue",
+                "value": "application/json"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={\n  \"p_phone\": \"{{$fromAI('phone', 'Número de WhatsApp del cliente', 'string')}}\",\n  \"p_customer_name\": \"{{$fromAI('customer_name', 'Nombre del cliente', 'string')}}\",\n  \"p_items\": {{$fromAI('items', 'Lista JSON de productos: [{\\\"name\\\":\\\"Producto\\\",\\\"qty\\\":1}]', 'json')}},\n  \"p_total\": {{$fromAI('total', 'Total del pedido en número', 'number')}},\n  \"p_source\": \"whatsapp\"\n}"
+        },
+        "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
+        "typeVersion": 1,
+        "position": [
+          6096,
+          6608
+        ],
+        "id": "e83e1ea7-f97e-4ffd-a9f3-e457bef54405",
+        "name": "Crear Pedido"
+      }
+    ],
+    "connections": {
+      "WhatsApp Webhook POST": {
+        "main": [
+          [
+            {
+              "node": "Normalize WhatsApp Message",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Normalize WhatsApp Message": {
+        "main": [
+          [
+            {
+              "node": "IF Valid Message",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "IF Valid Message": {
+        "main": [
+          [
+            {
+              "node": "IF Text Message",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "IF Text Message": {
+        "main": [
+          [
+            {
+              "node": "Guardar Mensaje Cliente",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Unsupported Message Fallback",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Check Duplicate Message": {
+        "main": [
+          [
+            {
+              "node": "Insert Processed Message",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Insert Processed Message": {
+        "main": [
+          [
+            {
+              "node": "Restore WhatsApp Context",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "OpenAI Chat Model": {
+        "ai_languageModel": [
+          [
+            {
+              "node": "AI Agent",
+              "type": "ai_languageModel",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Memory by WhatsApp Number": {
+        "ai_memory": [
+          [
+            {
+              "node": "AI Agent",
+              "type": "ai_memory",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Format WhatsApp Response": {
+        "main": [
+          [
+            {
+              "node": "Send WhatsApp Message",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Send WhatsApp Message": {
+        "main": [
+          [
+            {
+              "node": "Guardar Respuesta Bot",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Unsupported Message Fallback": {
+        "main": [
+          [
+            {
+              "node": "Send WhatsApp Message",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "WhatsApp Webhook POST1": {
+        "main": [
+          [
+            {
+              "node": "Respond to Webhook",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Restore WhatsApp Context": {
+        "main": [
+          [
+            {
+              "node": "Consultar Modo Humano",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Guardar Mensaje Cliente": {
+        "main": [
+          [
+            {
+              "node": "Check Duplicate Message",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Bot Activo?": {
+        "main": [
+          [
+            {
+              "node": "Format WhatsApp Response",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "AI Agent",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Consultar Modo Humano": {
+        "main": [
+          [
+            {
+              "node": "Bot Activo?",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Guardar Respuesta Bot": {
+        "main": [
+          [
+            {
+              "node": "Log Conversation",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Consultar Catálogo": {
+        "ai_tool": [
+          [
+            {
+              "node": "AI Agent",
+              "type": "ai_tool",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Consultar Sucursales": {
+        "ai_tool": [
+          [
+            {
+              "node": "AI Agent",
+              "type": "ai_tool",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Registrar Cita o Reserva": {
+        "ai_tool": [
+          [
+            {
+              "node": "AI Agent",
+              "type": "ai_tool",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Crear Pedido": {
+        "ai_tool": [
+          [
+            {
+              "node": "AI Agent",
+              "type": "ai_tool",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "settings": {
+      "executionOrder": "v1",
+      "binaryMode": "separate"
+    },
+    "staticData": null,
+    "meta": null,
+    "pinData": {},
+    "versionId": "fdb81a9e-de34-43f0-98bc-ad54b47d9c4e",
+    "activeVersionId": null,
+    "versionCounter": 32,
+    "triggerCount": 2,
+    "tags": [],
+    "shared": [
+      {
+        "updatedAt": "2026-05-18T20:57:47.936Z",
+        "createdAt": "2026-05-18T20:57:47.936Z",
+        "role": "workflow:owner",
+        "workflowId": "AKqQ8uazt8Ijv8rX",
+        "projectId": "OC9e9AC77znyWouQ",
+        "project": {
+          "updatedAt": "2026-05-06T01:41:38.060Z",
+          "createdAt": "2026-05-06T01:39:00.015Z",
+          "id": "OC9e9AC77znyWouQ",
+          "name": "Andres Figueroa <andresfuigueroaz@gmail.com>",
+          "type": "personal",
+          "icon": null,
+          "description": null,
+          "creatorId": "d9004f33-a5b8-4a1d-90bf-87e726ca1bee"
+        }
+      }
+    ],
+    "versionMetadata": {
+      "name": null,
+      "description": null
+    }
+  },
+  {
+    "updatedAt": "2026-05-18T23:11:46.210Z",
+    "createdAt": "2026-05-18T23:11:46.210Z",
+    "id": "thCySYI6DjiPYla3",
+    "name": "Robotina WhatsApp Restaurante V1 - Seguro y Escalable",
+    "description": null,
+    "active": false,
+    "isArchived": false,
+    "nodes": [
+      {
+        "parameters": {
+          "httpMethod": "POST",
+          "path": "whatsapp-webhook",
+          "options": {
+            "rawBody": true
+          }
+        },
+        "id": "f5dbe222-e9a0-4f9f-8864-631f3eba57f2",
+        "name": "WhatsApp Webhook POST",
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 1,
+        "position": [
+          -1984,
+          448
+        ],
+        "webhookId": "REPLACE_WITH_N8N_WEBHOOK_ID"
+      },
+      {
+        "parameters": {
+          "jsCode": "// Normaliza el payload de WhatsApp Cloud API para que el agente reciba datos limpios.\n// No pegues tokens aquí. Todo debe ir en Credentials o variables de entorno.\n\nconst body = $json.body || $json;\n\nconst value = body?.entry?.[0]?.changes?.[0]?.value || {};\nconst message = value?.messages?.[0] || null;\nconst contact = value?.contacts?.[0] || {};\nconst status = value?.statuses?.[0] || null;\n\n// Si llega un status de WhatsApp, por ejemplo delivered/read/sent, lo ignoramos.\nif (status && !message) {\n  return [{\n    json: {\n      is_valid_message: false,\n      event_type: 'status',\n      reason: 'WhatsApp status event ignored',\n      status_id: status.id || null,\n      status_value: status.status || null,\n      raw: body\n    }\n  }];\n}\n\n// Si no hay mensaje, no seguimos al agente.\nif (!message) {\n  return [{\n    json: {\n      is_valid_message: false,\n      event_type: 'unknown',\n      reason: 'No message object found',\n      raw: body\n    }\n  }];\n}\n\nconst type = message.type;\nlet text = '';\nlet media_id = null;\n\nif (type === 'text') {\n  text = message?.text?.body || '';\n}\n\nif (type === 'audio') {\n  media_id = message?.audio?.id || null;\n}\n\nif (type === 'image') {\n  text = message?.image?.caption || '';\n  media_id = message?.image?.id || null;\n}\n\nif (type === 'document') {\n  text = message?.document?.caption || '';\n  media_id = message?.document?.id || null;\n}\n\nreturn [{\n  json: {\n    is_valid_message: true,\n    event_type: 'message',\n    from: message.from,\n    customer_name: contact?.profile?.name || null,\n    message_id: message.id,\n    message_type: type,\n    text,\n    media_id,\n    timestamp: message.timestamp,\n    session_id: message.from,\n    business_phone_number_id: value?.metadata?.phone_number_id || null,\n    display_phone_number: value?.metadata?.display_phone_number || null,\n    raw_message: message\n  }\n}];"
+        },
+        "id": "7ee925ec-93c5-4bcf-8148-a55236278be8",
+        "name": "Normalize WhatsApp Message",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          -1808,
+          448
+        ]
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "boolean": [
+              {
+                "value1": "={{$json.is_valid_message}}",
+                "value2": true
+              }
+            ]
+          }
+        },
+        "id": "8f4002fc-bf33-4210-97b7-fbebc55f9037",
+        "name": "IF Valid Message",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 1,
+        "position": [
+          -1664,
+          448
+        ]
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "string": [
+              {
+                "value1": "={{$json.message_type}}",
+                "value2": "text"
+              }
+            ]
+          }
+        },
+        "id": "bdb7e7cf-6b0a-494d-b4df-041dd19049d3",
+        "name": "IF Text Message",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 1,
+        "position": [
+          -1472,
+          432
+        ]
+      },
+      {
+        "parameters": {
+          "url": "=https://vijzjcpkypsmkhywndus.supabase.co/rest/v1/processed_messages?select=id&whatsapp_message_id=eq.{{$json.message_id}}",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "apikey",
+                "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpanpqY3BreXBzbWtoeXduZHVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NzEzODMsImV4cCI6MjA5MDI0NzM4M30.SiFNNR3ixkITh2y5tHbFiCymhRQmAny1CrlMojm3HkA"
+              },
+              {
+                "name": "Authorization",
+                "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpanpqY3BreXBzbWtoeXduZHVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NzEzODMsImV4cCI6MjA5MDI0NzM4M30.SiFNNR3ixkITh2y5tHbFiCymhRQmAny1CrlMojm3HkA"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "id": "3002e6dc-6ef6-4ae5-b32e-5adacf401262",
+        "name": "Check Duplicate Message",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4,
+        "position": [
+          -1408,
+          192
+        ],
+        "alwaysOutputData": true,
+        "notes": "Consulta processed_messages. Si devuelve filas, no se debe responder otra vez."
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "=https://vijzjcpkypsmkhywndus.supabase.co/rest/v1/processed_messages",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "apikey",
+                "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpanpqY3BreXBzbWtoeXduZHVzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NDY3MTM4MywiZXhwIjoyMDkwMjQ3MzgzfQ.PyYU30n4yp2z_wtIJHnzunMtc_hX8rD7xWdPNxSYTHw"
+              },
+              {
+                "name": "Authorization",
+                "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpanpqY3BreXBzbWtoeXduZHVzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NDY3MTM4MywiZXhwIjoyMDkwMjQ3MzgzfQ.PyYU30n4yp2z_wtIJHnzunMtc_hX8rD7xWdPNxSYTHw"
+              },
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "name": "Prefer",
+                "value": "return=representation"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={\n  \"whatsapp_message_id\": \"{{$node['Normalize WhatsApp Message'].json.message_id}}\",\n  \"phone\": \"{{$node['Normalize WhatsApp Message'].json.from}}\"\n}",
+          "options": {}
+        },
+        "id": "13f1c177-b8ea-483a-8319-c757c2bec466",
+        "name": "Insert Processed Message",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4,
+        "position": [
+          -1200,
+          192
+        ],
+        "alwaysOutputData": true,
+        "notes": "MVP: en producción conviene insertar antes de llamar al agente y manejar conflicto 409 como duplicado."
+      },
+      {
+        "parameters": {
+          "model": "gpt-4o-mini",
+          "options": {
+            "temperature": 0.2
+          }
+        },
+        "id": "1b330230-929b-484c-857b-9e05401d6a59",
+        "name": "OpenAI Chat Model",
+        "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+        "typeVersion": 1,
+        "position": [
+          -560,
+          448
+        ],
+        "credentials": {
+          "openAiApi": {
+            "id": "CFMyPrlFJum28GvJ",
+            "name": "OpenAI account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "sessionKey": "={{ $json.from }}",
+          "contextWindowLength": 10
+        },
+        "id": "0287fa77-7207-4fc9-9072-ac296e9da853",
+        "name": "Memory by WhatsApp Number",
+        "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+        "typeVersion": 1,
+        "position": [
+          -400,
+          432
+        ],
+        "notes": "Para producción fuerte, reemplazar por Redis/Postgres memory. Session key = número de WhatsApp."
+      },
+      {
+        "parameters": {
+          "jsCode": "const input = $json;\n\nlet reply = input.output || input.reply || input.text || '';\n\nif (!reply) {\n  reply = 'Gracias por escribirnos. ¿En qué puedo ayudarte?';\n}\n\nif (reply.length > 3500) {\n  reply = reply.slice(0, 3400) + '\\n\\nTe resumo lo principal arriba. Si deseas, te puedo dar más detalle.';\n}\n\nreply = reply\n  .replace(/\\*\\*/g, '*')\n  .replace(/#{1,6}\\s/g, '')\n  .trim();\n\nlet from = input.from || input.customer_phone || input.phone || '';\n\ntry {\n  const normalize = $('Normalize WhatsApp Message').first().json;\n  from = from || normalize.from || normalize.customer_phone || normalize.phone || '';\n} catch (error) {\n  // Si se ejecuta manualmente y el nodo anterior no existe, no rompe.\n}\n\nreturn [\n  {\n    json: {\n      from,\n      reply\n    }\n  }\n];"
+        },
+        "id": "620138cc-3611-4101-9079-d007e1b9371c",
+        "name": "Format WhatsApp Response",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          -128,
+          256
+        ]
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "https://graph.facebook.com/v21.0/1111633475368085/messages",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Authorization",
+                "value": "Bearer EAAdRNS7bknMBRZAPLql3WC88kOZAoNZB96d5t2DdoOTAe040ZCPut8R3ZBWTHdcqAbi7aapNzZCcLzUXccJ2lZCUbu3IBtvsk0P292mzWmpnG72KgmDtQvqyU5dLfLk6e5WxKvDAL63DLwbICB8ijDq109MJkRZCVWfzJp1rPs8va1fZC2MyaOKsguJCZAymis4buKZC6li0OGooTZB0lUnGybcMt2HzQJ4Did7XTYroBR3erwxlj4ZByo7AR"
+              },
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={\n  \"messaging_product\": \"whatsapp\",\n  \"to\": \"{{ $json.from }}\",\n  \"type\": \"text\",\n  \"text\": {\n    \"body\": {{ JSON.stringify($json.reply) }}\n  }\n}",
+          "options": {}
+        },
+        "id": "f38fc452-ae4d-4897-b861-05f666c405b1",
+        "name": "Send WhatsApp Message",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4,
+        "position": [
+          112,
+          256
+        ]
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "https://vijzjcpkypsmkhywndus.supabase.co/rest/v1/conversation_logs",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "apikey",
+                "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpanpqY3BreXBzbWtoeXduZHVzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NDY3MTM4MywiZXhwIjoyMDkwMjQ3MzgzfQ.PyYU30n4yp2z_wtIJHnzunMtc_hX8rD7xWdPNxSYTHw"
+              },
+              {
+                "name": "Authorization",
+                "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpanpqY3BreXBzbWtoeXduZHVzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NDY3MTM4MywiZXhwIjoyMDkwMjQ3MzgzfQ.PyYU30n4yp2z_wtIJHnzunMtc_hX8rD7xWdPNxSYTHw"
+              },
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "name": "Prefer",
+                "value": "return=minimal"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={\n  \"phone\": \"{{$node['Format WhatsApp Response'].json.from}}\",\n  \"customer_name\": \"{{$node['Format WhatsApp Response'].json.customer_name}}\",\n  \"inbound_message\": \"{{$node['Format WhatsApp Response'].json.inbound_message}}\",\n  \"inbound_type\": \"{{$node['Format WhatsApp Response'].json.inbound_type}}\",\n  \"agent_response\": \"{{$node['Format WhatsApp Response'].json.reply}}\",\n  \"status\": \"ok\"\n}",
+          "options": {}
+        },
+        "id": "36ba2444-5ad4-48d8-9a72-fb0f66bdf522",
+        "name": "Log Conversation",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4,
+        "position": [
+          560,
+          256
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "return [{\n  json: {\n    from: $node['Normalize WhatsApp Message'].json.from,\n    reply: 'Por ahora puedo atender mensajes de texto. En breve activaremos audios e imágenes.'\n  }\n}];"
+        },
+        "id": "44963ad1-298c-436a-9944-269eaacf9d27",
+        "name": "Unsupported Message Fallback",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          -1008,
+          400
+        ]
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "29d36401-a90d-446e-ba76-d3aa7b7fd147",
+                "name": "text",
+                "value": "Hola, ¿qué hamburguesas tienen?",
+                "type": "string"
+              },
+              {
+                "id": "99741e1a-bdaa-435a-af9b-4d6f5c8dbe76",
+                "name": "from",
+                "value": "15551868964",
+                "type": "string"
+              },
+              {
+                "id": "4d780408-0a9c-453a-909c-f3dd5177fc13",
+                "name": "customer_name",
+                "value": "Cliente Prueba",
+                "type": "string"
+              },
+              {
+                "id": "2488ff78-4404-497c-aed5-a2529884c5d6",
+                "name": "session_id",
+                "value": "15551868964",
+                "type": "string"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          0,
+          0
+        ],
+        "id": "6a138634-2692-4e03-bf0f-f5219d44016d",
+        "name": "Edit Fields"
+      },
+      {
+        "parameters": {
+          "path": "whatsapp-webhook",
+          "responseMode": "responseNode",
+          "options": {}
+        },
+        "id": "94efedb9-f1cd-46e0-8c1c-645398d7628e",
+        "name": "WhatsApp Webhook POST1",
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 1,
+        "position": [
+          -1920,
+          656
+        ],
+        "webhookId": "REPLACE_WITH_N8N_WEBHOOK_ID"
+      },
+      {
+        "parameters": {
+          "respondWith": "text",
+          "responseBody": "={{$json.query[\"hub.challenge\"]}}",
+          "options": {
+            "responseCode": 200
+          }
+        },
+        "type": "n8n-nodes-base.respondToWebhook",
+        "typeVersion": 1.5,
+        "position": [
+          -1616,
+          672
+        ],
+        "id": "d8e60058-b33b-4812-8c1c-1ba1c6f845bd",
+        "name": "Respond to Webhook"
+      },
+      {
+        "parameters": {
+          "jsCode": "const normalize = $('Normalize WhatsApp Message').first().json;\n\nreturn [\n  {\n    json: {\n      is_valid_message: normalize.is_valid_message,\n      event_type: normalize.event_type,\n      from: normalize.from,\n      customer_name: normalize.customer_name,\n      message_id: normalize.message_id,\n      message_type: normalize.message_type,\n      text: normalize.text,\n      media_id: normalize.media_id,\n      timestamp: normalize.timestamp,\n      session_id: normalize.session_id,\n      business_phone_number_id: normalize.business_phone_number_id,\n      display_phone_number: normalize.display_phone_number,\n      raw_message: normalize.raw_message\n    }\n  }\n];"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          -1008,
+          192
+        ],
+        "id": "39fe9652-efdf-454d-9f2b-f8b7cbdb03f3",
+        "name": "Restore WhatsApp Context"
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "https://vijzjcpkypsmkhywndus.supabase.co/rest/v1/rpc/registrar_mensaje",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "apikey",
+                "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpanpqY3BreXBzbWtoeXduZHVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NzEzODMsImV4cCI6MjA5MDI0NzM4M30.SiFNNR3ixkITh2y5tHbFiCymhRQmAny1CrlMojm3HkA"
+              },
+              {
+                "name": "Authorization",
+                "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpanpqY3BreXBzbWtoeXduZHVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NzEzODMsImV4cCI6MjA5MDI0NzM4M30.SiFNNR3ixkITh2y5tHbFiCymhRQmAny1CrlMojm3HkA"
+              },
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "name": "prefer",
+                "value": "return=representation"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={\n  \"p_phone\": \"{{$node['Normalize WhatsApp Message'].json.from}}\",\n  \"p_message\": \"{{$node['Normalize WhatsApp Message'].json.text}}\",\n  \"p_direction\": \"inbound\",\n  \"p_customer_name\": \"{{$node['Normalize WhatsApp Message'].json.customer_name}}\"\n}",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.4,
+        "position": [
+          -1584,
+          192
+        ],
+        "id": "edcdbfeb-49a7-42ee-83dc-173f5fbea346",
+        "name": "Guardar Mensaje Cliente"
+      },
+      {
+        "parameters": {
+          "url": "https://vijzjcpkypsmkhywndus.supabase.co/rest/v1/whatsapp_chats?phone=eq.{{ $json.from }}&select=is_bot_active",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "apikey",
+                "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpanpqY3BreXBzbWtoeXduZHVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NzEzODMsImV4cCI6MjA5MDI0NzM4M30.SiFNNR3ixkITh2y5tHbFiCymhRQmAny1CrlMojm3HkA"
+              },
+              {
+                "name": "Authorization",
+                "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpanpqY3BreXBzbWtoeXduZHVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NzEzODMsImV4cCI6MjA5MDI0NzM4M30.SiFNNR3ixkITh2y5tHbFiCymhRQmAny1CrlMojm3HkA"
+              },
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.4,
+        "position": [
+          -832,
+          192
+        ],
+        "id": "6edd46bd-68be-4954-ae79-d1d9ddae2a8d",
+        "name": "Consultar Modo Humano",
+        "alwaysOutputData": true
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "loose",
+              "version": 3
+            },
+            "conditions": [
+              {
+                "id": "e9e156f3-885b-4093-a64e-795edcb85743",
+                "leftValue": "={{ $json.is_bot_active !== false }}",
+                "rightValue": "true",
+                "operator": {
+                  "type": "boolean",
+                  "operation": "true",
+                  "singleValue": true
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "looseTypeValidation": true,
+          "options": {}
+        },
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.3,
+        "position": [
+          -624,
+          192
+        ],
+        "id": "2a6e84ed-0fec-4d2c-a60f-7fae04f3d8c0",
+        "name": "Bot Activo?"
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "https://vijzjcpkypsmkhywndus.supabase.co/rest/v1/rpc/registrar_mensaje",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "apikey",
+                "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpanpqY3BreXBzbWtoeXduZHVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NzEzODMsImV4cCI6MjA5MDI0NzM4M30.SiFNNR3ixkITh2y5tHbFiCymhRQmAny1CrlMojm3HkA"
+              },
+              {
+                "name": "Authorization",
+                "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpanpqY3BreXBzbWtoeXduZHVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NzEzODMsImV4cCI6MjA5MDI0NzM4M30.SiFNNR3ixkITh2y5tHbFiCymhRQmAny1CrlMojm3HkA"
+              },
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "name": "prefer",
+                "value": "return=representation"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={\n  \"p_phone\": \"{{$node['Format WhatsApp Response'].json.from}}\",\n  \"p_message\": {{ JSON.stringify($node['Format WhatsApp Response'].json.reply) }},\n  \"p_direction\": \"outbound\",\n  \"p_customer_name\": \"{{$node['Normalize WhatsApp Message'].json.customer_name}}\"\n}",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.4,
+        "position": [
+          320,
+          256
+        ],
+        "id": "bbb692ae-5731-459e-9f8f-d74f60e39882",
+        "name": "Guardar Respuesta Bot"
+      },
+      {
+        "parameters": {
+          "promptType": "define",
+          "text": "=Cliente WhatsApp: {{$('Normalize WhatsApp Message').first().json.from}}\nNombre cliente: {{$('Normalize WhatsApp Message').first().json.customer_name || ''}}\nMensaje cliente: {{$('Normalize WhatsApp Message').first().json.text}}\n",
+          "options": {
+            "systemMessage": "Eres Robotina, asistente de un restaurante. Responde siempre en español. Si el cliente confirma un pedido, usa la herramienta Crear Pedido con phone, customer_name, items y total.\n"
+          }
+        },
+        "type": "@n8n/n8n-nodes-langchain.agent",
+        "typeVersion": 1.7,
+        "position": [
+          -416,
+          256
+        ],
+        "id": "0fb67288-06df-45aa-8753-d1c2e53fb972",
+        "name": "AI Agent"
+      },
+      {
+        "parameters": {
+          "toolDescription": "Consulta el catálogo maestro de productos o servicios disponibles en el negocio. Úsala cuando el cliente pregunte qué vendemos, qué servicios ofrecemos, precios, detalles, inventario o sugerencias.",
+          "url": "https://vijzjcpkypsmkhywndus.supabase.co/rest/v1/menu_items?select=item_code,name,description,price,category,img_url,stock_status,is_available,sales_30d,keywords&is_available=eq.true",
+          "sendHeaders": true,
+          "parametersHeaders": {
+            "values": [
+              {
+                "name": "apikey",
+                "valueProvider": "fieldValue",
+                "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpanpqY3BreXBzbWtoeXduZHVzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NDY3MTM4MywiZXhwIjoyMDkwMjQ3MzgzfQ.PyYU30n4yp2z_wtIJHnzunMtc_hX8rD7xWdPNxSYTHw"
+              },
+              {
+                "name": "Authorization",
+                "valueProvider": "fieldValue",
+                "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpanpqY3BreXBzbWtoeXduZHVzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NDY3MTM4MywiZXhwIjoyMDkwMjQ3MzgzfQ.PyYU30n4yp2z_wtIJHnzunMtc_hX8rD7xWdPNxSYTHw"
+              }
+            ]
+          }
+        },
+        "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
+        "typeVersion": 1,
+        "position": [
+          -448,
+          624
+        ],
+        "id": "14474956-1469-4d05-950c-fc3852cca71b",
+        "name": "Consultar Catálogo"
+      },
+      {
+        "parameters": {
+          "toolDescription": "Consulta las sucursales, oficinas o locales activos del negocio, incluyendo dirección física, link de mapa y horarios de atención.",
+          "url": "https://vijzjcpkypsmkhywndus.supabase.co/rest/v1/branches?select=id,name,address,google_maps_url,opening_hours,is_active&is_active=eq.true",
+          "sendHeaders": true,
+          "parametersHeaders": {
+            "values": [
+              {
+                "name": "apikey",
+                "valueProvider": "fieldValue",
+                "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpanpqY3BreXBzbWtoeXduZHVzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NDY3MTM4MywiZXhwIjoyMDkwMjQ3MzgzfQ.PyYU30n4yp2z_wtIJHnzunMtc_hX8rD7xWdPNxSYTHw"
+              },
+              {
+                "name": "Authorization",
+                "valueProvider": "fieldValue",
+                "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpanpqY3BreXBzbWtoeXduZHVzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NDY3MTM4MywiZXhwIjoyMDkwMjQ3MzgzfQ.PyYU30n4yp2z_wtIJHnzunMtc_hX8rD7xWdPNxSYTHw"
+              }
+            ]
+          }
+        },
+        "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
+        "typeVersion": 1,
+        "position": [
+          -272,
+          608
+        ],
+        "id": "248476b5-ce03-4bed-9189-1957049189f6",
+        "name": "Consultar Sucursales"
+      },
+      {
+        "parameters": {
+          "toolDescription": "Crea una solicitud de cita, turno o reserva en el sistema cuando el cliente quiera agendar o reservar un día y una hora específicos. Requiere: customer_name (nombre), phone (teléfono), reservation_date (YYYY-MM-DD), reservation_time (HH:mm), guest_count (número de personas), notes (notas opcionales).",
+          "method": "POST",
+          "url": "https://vijzjcpkypsmkhywndus.supabase.co/rest/v1/rpc/crear_reserva",
+          "sendHeaders": true,
+          "parametersHeaders": {
+            "values": [
+              {
+                "name": "apikey",
+                "valueProvider": "fieldValue",
+                "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpanpqY3BreXBzbWtoeXduZHVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NzEzODMsImV4cCI6MjA5MDI0NzM4M30.SiFNNR3ixkITh2y5tHbFiCymhRQmAny1CrlMojm3HkA"
+              },
+              {
+                "name": "Authorization",
+                "valueProvider": "fieldValue",
+                "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpanpqY3BreXBzbWtoeXduZHVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NzEzODMsImV4cCI6MjA5MDI0NzM4M30.SiFNNR3ixkITh2y5tHbFiCymhRQmAny1CrlMojm3HkA"
+              },
+              {
+                "name": "Content-Type",
+                "valueProvider": "fieldValue",
+                "value": "application/json"
+              },
+              {
+                "name": "Prefer",
+                "valueProvider": "fieldValue",
+                "value": "return=representation"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={\n  \"p_customer_name\": \"{{$fromAI('customer_name', 'Nombre del cliente para la reserva', 'string')}}\",\n  \"p_phone\": \"{{$fromAI('phone', 'Número de WhatsApp del cliente', 'string')}}\",\n  \"p_reservation_date\": \"{{$fromAI('reservation_date', 'Fecha de reserva en formato YYYY-MM-DD', 'string')}}\",\n  \"p_reservation_time\": \"{{$fromAI('reservation_time', 'Hora de reserva en formato HH:mm', 'string')}}\",\n  \"p_guest_count\": {{$fromAI('guest_count', 'Cantidad de personas', 'number')}},\n  \"p_notes\": \"{{$fromAI('notes', 'Notas u observaciones. Si no hay, usa texto vacío.', 'string')}}\"\n}"
+        },
+        "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
+        "typeVersion": 1,
+        "position": [
+          -48,
+          480
+        ],
+        "id": "89171c95-7f02-4efe-a853-fffe7e07bb9c",
+        "name": "Registrar Cita o Reserva"
+      },
+      {
+        "parameters": {
+          "toolDescription": "Crea un pedido en Supabase cuando el cliente confirme qué productos quiere pedir. Usa esta herramienta solo cuando tengas el teléfono del cliente y una lista clara de productos con cantidades. El campo items debe ser un arreglo JSON con objetos que tengan name y qty. No inventes productos ni cantidades.",
+          "method": "POST",
+          "url": "https://vijzjcpkypsmkhywndus.supabase.co/rest/v1/rpc/crear_pedido",
+          "sendHeaders": true,
+          "parametersHeaders": {
+            "values": [
+              {
+                "name": "apikey",
+                "valueProvider": "fieldValue",
+                "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpanpqY3BreXBzbWtoeXduZHVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NzEzODMsImV4cCI6MjA5MDI0NzM4M30.SiFNNR3ixkITh2y5tHbFiCymhRQmAny1CrlMojm3HkA"
+              },
+              {
+                "name": "Authorization",
+                "valueProvider": "fieldValue",
+                "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpanpqY3BreXBzbWtoeXduZHVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NzEzODMsImV4cCI6MjA5MDI0NzM4M30.SiFNNR3ixkITh2y5tHbFiCymhRQmAny1CrlMojm3HkA"
+              },
+              {
+                "name": "Content-Type",
+                "valueProvider": "fieldValue",
+                "value": "application/json"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={\n  \"p_phone\": \"{{$fromAI('phone', 'Número de WhatsApp del cliente', 'string')}}\",\n  \"p_customer_name\": \"{{$fromAI('customer_name', 'Nombre del cliente', 'string')}}\",\n  \"p_items\": {{$fromAI('items', 'Lista JSON de productos: [{\\\"name\\\":\\\"Producto\\\",\\\"qty\\\":1}]', 'json')}},\n  \"p_total\": {{$fromAI('total', 'Total del pedido en número', 'number')}},\n  \"p_source\": \"whatsapp\"\n}"
+        },
+        "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
+        "typeVersion": 1,
+        "position": [
+          -208,
+          480
+        ],
+        "id": "9facf0d7-f32f-4d6d-89ba-382f88404714",
+        "name": "Crear Pedido"
+      }
+    ],
+    "connections": {
+      "WhatsApp Webhook POST": {
+        "main": [
+          [
+            {
+              "node": "Normalize WhatsApp Message",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Normalize WhatsApp Message": {
+        "main": [
+          [
+            {
+              "node": "IF Valid Message",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "IF Valid Message": {
+        "main": [
+          [
+            {
+              "node": "IF Text Message",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "IF Text Message": {
+        "main": [
+          [
+            {
+              "node": "Guardar Mensaje Cliente",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Unsupported Message Fallback",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Check Duplicate Message": {
+        "main": [
+          [
+            {
+              "node": "Insert Processed Message",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Insert Processed Message": {
+        "main": [
+          [
+            {
+              "node": "Restore WhatsApp Context",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "OpenAI Chat Model": {
+        "ai_languageModel": [
+          [
+            {
+              "node": "AI Agent",
+              "type": "ai_languageModel",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Memory by WhatsApp Number": {
+        "ai_memory": [
+          [
+            {
+              "node": "AI Agent",
+              "type": "ai_memory",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Format WhatsApp Response": {
+        "main": [
+          [
+            {
+              "node": "Send WhatsApp Message",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Send WhatsApp Message": {
+        "main": [
+          [
+            {
+              "node": "Guardar Respuesta Bot",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Unsupported Message Fallback": {
+        "main": [
+          [
+            {
+              "node": "Send WhatsApp Message",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "WhatsApp Webhook POST1": {
+        "main": [
+          [
+            {
+              "node": "Respond to Webhook",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Restore WhatsApp Context": {
+        "main": [
+          [
+            {
+              "node": "Consultar Modo Humano",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Guardar Mensaje Cliente": {
+        "main": [
+          [
+            {
+              "node": "Check Duplicate Message",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Bot Activo?": {
+        "main": [
+          [
+            {
+              "node": "Format WhatsApp Response",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "AI Agent",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Consultar Modo Humano": {
+        "main": [
+          [
+            {
+              "node": "Bot Activo?",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Guardar Respuesta Bot": {
+        "main": [
+          [
+            {
+              "node": "Log Conversation",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Consultar Catálogo": {
+        "ai_tool": [
+          [
+            {
+              "node": "AI Agent",
+              "type": "ai_tool",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Consultar Sucursales": {
+        "ai_tool": [
+          [
+            {
+              "node": "AI Agent",
+              "type": "ai_tool",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Registrar Cita o Reserva": {
+        "ai_tool": [
+          [
+            {
+              "node": "AI Agent",
+              "type": "ai_tool",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Crear Pedido": {
+        "ai_tool": [
+          [
+            {
+              "node": "AI Agent",
+              "type": "ai_tool",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "settings": {
+      "executionOrder": "v1",
+      "binaryMode": "separate"
+    },
+    "staticData": null,
+    "meta": null,
+    "pinData": {},
+    "versionId": "b9978580-80fe-4d50-97ad-fd036438e326",
+    "activeVersionId": null,
+    "versionCounter": 4,
+    "triggerCount": 2,
+    "tags": [],
+    "shared": [
+      {
+        "updatedAt": "2026-05-18T23:11:46.214Z",
+        "createdAt": "2026-05-18T23:11:46.214Z",
+        "role": "workflow:owner",
+        "workflowId": "thCySYI6DjiPYla3",
+        "projectId": "OC9e9AC77znyWouQ",
+        "project": {
+          "updatedAt": "2026-05-06T01:41:38.060Z",
+          "createdAt": "2026-05-06T01:39:00.015Z",
+          "id": "OC9e9AC77znyWouQ",
+          "name": "Andres Figueroa <andresfuigueroaz@gmail.com>",
+          "type": "personal",
+          "icon": null,
+          "description": null,
+          "creatorId": "d9004f33-a5b8-4a1d-90bf-87e726ca1bee"
+        }
+      }
+    ],
+    "versionMetadata": {
+      "name": "Version b9978580",
+      "description": ""
+    }
+  },
+  {
+    "updatedAt": "2026-05-21T22:46:36.755Z",
+    "createdAt": "2026-05-18T23:13:49.030Z",
+    "id": "7SwRxH0Jx08L3ILP",
+    "name": "Robotina WhatsApp Restaurante V1 - Seguro y Escalable",
+    "description": null,
+    "active": true,
+    "isArchived": false,
+    "nodes": [
+      {
+        "parameters": {
+          "httpMethod": "POST",
+          "path": "whatsapp-webhook",
+          "options": {
+            "rawBody": true
+          }
+        },
+        "id": "de0a466e-7601-47e1-9f3a-d4cdeb68dfa2",
+        "name": "WhatsApp Webhook POST",
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 1,
+        "position": [
+          -1344,
+          -128
+        ],
+        "webhookId": "REPLACE_WITH_N8N_WEBHOOK_ID"
+      },
+      {
+        "parameters": {
+          "jsCode": "// Lee explícitamente del Webhook inicial usando la sintaxis de n8n v1+\nconst webhookData = $('WhatsApp Webhook POST').item.json;\nconst body = webhookData.body || webhookData;\n\nconst value = body?.entry?.[0]?.changes?.[0]?.value || {};\nconst message = value?.messages?.[0] || null;\nconst contact = value?.contacts?.[0] || {};\nconst status = value?.statuses?.[0] || null;\n\nif (status && !message) {\n  return [{\n    json: {\n      is_valid_message: false,\n      event_type: 'status',\n      reason: 'WhatsApp status event ignored',\n      status_id: status.id || null,\n      status_value: status.status || null,\n      raw: body\n    }\n  }];\n}\n\nif (!message) {\n  return [{\n    json: {\n      is_valid_message: false,\n      event_type: 'unknown',\n      reason: 'No message object found',\n      raw: body\n    }\n  }];\n}\n\nconst type = message.type;\nlet text = '';\nlet media_id = null;\n\nif (type === 'text') {\n  text = message?.text?.body || '';\n}\n\nif (type === 'audio') {\n  media_id = message?.audio?.id || null;\n}\n\nif (type === 'image') {\n  text = message?.image?.caption || '';\n  media_id = message?.image?.id || null;\n}\n\nif (type === 'document') {\n  text = message?.document?.caption || '';\n  media_id = message?.document?.id || null;\n}\n\nreturn [{\n  json: {\n    is_valid_message: true,\n    event_type: 'message',\n    from: message.from,\n    customer_name: contact?.profile?.name || null,\n    message_id: message.id,\n    message_type: type,\n    text,\n    media_id,\n    timestamp: message.timestamp,\n    session_id: message.from,\n    business_phone_number_id: value?.metadata?.phone_number_id || null,\n    display_phone_number: value?.metadata?.display_phone_number || null,\n    raw_message: message\n  }\n}];"
+        },
+        "id": "754703f6-ec81-4e69-a95d-c5acba68a060",
+        "name": "Normalize WhatsApp Message",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          -1136,
+          -128
+        ]
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "boolean": [
+              {
+                "value1": "={{$json.is_valid_message}}",
+                "value2": true
+              }
+            ]
+          }
+        },
+        "id": "fb6be55b-98da-4c9a-b399-cb26f9c52ac9",
+        "name": "IF Valid Message",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 1,
+        "position": [
+          -960,
+          -128
+        ]
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "string": [
+              {
+                "value1": "={{$json.message_type}}",
+                "value2": "text"
+              }
+            ]
+          }
+        },
+        "id": "56943d00-3d58-4595-8ea5-83d45d6e1845",
+        "name": "IF Text Message",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 1,
+        "position": [
+          -768,
+          -144
+        ]
+      },
+      {
+        "parameters": {
+          "url": "=https://vijzjcpkypsmkhywndus.supabase.co/rest/v1/processed_messages?select=id&whatsapp_message_id=eq.{{$json.message_id}}",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "apikey",
+                "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpanpqY3BreXBzbWtoeXduZHVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NzEzODMsImV4cCI6MjA5MDI0NzM4M30.SiFNNR3ixkITh2y5tHbFiCymhRQmAny1CrlMojm3HkA"
+              },
+              {
+                "name": "Authorization",
+                "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpanpqY3BreXBzbWtoeXduZHVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NzEzODMsImV4cCI6MjA5MDI0NzM4M30.SiFNNR3ixkITh2y5tHbFiCymhRQmAny1CrlMojm3HkA"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "id": "3afaab55-fee2-49cb-ad1b-8bcc75f2d7b7",
+        "name": "Check Duplicate Message",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4,
+        "position": [
+          -704,
+          -384
+        ],
+        "alwaysOutputData": true,
+        "notes": "Consulta processed_messages. Si devuelve filas, no se debe responder otra vez."
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "=https://vijzjcpkypsmkhywndus.supabase.co/rest/v1/processed_messages",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "apikey",
+                "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpanpqY3BreXBzbWtoeXduZHVzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NDY3MTM4MywiZXhwIjoyMDkwMjQ3MzgzfQ.PyYU30n4yp2z_wtIJHnzunMtc_hX8rD7xWdPNxSYTHw"
+              },
+              {
+                "name": "Authorization",
+                "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpanpqY3BreXBzbWtoeXduZHVzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NDY3MTM4MywiZXhwIjoyMDkwMjQ3MzgzfQ.PyYU30n4yp2z_wtIJHnzunMtc_hX8rD7xWdPNxSYTHw"
+              },
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "name": "Prefer",
+                "value": "return=representation"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={\n  \"whatsapp_message_id\": \"{{$node['Normalize WhatsApp Message'].json.message_id}}\",\n  \"phone\": \"{{$node['Normalize WhatsApp Message'].json.from}}\"\n}",
+          "options": {}
+        },
+        "id": "06a54156-5e53-4745-9c85-680d9ac73c58",
+        "name": "Insert Processed Message",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4,
+        "position": [
+          -496,
+          -384
+        ],
+        "alwaysOutputData": true,
+        "notes": "MVP: en producción conviene insertar antes de llamar al agente y manejar conflicto 409 como duplicado."
+      },
+      {
+        "parameters": {
+          "model": "gpt-4o-mini",
+          "options": {
+            "temperature": 0.2
+          }
+        },
+        "id": "f198ae80-2600-490c-85e4-d7d428894391",
+        "name": "OpenAI Chat Model",
+        "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+        "typeVersion": 1,
+        "position": [
+          144,
+          -128
+        ],
+        "credentials": {
+          "openAiApi": {
+            "id": "CFMyPrlFJum28GvJ",
+            "name": "OpenAI account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "sessionKey": "={{ $json.from }}",
+          "contextWindowLength": 10
+        },
+        "id": "0f4b52dc-4232-4c83-b362-20f29821172c",
+        "name": "Memory by WhatsApp Number",
+        "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+        "typeVersion": 1,
+        "position": [
+          304,
+          -144
+        ],
+        "notes": "Para producción fuerte, reemplazar por Redis/Postgres memory. Session key = número de WhatsApp."
+      },
+      {
+        "parameters": {
+          "jsCode": "const input = $json;\n\nlet reply = input.output || input.reply || input.text || '';\n\nif (!reply) {\n  reply = 'Gracias por escribirnos. ¿En qué puedo ayudarte?';\n}\n\nif (reply.length > 3500) {\n  reply = reply.slice(0, 3400) + '\\n\\nTe resumo lo principal arriba. Si deseas, te puedo dar más detalle.';\n}\n\n// Strip markdown images entirely: ![Name](URL)\nreply = reply.replace(/!\\[.*?\\]\\(.*?\\)/g, '');\n\n// Format standard markdown links [Text](URL) to \"Text (URL)\"\nreply = reply.replace(/\\[(.*?)\\]\\((.*?)\\)/g, '$1 ($2)');\n\nreply = reply\n  .replace(/\\*\\*/g, '*')\n  .replace(/#{1,6}\\s/g, '')\n  .trim();\n\nlet from = input.from || input.customer_phone || input.phone || '';\n\ntry {\n  const normalize = $('Normalize WhatsApp Message').first().json;\n  from = from || normalize.from || normalize.customer_phone || normalize.phone || '';\n} catch (error) {\n  // Safe fallback\n}\n\nreturn [\n  {\n    json: {\n      from,\n      reply\n    }\n  }\n];"
+        },
+        "id": "773c991d-ab4c-4c90-b912-ef0449f4f5b0",
+        "name": "Format WhatsApp Response",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          576,
+          -320
+        ]
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "=https://graph.facebook.com/v21.0/{{$node['Normalize WhatsApp Message'].json.business_phone_number_id}}/messages",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Authorization",
+                "value": "=Bearer {{$node['HTTP Request'].json.whatsapp_token}}"
+              },
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={\n  \"messaging_product\": \"whatsapp\",\n  \"to\": \"{{ $json.from }}\",\n  \"type\": \"text\",\n  \"text\": {\n    \"body\": {{ JSON.stringify($json.reply) }}\n  }\n}",
+          "options": {}
+        },
+        "id": "68a248ee-367f-44f9-85e4-83384221c69d",
+        "name": "Send WhatsApp Message",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4,
+        "position": [
+          816,
+          -320
+        ]
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "https://vijzjcpkypsmkhywndus.supabase.co/rest/v1/conversation_logs",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "apikey",
+                "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpanpqY3BreXBzbWtoeXduZHVzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NDY3MTM4MywiZXhwIjoyMDkwMjQ3MzgzfQ.PyYU30n4yp2z_wtIJHnzunMtc_hX8rD7xWdPNxSYTHw"
+              },
+              {
+                "name": "Authorization",
+                "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpanpqY3BreXBzbWtoeXduZHVzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NDY3MTM4MywiZXhwIjoyMDkwMjQ3MzgzfQ.PyYU30n4yp2z_wtIJHnzunMtc_hX8rD7xWdPNxSYTHw"
+              },
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "name": "Prefer",
+                "value": "return=minimal"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={{ JSON.stringify({\n  \"phone\": $('Format WhatsApp Response').first().json.from,\n  \"customer_name\": $('Format WhatsApp Response').first().json.customer_name || null,\n  \"inbound_message\": $('Format WhatsApp Response').first().json.inbound_message || null,\n  \"inbound_type\": $('Format WhatsApp Response').first().json.inbound_type || null,\n  \"agent_response\": $('Format WhatsApp Response').first().json.reply,\n  \"status\": \"ok\"\n}) }}",
+          "options": {}
+        },
+        "id": "2b40508e-3e8d-4504-89e2-cb45ea57ba25",
+        "name": "Log Conversation",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4,
+        "position": [
+          1264,
+          -320
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "return [{\n  json: {\n    from: $node['Normalize WhatsApp Message'].json.from,\n    reply: 'Por ahora puedo atender mensajes de texto. En breve activaremos audios e imágenes.'\n  }\n}];"
+        },
+        "id": "29ac20ed-8e57-4c37-8902-24db999454ab",
+        "name": "Unsupported Message Fallback",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          -304,
+          -176
+        ]
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "29d36401-a90d-446e-ba76-d3aa7b7fd147",
+                "name": "text",
+                "value": "Hola, ¿qué hamburguesas tienen?",
+                "type": "string"
+              },
+              {
+                "id": "99741e1a-bdaa-435a-af9b-4d6f5c8dbe76",
+                "name": "from",
+                "value": "15551868964",
+                "type": "string"
+              },
+              {
+                "id": "4d780408-0a9c-453a-909c-f3dd5177fc13",
+                "name": "customer_name",
+                "value": "Cliente Prueba",
+                "type": "string"
+              },
+              {
+                "id": "2488ff78-4404-497c-aed5-a2529884c5d6",
+                "name": "session_id",
+                "value": "15551868964",
+                "type": "string"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          704,
+          -576
+        ],
+        "id": "358da3ea-cfa4-402a-94e2-81315442612f",
+        "name": "Edit Fields"
+      },
+      {
+        "parameters": {
+          "path": "whatsapp-webhook",
+          "responseMode": "responseNode",
+          "options": {}
+        },
+        "id": "2b0e7106-e60b-4561-ad1d-2014caa8989e",
+        "name": "WhatsApp Webhook POST1",
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 1,
+        "position": [
+          -1344,
+          112
+        ],
+        "webhookId": "REPLACE_WITH_N8N_WEBHOOK_ID"
+      },
+      {
+        "parameters": {
+          "respondWith": "text",
+          "responseBody": "={{$json.query[\"hub.challenge\"]}}",
+          "options": {
+            "responseCode": 200
+          }
+        },
+        "type": "n8n-nodes-base.respondToWebhook",
+        "typeVersion": 1.5,
+        "position": [
+          -976,
+          112
+        ],
+        "id": "6b9d2d93-9d27-42ff-829f-e3849b43c2fb",
+        "name": "Respond to Webhook"
+      },
+      {
+        "parameters": {
+          "jsCode": "const normalize = $('Normalize WhatsApp Message').first().json;\n\nreturn [\n  {\n    json: {\n      is_valid_message: normalize.is_valid_message,\n      event_type: normalize.event_type,\n      from: normalize.from,\n      customer_name: normalize.customer_name,\n      message_id: normalize.message_id,\n      message_type: normalize.message_type,\n      text: normalize.text,\n      media_id: normalize.media_id,\n      timestamp: normalize.timestamp,\n      session_id: normalize.session_id,\n      business_phone_number_id: normalize.business_phone_number_id,\n      display_phone_number: normalize.display_phone_number,\n      raw_message: normalize.raw_message\n    }\n  }\n];"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          -304,
+          -384
+        ],
+        "id": "5baf9fca-f805-4862-bd99-ee5d1b235aa5",
+        "name": "Restore WhatsApp Context"
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "https://vijzjcpkypsmkhywndus.supabase.co/rest/v1/rpc/registrar_mensaje",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "apikey",
+                "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpanpqY3BreXBzbWtoeXduZHVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NzEzODMsImV4cCI6MjA5MDI0NzM4M30.SiFNNR3ixkITh2y5tHbFiCymhRQmAny1CrlMojm3HkA"
+              },
+              {
+                "name": "Authorization",
+                "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpanpqY3BreXBzbWtoeXduZHVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NzEzODMsImV4cCI6MjA5MDI0NzM4M30.SiFNNR3ixkITh2y5tHbFiCymhRQmAny1CrlMojm3HkA"
+              },
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "name": "prefer",
+                "value": "return=representation"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={\n  \"p_phone\": \"{{$node['Normalize WhatsApp Message'].json.from}}\",\n  \"p_message\": \"{{$node['Normalize WhatsApp Message'].json.text}}\",\n  \"p_direction\": \"inbound\",\n  \"p_customer_name\": \"{{$node['Normalize WhatsApp Message'].json.customer_name}}\",\n  \"p_tenant_id\": \"{{$node['HTTP Request'].json.id}}\"\n}",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.4,
+        "position": [
+          -880,
+          -384
+        ],
+        "id": "b44702dd-8d31-4978-80f0-e7f2233383e3",
+        "name": "Guardar Mensaje Cliente"
+      },
+      {
+        "parameters": {
+          "url": "https://vijzjcpkypsmkhywndus.supabase.co/rest/v1/whatsapp_chats?phone=eq.{{ $json.from }}&select=is_bot_active",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "apikey",
+                "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpanpqY3BreXBzbWtoeXduZHVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NzEzODMsImV4cCI6MjA5MDI0NzM4M30.SiFNNR3ixkITh2y5tHbFiCymhRQmAny1CrlMojm3HkA"
+              },
+              {
+                "name": "Authorization",
+                "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpanpqY3BreXBzbWtoeXduZHVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NzEzODMsImV4cCI6MjA5MDI0NzM4M30.SiFNNR3ixkITh2y5tHbFiCymhRQmAny1CrlMojm3HkA"
+              },
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.4,
+        "position": [
+          -128,
+          -384
+        ],
+        "id": "13c657a2-d170-445b-8115-71fd0f222b6d",
+        "name": "Consultar Modo Humano",
+        "alwaysOutputData": true
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "loose",
+              "version": 3
+            },
+            "conditions": [
+              {
+                "id": "e9e156f3-885b-4093-a64e-795edcb85743",
+                "leftValue": "={{ $json.is_bot_active !== false }}",
+                "rightValue": "true",
+                "operator": {
+                  "type": "boolean",
+                  "operation": "true",
+                  "singleValue": true
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "looseTypeValidation": true,
+          "options": {}
+        },
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.3,
+        "position": [
+          80,
+          -384
+        ],
+        "id": "6a07ff14-e391-4ab0-a3a8-c7ceb37b2430",
+        "name": "Bot Activo?"
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "https://vijzjcpkypsmkhywndus.supabase.co/rest/v1/rpc/registrar_mensaje",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "apikey",
+                "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpanpqY3BreXBzbWtoeXduZHVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NzEzODMsImV4cCI6MjA5MDI0NzM4M30.SiFNNR3ixkITh2y5tHbFiCymhRQmAny1CrlMojm3HkA"
+              },
+              {
+                "name": "Authorization",
+                "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpanpqY3BreXBzbWtoeXduZHVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NzEzODMsImV4cCI6MjA5MDI0NzM4M30.SiFNNR3ixkITh2y5tHbFiCymhRQmAny1CrlMojm3HkA"
+              },
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "name": "prefer",
+                "value": "return=representation"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={{ JSON.stringify({\n  \"p_phone\": $('Format WhatsApp Response').first().json.from,\n  \"p_message\": $('Format WhatsApp Response').first().json.reply,\n  \"p_direction\": \"outbound\",\n  \"p_customer_name\": $('Normalize WhatsApp Message').first().json.customer_name || null,\n  \"p_tenant_id\": $('HTTP Request').first().json.id\n}) }}",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.4,
+        "position": [
+          1024,
+          -320
+        ],
+        "id": "5f9a3236-0256-4d21-8e9c-2ad91554f089",
+        "name": "Guardar Respuesta Bot"
+      },
+      {
+        "parameters": {
+          "promptType": "define",
+          "text": "=Cliente WhatsApp: {{$('Normalize WhatsApp Message').first().json.from}}\nNombre cliente: {{$('Normalize WhatsApp Message').first().json.customer_name || ''}}\nMensaje cliente: {{$('Normalize WhatsApp Message').first().json.text}}\n",
+          "options": {
+            "systemMessage": "={{ $('HTTP Request').first().json.system_prompt }}"
+          }
+        },
+        "type": "@n8n/n8n-nodes-langchain.agent",
+        "typeVersion": 1.7,
+        "position": [
+          288,
+          -320
+        ],
+        "id": "e3c05c58-8a33-4e77-8d22-528c98919736",
+        "name": "AI Agent",
+        "onError": "continueErrorOutput"
+      },
+      {
+        "parameters": {
+          "toolDescription": "Consulta el catálogo maestro de productos o servicios disponibles en el negocio. Úsala cuando el cliente pregunte qué vendemos, qué servicios ofrecemos, precios, detalles, inventario o sugerencias.",
+          "url": "https://vijzjcpkypsmkhywndus.supabase.co/rest/v1/menu_items?select=item_code,name,description,price,category,img_url,stock_status,is_available,sales_30d,keywords&is_available=eq.true",
+          "sendHeaders": true,
+          "parametersHeaders": {
+            "values": [
+              {
+                "name": "apikey",
+                "valueProvider": "fieldValue",
+                "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpanpqY3BreXBzbWtoeXduZHVzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NDY3MTM4MywiZXhwIjoyMDkwMjQ3MzgzfQ.PyYU30n4yp2z_wtIJHnzunMtc_hX8rD7xWdPNxSYTHw"
+              },
+              {
+                "name": "Authorization",
+                "valueProvider": "fieldValue",
+                "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpanpqY3BreXBzbWtoeXduZHVzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NDY3MTM4MywiZXhwIjoyMDkwMjQ3MzgzfQ.PyYU30n4yp2z_wtIJHnzunMtc_hX8rD7xWdPNxSYTHw"
+              }
+            ]
+          }
+        },
+        "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
+        "typeVersion": 1,
+        "position": [
+          256,
+          48
+        ],
+        "id": "24b74020-ea3b-4e07-a778-4eca90599585",
+        "name": "Consultar Catálogo"
+      },
+      {
+        "parameters": {
+          "toolDescription": "Consulta las sucursales, oficinas o locales activos del negocio, incluyendo dirección física, link de mapa y horarios de atención.",
+          "url": "https://vijzjcpkypsmkhywndus.supabase.co/rest/v1/branches?select=id,name,address,google_maps_url,opening_hours,is_active&is_active=eq.true",
+          "sendHeaders": true,
+          "parametersHeaders": {
+            "values": [
+              {
+                "name": "apikey",
+                "valueProvider": "fieldValue",
+                "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpanpqY3BreXBzbWtoeXduZHVzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NDY3MTM4MywiZXhwIjoyMDkwMjQ3MzgzfQ.PyYU30n4yp2z_wtIJHnzunMtc_hX8rD7xWdPNxSYTHw"
+              },
+              {
+                "name": "Authorization",
+                "valueProvider": "fieldValue",
+                "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpanpqY3BreXBzbWtoeXduZHVzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NDY3MTM4MywiZXhwIjoyMDkwMjQ3MzgzfQ.PyYU30n4yp2z_wtIJHnzunMtc_hX8rD7xWdPNxSYTHw"
+              }
+            ]
+          }
+        },
+        "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
+        "typeVersion": 1,
+        "position": [
+          432,
+          32
+        ],
+        "id": "daf28deb-54ad-4483-9efa-ae5bd034ed52",
+        "name": "Consultar Sucursales"
+      },
+      {
+        "parameters": {
+          "toolDescription": "Crea una solicitud de reserva o cita en el sistema. Debes pasar un objeto JSON completo en el parámetro query que contenga estrictamente: {\"customer_name\": \"Nombre del cliente\", \"phone\": \"Teléfono del cliente\", \"reservation_date\": \"YYYY-MM-DD\", \"reservation_time\": \"HH:mm\", \"guest_count\": 2, \"notes\": \"notas_opcionales\"}. No omitas ninguno de estos campos en el JSON.",
+          "method": "POST",
+          "url": "https://vijzjcpkypsmkhywndus.supabase.co/rest/v1/rpc/crear_reserva",
+          "sendHeaders": true,
+          "parametersHeaders": {
+            "values": [
+              {
+                "name": "apikey",
+                "valueProvider": "fieldValue",
+                "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpanpqY3BreXBzbWtoeXduZHVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NzEzODMsImV4cCI6MjA5MDI0NzM4M30.SiFNNR3ixkITh2y5tHbFiCymhRQmAny1CrlMojm3HkA"
+              },
+              {
+                "name": "Authorization",
+                "valueProvider": "fieldValue",
+                "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpanpqY3BreXBzbWtoeXduZHVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NzEzODMsImV4cCI6MjA5MDI0NzM4M30.SiFNNR3ixkITh2y5tHbFiCymhRQmAny1CrlMojm3HkA"
+              },
+              {
+                "name": "Content-Type",
+                "valueProvider": "fieldValue",
+                "value": "application/json"
+              },
+              {
+                "name": "Prefer",
+                "valueProvider": "fieldValue",
+                "value": "return=representation"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "{\n  \"p_customer_name\": \"={{ (() => { try { const parsed = JSON.parse($json.query); if (parsed && parsed.customer_name) return parsed.customer_name; } catch (e) {} return $('Normalize WhatsApp Message').first().json.customer_name || 'Cliente WhatsApp'; })() }}\",\n  \"p_phone\": \"={{ (() => { try { const parsed = JSON.parse($json.query); if (parsed && parsed.phone) return String(parsed.phone); } catch (e) {} return $('Normalize WhatsApp Message').first().json.from; })() }}\",\n  \"p_reservation_date\": \"={{ (() => { try { const parsed = JSON.parse($json.query); if (parsed && parsed.reservation_date) return parsed.reservation_date; } catch (e) {} return ''; })() }}\",\n  \"p_reservation_time\": \"={{ (() => { try { const parsed = JSON.parse($json.query); if (parsed && parsed.reservation_time) return parsed.reservation_time; } catch (e) {} return ''; })() }}\",\n  \"p_guest_count\": \"={{ (() => { try { const parsed = JSON.parse($json.query); if (parsed && parsed.guest_count) return Number(parsed.guest_count); } catch (e) {} return 1; })() }}\",\n  \"p_notes\": \"={{ (() => { try { const parsed = JSON.parse($json.query); if (parsed && parsed.notes) return parsed.notes; } catch (e) {} return ''; })() }}\",\n  \"p_tenant_id\": \"{{ $('HTTP Request').first().json.id }}\"\n}"
+        },
+        "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
+        "typeVersion": 1,
+        "position": [
+          656,
+          -96
+        ],
+        "id": "3ebbd38f-d5ae-4cf3-8edc-d17099f39e4a",
+        "name": "Registrar Cita o Reserva"
+      },
+      {
+        "parameters": {
+          "toolDescription": "Crea un pedido en Supabase. Debes pasar un objeto JSON completo en el parámetro query que contenga estrictamente: {\"items\": [{\"name\": \"Nombre de Producto\", \"qty\": 1}], \"phone\": \"Número de WhatsApp del cliente\", \"customer_name\": \"Nombre del cliente\", \"total\": total_en_número}. No omitas ninguno de estos campos en el JSON.",
+          "method": "POST",
+          "url": "https://vijzjcpkypsmkhywndus.supabase.co/rest/v1/rpc/crear_pedido",
+          "sendHeaders": true,
+          "parametersHeaders": {
+            "values": [
+              {
+                "name": "apikey",
+                "valueProvider": "fieldValue",
+                "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpanpqY3BreXBzbWtoeXduZHVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NzEzODMsImV4cCI6MjA5MDI0NzM4M30.SiFNNR3ixkITh2y5tHbFiCymhRQmAny1CrlMojm3HkA"
+              },
+              {
+                "name": "Authorization",
+                "valueProvider": "fieldValue",
+                "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpanpqY3BreXBzbWtoeXduZHVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NzEzODMsImV4cCI6MjA5MDI0NzM4M30.SiFNNR3ixkITh2y5tHbFiCymhRQmAny1CrlMojm3HkA"
+              },
+              {
+                "name": "Content-Type",
+                "valueProvider": "fieldValue",
+                "value": "application/json"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "{\n  \"p_phone\": \"={{ (() => { try { const parsed = JSON.parse($json.query); if (parsed && parsed.phone) return String(parsed.phone); } catch (e) {} return $('Normalize WhatsApp Message').first().json.from; })() }}\",\n  \"p_customer_name\": \"={{ (() => { try { const parsed = JSON.parse($json.query); if (parsed && parsed.customer_name) return parsed.customer_name; } catch (e) {} return $('Normalize WhatsApp Message').first().json.customer_name || 'Cliente WhatsApp'; })() }}\",\n  \"p_items\": \"={{ (() => { try { const parsed = JSON.parse($json.query); if (parsed && parsed.items) return parsed.items; } catch (e) {} return []; })() }}\",\n  \"p_total\": \"={{ (() => { try { const parsed = JSON.parse($json.query); if (parsed && parsed.total) return Number(parsed.total); } catch (e) {} return 0; })() }}\",\n  \"p_source\": \"whatsapp\",\n  \"p_tenant_id\": \"{{ $('HTTP Request').first().json.id }}\"\n}"
+        },
+        "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
+        "typeVersion": 1,
+        "position": [
+          496,
+          -96
+        ],
+        "id": "d963d612-6c40-4bdf-b883-cd403c93548f",
+        "name": "Crear Pedido"
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "https://vijzjcpkypsmkhywndus.supabase.co/rest/v1/rpc/resolver_tenant",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "apikey",
+                "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpanpqY3BreXBzbWtoeXduZHVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NzEzODMsImV4cCI6MjA5MDI0NzM4M30.SiFNNR3ixkITh2y5tHbFiCymhRQmAny1CrlMojm3HkA"
+              },
+              {
+                "name": "Authorization",
+                "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpanpqY3BreXBzbWtoeXduZHVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NzEzODMsImV4cCI6MjA5MDI0NzM4M30.SiFNNR3ixkITh2y5tHbFiCymhRQmAny1CrlMojm3HkA"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={\n  \"p_phone_number_id\": \"{{ $json.body.entry[0].changes[0].value.metadata.phone_number_id }}\"\n}",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.4,
+        "position": [
+          -1104,
+          -368
+        ],
+        "id": "6490a5cc-278d-4c79-bb43-8a78edc6032c",
+        "name": "HTTP Request"
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "=https://graph.facebook.com/v21.0/{{$node['Normalize WhatsApp Message'].json.business_phone_number_id}}/messages",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Authorization",
+                "value": "=Bearer {{$node['HTTP Request'].json.whatsapp_token}}"
+              },
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={\n  \"messaging_product\": \"whatsapp\",\n  \"to\": \"{{$node['Normalize WhatsApp Message'].json.from}}\",\n  \"type\": \"text\",\n  \"text\": {\n    \"body\": \"⚠️ Disculpa, en este momento estoy experimentando intermitencias técnicas y mi cerebro está reiniciándose. En breve un agente humano tomará tu caso.\"\n  }\n}",
+          "options": {}
+        },
+        "id": "428f5c3e-5767-473f-97a8-b383a27130fa",
+        "name": "Fallback to User",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4,
+        "position": [
+          592,
+          -128
+        ]
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "=https://graph.facebook.com/v21.0/{{$node['Normalize WhatsApp Message'].json.business_phone_number_id}}/messages",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Authorization",
+                "value": "=Bearer {{$node['HTTP Request'].json.whatsapp_token}}"
+              },
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={\n  \"messaging_product\": \"whatsapp\",\n  \"to\": \"911\",\n  \"type\": \"text\",\n  \"text\": {\n    \"body\": \"🚨 *ALERTA ROBOTINA CRÍTICA* 🚨\\nEl bot ha fallado.\\n*Tenant:* {{$node['HTTP Request'].json.business_name}}\\n*Cliente:* {{$node['Normalize WhatsApp Message'].json.customer_name}} (+{{$node['Normalize WhatsApp Message'].json.from}})\\n*Error:* {{$json.error.message}}\"\n  }\n}",
+          "options": {}
+        },
+        "id": "f78949bc-c78f-43fc-941e-c0b5aeb2f40f",
+        "name": "Alert to Admin",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4,
+        "position": [
+          592,
+          80
+        ],
+        "notes": "Cambia el numero 911 en to por tu numero real de WhatsApp"
+      }
+    ],
+    "connections": {
+      "WhatsApp Webhook POST": {
+        "main": [
+          [
+            {
+              "node": "HTTP Request",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Normalize WhatsApp Message": {
+        "main": [
+          [
+            {
+              "node": "IF Valid Message",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "IF Valid Message": {
+        "main": [
+          [
+            {
+              "node": "IF Text Message",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "IF Text Message": {
+        "main": [
+          [
+            {
+              "node": "Guardar Mensaje Cliente",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Unsupported Message Fallback",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Check Duplicate Message": {
+        "main": [
+          [
+            {
+              "node": "Insert Processed Message",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Insert Processed Message": {
+        "main": [
+          [
+            {
+              "node": "Restore WhatsApp Context",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "OpenAI Chat Model": {
+        "ai_languageModel": [
+          [
+            {
+              "node": "AI Agent",
+              "type": "ai_languageModel",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Memory by WhatsApp Number": {
+        "ai_memory": [
+          [
+            {
+              "node": "AI Agent",
+              "type": "ai_memory",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Format WhatsApp Response": {
+        "main": [
+          [
+            {
+              "node": "Send WhatsApp Message",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Send WhatsApp Message": {
+        "main": [
+          [
+            {
+              "node": "Guardar Respuesta Bot",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Unsupported Message Fallback": {
+        "main": [
+          [
+            {
+              "node": "Send WhatsApp Message",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "WhatsApp Webhook POST1": {
+        "main": [
+          [
+            {
+              "node": "Respond to Webhook",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Restore WhatsApp Context": {
+        "main": [
+          [
+            {
+              "node": "Consultar Modo Humano",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Guardar Mensaje Cliente": {
+        "main": [
+          [
+            {
+              "node": "Check Duplicate Message",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Bot Activo?": {
+        "main": [
+          [
+            {
+              "node": "AI Agent",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Consultar Modo Humano": {
+        "main": [
+          [
+            {
+              "node": "Bot Activo?",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Guardar Respuesta Bot": {
+        "main": [
+          [
+            {
+              "node": "Log Conversation",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Consultar Catálogo": {
+        "ai_tool": [
+          [
+            {
+              "node": "AI Agent",
+              "type": "ai_tool",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Consultar Sucursales": {
+        "ai_tool": [
+          [
+            {
+              "node": "AI Agent",
+              "type": "ai_tool",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Registrar Cita o Reserva": {
+        "ai_tool": [
+          [
+            {
+              "node": "AI Agent",
+              "type": "ai_tool",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Crear Pedido": {
+        "ai_tool": [
+          [
+            {
+              "node": "AI Agent",
+              "type": "ai_tool",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "AI Agent": {
+        "main": [
+          [
+            {
+              "node": "Format WhatsApp Response",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Fallback to User",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Alert to Admin",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "HTTP Request": {
+        "main": [
+          [
+            {
+              "node": "Normalize WhatsApp Message",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "settings": {
+      "executionOrder": "v1",
+      "binaryMode": "separate",
+      "timeSavedMode": "fixed",
+      "callerPolicy": "workflowsFromSameOwner",
+      "availableInMCP": false
+    },
+    "staticData": null,
+    "meta": null,
+    "pinData": {},
+    "versionId": "c5f9a0a9-85be-4b51-8e93-b07e5057bd9b",
+    "activeVersionId": "05a83b2a-7f39-4594-b005-7e207d99ac9b",
+    "versionCounter": 127,
+    "triggerCount": 2,
+    "tags": [],
+    "shared": [
+      {
+        "updatedAt": "2026-05-18T23:13:49.031Z",
+        "createdAt": "2026-05-18T23:13:49.031Z",
+        "role": "workflow:owner",
+        "workflowId": "7SwRxH0Jx08L3ILP",
+        "projectId": "OC9e9AC77znyWouQ",
+        "project": {
+          "updatedAt": "2026-05-06T01:41:38.060Z",
+          "createdAt": "2026-05-06T01:39:00.015Z",
+          "id": "OC9e9AC77znyWouQ",
+          "name": "Andres Figueroa <andresfuigueroaz@gmail.com>",
+          "type": "personal",
+          "icon": null,
+          "description": null,
+          "creatorId": "d9004f33-a5b8-4a1d-90bf-87e726ca1bee"
+        }
+      }
+    ],
+    "versionMetadata": {
+      "name": "Version 05a83b2a",
+      "description": ""
+    }
+  }
+]

@@ -1,26 +1,51 @@
 import { useState } from 'react';
+import { supabase } from '../supabaseClient';
+import { useNavigate, Link } from 'react-router-dom';
 
 export default function Login({ onLogin }: { onLogin: () => void }) {
+  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);
     
-    // Simulación de conexión a Supabase Auth y validación de suscripción activa
-    setTimeout(() => {
-      const isEmailValid = email.trim().toLowerCase() === 'admin@empresa.com';
-      if (isEmailValid && password === '1234') {
+    try {
+      const { data, error: authError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (authError) throw authError;
+
+      // Verificar si el usuario ya completó el onboarding consultando su tenant
+      const { data: tenantUser } = await supabase
+        .from('tenant_users')
+        .select('tenant_id, tenants(is_active)')
+        .eq('user_id', data.user.id)
+        .single();
+
+      const tenants: any = tenantUser?.tenants;
+      const isActive = Array.isArray(tenants) ? tenants[0]?.is_active : tenants?.is_active;
+
+      if (tenantUser && isActive) {
         onLogin();
+        navigate('/');
       } else {
-        setError('Credenciales inválidas o suscripción mensual inactiva.');
-        setLoading(false);
+        // Redirigir al onboarding si el tenant no está activo (es nuevo)
+        onLogin();
+        navigate('/onboarding');
       }
-    }, 1500);
+
+    } catch (err: any) {
+      setError(err.message || 'Credenciales inválidas. Verifica tu correo y contraseña.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -134,9 +159,10 @@ export default function Login({ onLogin }: { onLogin: () => void }) {
 
             {/* Aviso B2B (Manejo de Suscripción) */}
             <div style={{ marginTop: '3rem', textAlign: 'center', padding: '1.5rem', borderTop: '1px solid #222' }}>
-               <p style={{ color: 'var(--secondary)', fontSize: '0.85rem', margin: 0, lineHeight: 1.5 }}>
-                 ¿No eres cliente o tu licencia de pago prescribió? 
-                 <br/><a href="#" style={{ color: '#fff', fontWeight: 600, textDecoration: 'underline' }}>Comunícate comercialmente con nuestra agencia</a> para adquirir un plan mensual.
+               <p style={{ color: 'var(--secondary)', fontSize: '0.9rem', margin: 0, lineHeight: 1.5 }}>
+                 ¿No tienes cuenta? <Link to="/register" style={{ color: '#fff', fontWeight: 600, textDecoration: 'none' }}>Regístrate ahora</Link>
+                 <br/><br/>
+                 O <a href="#" style={{ color: 'var(--primary)', fontWeight: 600, textDecoration: 'underline' }}>Comunícate comercialmente</a> para adquirir un plan mensual.
                </p>
             </div>
          </div>

@@ -18,6 +18,17 @@ interface Message {
   time: string;
 }
 
+const renderFormattedMessage = (text: string) => {
+  if (!text) return '';
+  const parts = text.split(/(\*[^*]+\*)/g);
+  return parts.map((part, index) => {
+    if (part.startsWith('*') && part.endsWith('*')) {
+      return <strong key={index}>{part.slice(1, -1)}</strong>;
+    }
+    return part;
+  });
+};
+
 export default function BotStatus() {
   const [chats, setChats] = useState<Chat[]>([]);
   const [activeChatId, setActiveChatId] = useState<string | null>(null);
@@ -158,7 +169,7 @@ export default function BotStatus() {
                       color: msg.sender === 'user' ? '#ffffff' : 'inherit'
                     }}>
                       <div style={{ fontSize: '0.6rem', color: msg.sender === 'user' ? 'rgba(255,255,255,0.7)' : 'var(--secondary)', marginBottom: '0.2rem', fontWeight: 700 }}>{msg.sender.toUpperCase()}</div>
-                      <div style={{ fontSize: '0.85rem' }}>{msg.text}</div>
+                      <div style={{ fontSize: '0.85rem', whiteSpace: 'pre-wrap' }}>{renderFormattedMessage(msg.text)}</div>
                       <div style={{ textAlign: 'right', fontSize: '0.6rem', color: msg.sender === 'user' ? 'rgba(255,255,255,0.5)' : 'var(--secondary)', marginTop: '0.4rem' }}>{msg.time}</div>
                     </div>
                   </div>

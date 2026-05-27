@@ -52,10 +52,13 @@ export default function Settings() {
     e.preventDefault();
     setSavedStatus(false);
     
+    // Buscar si ya existe una configuración para hacer un upsert seguro sin violar RLS
+    const { data: existingData } = await supabase.from('business_config').select('id').maybeSingle();
+    
     const { error } = await supabase
       .from('business_config')
       .upsert({
-        id: (await supabase.from('business_config').select('id').single()).data?.id || undefined,
+        id: existingData?.id || undefined,
         business_name: config.businessName,
         business_phone: config.businessPhone,
         bot_identity: config.botIdentity,

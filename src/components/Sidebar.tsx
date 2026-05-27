@@ -21,7 +21,6 @@ const navGroups = [
   {
     group: 'Automatización & Mensajería',
     items: [
-      { path: '/bot-status', label: 'Estado del Bot', icon: 'robot' },
       { path: '/marketing', label: 'Campañas IA', icon: 'campaign' },
     ]
   },

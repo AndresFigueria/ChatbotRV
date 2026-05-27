@@ -6,9 +6,10 @@ export default function Catalog() {
   const [activeCategory, setActiveCategory] = useState('Todos');
   const [menuItems, setMenuItems] = useState<any[]>([]);
   const [reservationsCount, setReservationsCount] = useState(0); 
-  const [reservationsList, setReservationsList] = useState<any[]>([]); // NUEVO: Lista de reservas
-  const [isCalendarOpen, setIsCalendarOpen] = useState(false); // NUEVO: Estado del modal calendario
+  const [reservationsList, setReservationsList] = useState<any[]>([]);
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [tenantId, setTenantId] = useState<string | null>(null);
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -26,6 +27,25 @@ export default function Catalog() {
 
   const fetchMenu = useCallback(async () => {
     setLoading(true);
+
+    // 1. Obtener el tenant_id actual del usuario logueado
+    const { data: userData } = await supabase.auth.getUser();
+    let currentTenantId = null;
+
+    if (userData.user) {
+      const { data: tenantUser } = await supabase
+        .from('tenant_users')
+        .select('tenant_id')
+        .eq('user_id', userData.user.id)
+        .single();
+      
+      if (tenantUser) {
+        currentTenantId = tenantUser.tenant_id;
+        setTenantId(currentTenantId);
+      }
+    }
+
+    // 2. Traer el menú (RLS ya filtra automáticamente, pero guardamos el tenant_id para las inserciones)
     const { data, error } = await supabase
       .from('menu_items')
       .select('*')
@@ -136,6 +156,12 @@ export default function Catalog() {
       payload.is_available = true;
       payload.stock_status = 'Disponible';
       payload.sales_30d = 0;
+      
+      // INYECCIÓN DE SEGURIDAD MULTI-TENANT: Asignar producto al restaurante correcto
+      if (tenantId) {
+        payload.tenant_id = tenantId;
+      }
+
       const { error } = await supabase.from('menu_items').insert(payload);
       if (error) alert("Error creando: " + error.message);
     }
@@ -291,84 +317,127 @@ export default function Catalog() {
 
       {/* MODAL CONFIGURACIÓN PRO */}
       {isModalOpen && (
-        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.6)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(4px)' }}>
-          <div className="card" style={{ width: '100%', maxWidth: '600px', padding: '2rem', backgroundColor: 'var(--surface-bright)', borderRadius: '16px', maxHeight: '90vh', overflowY: 'auto' }}>
-            <h3 className="display-sm mb-6" style={{ fontWeight: 800 }}>{formData.id ? 'Editar Producto IA' : 'Nuevo Producto IA'}</h3>
-            <form onSubmit={handleSave} className="flex flex-col gap-4">
-               {/* 1. Datos Básicos */}
-               <h4 style={{ fontSize: '0.8rem', color: 'var(--primary)', borderBottom: '1px solid var(--surface-container-highest)', paddingBottom: '0.5rem' }}>1. DATOS BÁSICOS</h4>
-               <div className="flex gap-4">
-                  <div className="flex flex-col gap-1" style={{ flex: 2 }}>
-                     <label className="label-sm">Nombre del Plato *</label>
-                     <input required className="input-base" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} />
-                  </div>
-                  <div className="flex flex-col gap-1" style={{ flex: 1 }}>
-                     <label className="label-sm">Categoría *</label>
-                     <select className="input-base" value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})}>
-                        {categories.slice(1).map(c => <option key={c} value={c}>{c}</option>)}
-                     </select>
-                  </div>
-               </div>
+        <div
+          onClick={() => setIsModalOpen(false)}
+          style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.65)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(6px)', padding: '1.5rem' }}
+        >
+          <div
+            onClick={e => e.stopPropagation()}
+            style={{
+              width: '100%', maxWidth: '640px',
+              backgroundColor: 'var(--surface-bright)',
+              borderRadius: '20px',
+              border: '1px solid var(--surface-container-highest)',
+              boxShadow: '0 24px 64px rgba(0,0,0,0.5)',
+              display: 'flex', flexDirection: 'column',
+              maxHeight: '88vh',
+              animation: 'fadeIn 0.2s cubic-bezier(0.4,0,0.2,1)',
+            }}
+          >
+            {/* Header */}
+            <div style={{ padding: '1.5rem 1.75rem 1.25rem', borderBottom: '1px solid var(--surface-container-highest)', flexShrink: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <h3 style={{ fontWeight: 900, fontSize: '1.2rem', margin: 0 }}>{formData.id ? 'Editar Producto IA' : 'Nuevo Producto IA'}</h3>
+                <p style={{ fontSize: '0.72rem', opacity: 0.45, margin: '3px 0 0' }}>Configura los parámetros del catálogo</p>
+              </div>
+              <button onClick={() => setIsModalOpen(false)} style={{ background: 'var(--surface-container-highest)', border: 'none', borderRadius: '50%', width: '34px', height: '34px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--on-surface)', flexShrink: 0 }}>
+                <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>close</span>
+              </button>
+            </div>
 
-               {/* 2. Finanzas */}
-               <h4 style={{ fontSize: '0.8rem', color: 'var(--primary)', borderBottom: '1px solid var(--surface-container-highest)', paddingBottom: '0.5rem', marginTop: '1rem' }}>2. ESTRUCTURA FINANCIERA</h4>
-               <div className="flex gap-4">
-                  <div className="flex flex-col gap-1" style={{ flex: 1 }}>
-                     <label className="label-sm">Precio de Venta ($) *</label>
-                     <input required type="number" step="0.01" className="input-base" value={formData.price} onChange={e => setFormData({...formData, price: e.target.value})} />
+            {/* Scrollable body with styled scrollbar */}
+            <div style={{ overflowY: 'auto', overflowX: 'hidden', padding: '1.25rem 1.75rem', flex: 1 }} className="modal-scroll-body">
+              <form id="product-form" onSubmit={handleSave} className="flex flex-col gap-4" style={{ width: '100%' }}>
+
+                {/* 1. Datos Básicos */}
+                <p style={{ fontSize: '0.68rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1.5px', color: 'var(--primary)', margin: 0 }}>1 · Datos Básicos</p>
+                <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '0.75rem', width: '100%' }}>
+                  <div className="flex flex-col gap-1">
+                    <label className="label-sm">Nombre del Producto *</label>
+                    <input required className="input-base" style={{ width: '100%', paddingLeft: '1rem' }} value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} placeholder="Ej: Hamburguesa Clásica" />
                   </div>
-                  <div className="flex flex-col gap-1" style={{ flex: 1 }}>
-                     <label className="label-sm">Costo Real ($)</label>
-                     <input type="number" step="0.01" className="input-base" placeholder="Ej: 3.50" value={formData.cost} onChange={e => setFormData({...formData, cost: e.target.value})} />
+                  <div className="flex flex-col gap-1">
+                    <label className="label-sm">Categoría *</label>
+                    <select className="input-base" style={{ width: '100%', paddingLeft: '1rem' }} value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})}>
+                      {categories.slice(1).map(c => <option key={c} value={c}>{c}</option>)}
+                    </select>
                   </div>
-                  <div className="flex flex-col gap-1" style={{ flex: 1, backgroundColor: 'var(--surface-container-low)', padding: '0.5rem', borderRadius: '8px', justifyContent: 'center', alignItems: 'center' }}>
-                     <label className="label-sm">Margen Bruto</label>
-                     <span style={{ fontWeight: 800, color: 'var(--emerald-400)', fontSize: '1.2rem' }}>
+                </div>
+
+                {/* 2. Finanzas */}
+                <div style={{ borderTop: '1px solid var(--surface-container-highest)', paddingTop: '1rem' }}>
+                  <p style={{ fontSize: '0.68rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1.5px', color: 'var(--primary)', margin: '0 0 0.75rem' }}>2 · Estructura Financiera</p>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 0.7fr', gap: '0.75rem', width: '100%' }}>
+                    <div className="flex flex-col gap-1">
+                      <label className="label-sm">Precio Venta ($) *</label>
+                      <input required type="number" step="0.01" className="input-base" style={{ width: '100%', paddingLeft: '1rem' }} value={formData.price} onChange={e => setFormData({...formData, price: e.target.value})} placeholder="0.00" />
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <label className="label-sm">Costo Real ($)</label>
+                      <input type="number" step="0.01" className="input-base" style={{ width: '100%', paddingLeft: '1rem' }} placeholder="Ej: 3.50" value={formData.cost} onChange={e => setFormData({...formData, cost: e.target.value})} />
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', backgroundColor: 'var(--surface-container)', borderRadius: '12px', padding: '0.4rem 0.5rem' }}>
+                      <span style={{ fontSize: '0.6rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px', color: 'var(--secondary)' }}>Margen</span>
+                      <span style={{ fontWeight: 900, color: 'var(--primary)', fontSize: '1.5rem', lineHeight: 1.1 }}>
                         {Number(formData.price) > 0 ? Math.round(((Number(formData.price) - Number(formData.cost)) / Number(formData.price)) * 100) : 0}%
-                     </span>
+                      </span>
+                    </div>
                   </div>
-               </div>
+                </div>
 
-               {/* 3. Inteligencia Artificial y Reglas */}
-               <h4 style={{ fontSize: '0.8rem', color: 'var(--primary)', borderBottom: '1px solid var(--surface-container-highest)', paddingBottom: '0.5rem', marginTop: '1rem' }}>3. REGLAS PARA EL BOT (IA)</h4>
-               
-               <div className="flex gap-4 items-end">
-                  <div className="flex flex-col gap-1" style={{ flex: 2 }}>
-                     <label className="label-sm">Sugerencia de Upsell (Venta Cruzada)</label>
-                     <select className="input-base" value={formData.upsell} onChange={e => setFormData({...formData, upsell: e.target.value})}>
-                        <option value="">Ninguna sugerencia</option>
-                        {menuItems.filter(m => m.id !== formData.id).map(m => (
-                           <option key={m.id} value={m.id}>Ofrecer: {m.name} ({m.price})</option>
-                        ))}
-                     </select>
-                     <span style={{ fontSize: '0.65rem', color: 'var(--secondary)' }}>El bot ofrecerá esto automáticamente.</span>
+                {/* 3. Reglas IA */}
+                <div style={{ borderTop: '1px solid var(--surface-container-highest)', paddingTop: '1rem' }}>
+                  <p style={{ fontSize: '0.68rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1.5px', color: 'var(--primary)', margin: '0 0 0.75rem' }}>3 · Reglas para el Bot (IA)</p>
+                  
+                  <div className="flex flex-col gap-1" style={{ marginBottom: '0.75rem', width: '100%' }}>
+                    <label className="label-sm">Upsell Automático</label>
+                    <select className="input-base" style={{ width: '100%', paddingLeft: '1rem' }} value={formData.upsell} onChange={e => setFormData({...formData, upsell: e.target.value})}>
+                      <option value="">Ninguna sugerencia</option>
+                      {menuItems.filter(m => m.id !== formData.id).map(m => (
+                        <option key={m.id} value={m.id}>Ofrecer: {m.name} ({m.price})</option>
+                      ))}
+                    </select>
+                    <span style={{ fontSize: '0.65rem', color: 'var(--secondary)' }}>El bot sugerirá esto automáticamente al cliente.</span>
                   </div>
-                  <div style={{ flex: 1, paddingBottom: '0.5rem' }}>
-                     <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600 }}>
-                        <input type="checkbox" checked={formData.modifiers} onChange={e => setFormData({...formData, modifiers: e.target.checked})} style={{ width: '18px', height: '18px', accentColor: 'var(--primary)' }} />
-                        Acepta Extras / Cambios
-                     </label>
+
+                  <div className="flex flex-col gap-1" style={{ marginBottom: '0.75rem', width: '100%' }}>
+                    <label className="label-sm">Keywords (bot)</label>
+                    <input className="input-base" style={{ width: '100%', paddingLeft: '1rem' }} placeholder="carne, doble, hamburguesa..." value={formData.keywords} onChange={e => setFormData({...formData, keywords: e.target.value})} />
                   </div>
-               </div>
 
-               <div className="flex flex-col gap-1">
-                  <label className="label-sm">Keywords (bot)</label>
-                  <input className="input-base" placeholder="carne, doble, hamburguesa..." value={formData.keywords} onChange={e => setFormData({...formData, keywords: e.target.value})} />
-               </div>
-               
-               <div className="flex flex-col gap-1 mt-2">
-                  <label className="label-sm">URL Imagen (Cuadrada recomendada)</label>
-                  <input className="input-base" value={formData.img} onChange={e => setFormData({...formData, img: e.target.value})} />
-               </div>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer', padding: '0.75rem 1rem', backgroundColor: 'var(--surface-container)', borderRadius: '12px', width: '100%' }}>
+                    <input type="checkbox" checked={formData.modifiers} onChange={e => setFormData({...formData, modifiers: e.target.checked})} style={{ width: '16px', height: '16px', accentColor: 'var(--primary)', flexShrink: 0 }} />
+                    <div>
+                      <p style={{ margin: 0, fontSize: '0.85rem', fontWeight: 700 }}>Acepta Extras / Cambios</p>
+                      <p style={{ margin: 0, fontSize: '0.7rem', opacity: 0.5 }}>El bot permitirá modificaciones al pedido</p>
+                    </div>
+                  </label>
+                </div>
 
-               <div className="flex gap-3 mt-4">
-                  <button type="button" onClick={() => setIsModalOpen(false)} className="btn-secondary" style={{ flex: 1 }}>Cancelar</button>
-                  <button type="submit" className="btn-primary" style={{ flex: 1 }}>Guardar Item</button>
-               </div>
-            </form>
+                {/* Imagen */}
+                <div style={{ borderTop: '1px solid var(--surface-container-highest)', paddingTop: '1rem' }}>
+                  <div className="flex flex-col gap-1" style={{ width: '100%' }}>
+                    <label className="label-sm">URL Imagen (cuadrada recomendada)</label>
+                    <input className="input-base" style={{ width: '100%', paddingLeft: '1rem' }} value={formData.img} onChange={e => setFormData({...formData, img: e.target.value})} placeholder="https://..." />
+                  </div>
+                </div>
+
+              </form>
+            </div>
+
+            {/* Footer sticky */}
+            <div style={{ padding: '1rem 1.75rem', borderTop: '1px solid var(--surface-container-highest)', display: 'flex', gap: '0.75rem', flexShrink: 0 }}>
+              <button type="button" onClick={() => setIsModalOpen(false)} className="btn-secondary" style={{ flex: 1 }}>Cancelar</button>
+              <button form="product-form" type="submit" className="btn-primary" style={{ flex: 2, fontWeight: 800 }}>
+                <span className="material-symbols-outlined" style={{ fontSize: '17px' }}>check_circle</span>
+                Guardar Producto
+              </button>
+            </div>
           </div>
         </div>
       )}
+
+
 
       {/* MODAL CALENDARIO DE RESERVAS */}
       {isCalendarOpen && (

@@ -1,6 +1,17 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
 
+const renderFormattedMessage = (text: string) => {
+  if (!text) return '';
+  const parts = text.split(/(\*[^*]+\*)/g);
+  return parts.map((part, index) => {
+    if (part.startsWith('*') && part.endsWith('*')) {
+      return <strong key={index}>{part.slice(1, -1)}</strong>;
+    }
+    return part;
+  });
+};
+
 export default function History() {
   const [activeTab, setActiveTab] = useState('Boletas Electrónicas');
   const [searchTerm, setSearchTerm] = useState('');
@@ -28,7 +39,7 @@ export default function History() {
         .from('orders')
         .select(`
           *,
-          customers(name, phone)
+          customers(name, phone_number)
         `)
         .order('created_at', { ascending: false });
 
@@ -180,7 +191,7 @@ export default function History() {
                         <td>
                           <div className="flex flex-col">
                             <span style={{ fontWeight: 600, fontSize: '0.85rem' }}>{o.customers ? o.customers.name : 'Venta Anónima'}</span>
-                            <span style={{ color: 'var(--secondary)', fontSize: '0.7rem' }}>{o.customers ? o.customers.phone : '--'}</span>
+                            <span style={{ color: 'var(--secondary)', fontSize: '0.7rem' }}>{o.customers ? o.customers.phone_number : '--'}</span>
                           </div>
                         </td>
                         <td style={{ fontWeight: 600, color: 'var(--primary)' }}>
@@ -359,8 +370,8 @@ function WhatsAppLogsTab() {
                 <td style={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: '0.85rem' }}>
                   {log.inbound_message}
                 </td>
-                <td style={{ maxWidth: '300px', fontSize: '0.85rem', color: 'var(--primary)', fontStyle: 'italic' }}>
-                   "{log.agent_response}"
+                <td style={{ maxWidth: '300px', fontSize: '0.85rem', color: 'var(--primary)', fontStyle: 'italic', whiteSpace: 'pre-wrap' }}>
+                   "{renderFormattedMessage(log.agent_response)}"
                 </td>
                 <td>
                    <span style={{ fontSize: '0.65rem', color: 'var(--emerald-400)', fontWeight: 900 }}>{log.status?.toUpperCase()}</span>
