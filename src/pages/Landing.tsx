@@ -1527,7 +1527,7 @@ export default function Landing() {
               </div>
 
               <a 
-                href={`https://wa.me/${DEMO_WHATSAPP_NUMBER}?text=${encodeURIComponent(`Hola, quiero iniciar con el Plan Starter de Robotina-Central en ${currency === 'USD' ? 'dólares (USD)' : 'soles (PEN)'}.`)}`}
+                href="https://pay.rebill.com/robotinacentral-sandbox/test_pl_c3618793fbcb4aaa86deba798e140388"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="btn-secondary"
@@ -1620,7 +1620,7 @@ export default function Landing() {
               </div>
 
               <a 
-                href={`https://wa.me/${DEMO_WHATSAPP_NUMBER}?text=${encodeURIComponent(`Hola, quiero iniciar con el Plan Growth de Robotina-Central en ${currency === 'USD' ? 'dólares (USD)' : 'soles (PEN)'}.`)}`}
+                href="https://pay.rebill.com/robotinacentral-sandbox/test_pl_f58398496d674bd38d37554b8175475c"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="btn-secondary"
