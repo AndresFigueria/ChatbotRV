@@ -1922,12 +1922,32 @@ export default function Landing() {
         textAlign: 'center',
         borderTop: '1px solid rgba(255,255,255,0.03)'
       }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', justifyContent: 'between', alignItems: 'center', flexWrap: 'wrap', gap: '2rem' }} className="justify-between">
+        <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '2rem' }} className="justify-between">
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <div className="brand-icon" style={{ width: '28px', height: '28px' }}>
               <span className="material-symbols-outlined" style={{ fontSize: '1.2rem', color: '#fff' }}>terminal</span>
             </div>
             <span style={{ fontSize: '1rem', fontWeight: 800, color: '#fff', letterSpacing: '-0.5px' }}>Robotina Central</span>
+          </div>
+
+          <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
+            <Link 
+              to="/terms" 
+              style={{ color: 'var(--secondary)', fontSize: '0.8rem', textDecoration: 'none', transition: 'color 0.3s' }}
+              onMouseEnter={(e) => e.currentTarget.style.color = 'var(--emerald-400)'}
+              onMouseLeave={(e) => e.currentTarget.style.color = 'var(--secondary)'}
+            >
+              Términos y Condiciones
+            </Link>
+            <span style={{ color: 'rgba(255,255,255,0.1)', fontSize: '0.8rem' }}>|</span>
+            <span 
+              style={{ color: 'var(--secondary)', fontSize: '0.8rem', cursor: 'pointer', transition: 'color 0.3s' }}
+              onClick={() => alert('Política de Privacidad en proceso de redacción.')}
+              onMouseEnter={(e) => e.currentTarget.style.color = 'var(--emerald-400)'}
+              onMouseLeave={(e) => e.currentTarget.style.color = 'var(--secondary)'}
+            >
+              Política de Privacidad
+            </span>
           </div>
 
           <p style={{ color: 'var(--secondary)', fontSize: '0.8rem' }}>
