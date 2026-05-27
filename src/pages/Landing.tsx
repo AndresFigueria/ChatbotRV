@@ -13,6 +13,13 @@ export default function Landing() {
   const [bookingPhone, setBookingPhone] = useState('');
   const [bookingSegment, setBookingSegment] = useState('');
   const [currency, setCurrency] = useState<'USD' | 'PEN'>('USD');
+  const [isPaymentOpen, setIsPaymentOpen] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<{
+    name: string;
+    price: string;
+    setup: string;
+    rebillUrl: string;
+  } | null>(null);
 
   const DEMO_WHATSAPP_NUMBER = '573100000000'; // Reemplazar con tu número de WhatsApp real
 
@@ -1526,25 +1533,34 @@ export default function Landing() {
                 </div>
               </div>
 
-              <a 
-                href="https://pay.rebill.com/robotinacentral-sandbox/test_pl_c3618793fbcb4aaa86deba798e140388"
-                target="_blank"
-                rel="noopener noreferrer"
+              <button 
+                onClick={() => {
+                  setSelectedPlan({
+                    name: 'Robotina Starter',
+                    price: currency === 'USD' ? '$49 / mes' : 'S/. 180 / mes',
+                    setup: currency === 'USD' ? '$29' : 'S/. 110',
+                    rebillUrl: 'https://pay.rebill.com/robotinacentral-sandbox/test_pl_c3618793fbcb4aaa86deba798e140388'
+                  });
+                  setIsPaymentOpen(true);
+                }}
                 className="btn-secondary"
                 style={{
                   textAlign: 'center',
-                  textDecoration: 'none',
                   padding: '0.8rem',
                   borderRadius: '30px',
                   fontSize: '0.9rem',
                   fontWeight: 700,
                   display: 'block',
+                  width: '100%',
+                  backgroundColor: 'transparent',
+                  color: '#fff',
                   border: '1px solid rgba(255, 255, 255, 0.1)',
-                  transition: 'all 0.3s ease'
+                  transition: 'all 0.3s ease',
+                  cursor: 'pointer'
                 }}
               >
                 Adquirir Plan Starter
-              </a>
+              </button>
             </div>
 
             {/* PLAN GROWTH */}
@@ -1619,25 +1635,34 @@ export default function Landing() {
                 </div>
               </div>
 
-              <a 
-                href="https://pay.rebill.com/robotinacentral-sandbox/test_pl_f58398496d674bd38d37554b8175475c"
-                target="_blank"
-                rel="noopener noreferrer"
+              <button 
+                onClick={() => {
+                  setSelectedPlan({
+                    name: 'Robotina Growth',
+                    price: currency === 'USD' ? '$99 / mes' : 'S/. 370 / mes',
+                    setup: currency === 'USD' ? '$79' : 'S/. 290',
+                    rebillUrl: 'https://pay.rebill.com/robotinacentral-sandbox/test_pl_f58398496d674bd38d37554b8175475c'
+                  });
+                  setIsPaymentOpen(true);
+                }}
                 className="btn-secondary"
                 style={{
                   textAlign: 'center',
-                  textDecoration: 'none',
                   padding: '0.8rem',
                   borderRadius: '30px',
                   fontSize: '0.9rem',
                   fontWeight: 700,
                   display: 'block',
+                  width: '100%',
+                  backgroundColor: 'transparent',
+                  color: '#fff',
                   border: '1px solid rgba(255, 255, 255, 0.1)',
-                  transition: 'all 0.3s ease'
+                  transition: 'all 0.3s ease',
+                  cursor: 'pointer'
                 }}
               >
                 Adquirir Plan Growth
-              </a>
+              </button>
             </div>
 
             {/* PLAN ADVANCED */}
@@ -2072,6 +2097,177 @@ export default function Landing() {
                 <span className="material-symbols-outlined" style={{ fontSize: '18px', fontWeight: 800 }}>send</span>
               </button>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* PAYMENT MODAL */}
+      {isPaymentOpen && selectedPlan && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(5, 5, 8, 0.85)',
+          backdropFilter: 'blur(12px)',
+          WebkitBackdropFilter: 'blur(12px)',
+          zIndex: 9999,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '2rem'
+        }}>
+          <div className="glass-card" style={{
+            maxWidth: '520px',
+            width: '100%',
+            padding: '3rem 2.5rem',
+            position: 'relative',
+            border: '1px solid rgba(0, 255, 102, 0.25)',
+            boxShadow: '0 25px 50px rgba(0, 255, 102, 0.15), 0 0 100px rgba(0, 255, 102, 0.05)',
+            transform: 'none',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '1.5rem',
+            textAlign: 'left'
+          }}>
+            {/* Close Button */}
+            <button onClick={() => setIsPaymentOpen(false)} style={{
+              position: 'absolute',
+              top: '20px',
+              right: '20px',
+              backgroundColor: 'transparent',
+              border: 'none',
+              color: 'var(--secondary)',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}>
+              <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>close</span>
+            </button>
+
+            <div>
+              <div style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '6px 12px',
+                borderRadius: '20px',
+                backgroundColor: 'rgba(0, 255, 102, 0.1)',
+                color: 'var(--emerald-400)',
+                fontSize: '0.75rem',
+                fontWeight: 800,
+                marginBottom: '1rem',
+                filter: 'drop-shadow(0 0 8px rgba(0, 255, 102, 0.3))'
+              }}>
+                <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>shopping_cart</span>
+                Método de Pago
+              </div>
+              <h3 style={{ color: '#fff', fontSize: '1.6rem', fontWeight: 800, margin: 0, lineHeight: '1.3' }}>
+                {selectedPlan.name}
+              </h3>
+              <p style={{ color: 'var(--secondary)', fontSize: '0.88rem', margin: '0.5rem 0 0 0', lineHeight: '1.5' }}>
+                Mensualidad: <strong style={{ color: '#fff' }}>{selectedPlan.price}</strong> + Setup: <strong style={{ color: '#fff' }}>{selectedPlan.setup}</strong> (Pago único inicial)
+              </p>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+              {/* Opción 1: Rebill (Tarjeta) */}
+              <a
+                href={selectedPlan.rebillUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => setIsPaymentOpen(false)}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '1rem',
+                  padding: '1.25rem',
+                  borderRadius: '16px',
+                  backgroundColor: 'rgba(255, 255, 255, 0.03)',
+                  border: '1px solid rgba(255, 255, 255, 0.08)',
+                  textDecoration: 'none',
+                  transition: 'all 0.3s ease',
+                  cursor: 'pointer'
+                }}
+                className="payment-option-hover"
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = 'var(--emerald-400)';
+                  e.currentTarget.style.backgroundColor = 'rgba(0, 255, 102, 0.03)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.08)';
+                  e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.03)';
+                }}
+              >
+                <div style={{
+                  width: '44px',
+                  height: '44px',
+                  borderRadius: '12px',
+                  backgroundColor: 'rgba(0, 255, 102, 0.1)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: 'var(--emerald-400)',
+                  flexShrink: 0
+                }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>credit_card</span>
+                </div>
+                <div style={{ flexGrow: 1 }}>
+                  <div style={{ color: '#fff', fontWeight: 700, fontSize: '0.95rem' }}>Pago con Tarjeta de Crédito/Débito</div>
+                  <div style={{ color: 'var(--secondary)', fontSize: '0.75rem', marginTop: '2px' }}>
+                    Procesado de forma segura por <strong>Rebill</strong> (Visa, Mastercard, AMEX)
+                  </div>
+                </div>
+                <span className="material-symbols-outlined" style={{ color: 'var(--secondary)', fontSize: '20px' }}>arrow_forward</span>
+              </a>
+
+              {/* Opción 2: dLocal / Pago Local (Próximamente) */}
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '1rem',
+                  padding: '1.25rem',
+                  borderRadius: '16px',
+                  backgroundColor: 'rgba(255, 255, 255, 0.01)',
+                  border: '1px solid rgba(255, 255, 255, 0.03)',
+                  opacity: 0.6,
+                  position: 'relative'
+                }}
+              >
+                <div style={{
+                  width: '44px',
+                  height: '44px',
+                  borderRadius: '12px',
+                  backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: 'var(--secondary)',
+                  flexShrink: 0
+                }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>account_balance</span>
+                </div>
+                <div style={{ flexGrow: 1 }}>
+                  <div style={{ color: '#888', fontWeight: 700, fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    Pago Local / Transferencia
+                    <span style={{
+                      backgroundColor: 'rgba(255, 165, 0, 0.1)',
+                      color: 'orange',
+                      fontSize: '0.65rem',
+                      padding: '2px 8px',
+                      borderRadius: '10px',
+                      fontWeight: 800
+                    }}>Próximamente</span>
+                  </div>
+                  <div style={{ color: 'var(--secondary)', fontSize: '0.75rem', marginTop: '2px' }}>
+                    Yape, Plin, PagoEfectivo o Transferencia Directa (vía dLocal Go)
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       )}
