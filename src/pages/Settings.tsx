@@ -205,6 +205,32 @@ export default function Settings() {
              </div>
              <button className="btn-secondary" style={{ width: '100%', fontSize: '0.75rem', padding: '0.75rem' }}>Gestionar Facturación</button>
           </div>
+
+          <div className="card" style={{ border: '1px solid rgba(239, 68, 68, 0.2)' }}>
+            <h4 style={{ fontWeight: 800, display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', fontSize: '0.9rem', color: '#ef4444' }}>
+              <span className="material-symbols-outlined">logout</span> SESIÓN ACTIVA
+            </h4>
+            <p style={{ fontSize: '0.75rem', color: 'var(--secondary)', marginBottom: '1rem', lineHeight: '1.4' }}>
+              Cierra tu sesión en este navegador para evitar accesos no autorizados.
+            </p>
+            <button 
+              type="button"
+              onClick={() => {
+                localStorage.removeItem('isAuthenticated');
+                window.location.href = '/';
+              }} 
+              className="btn-secondary" 
+              style={{ width: '100%', fontSize: '0.75rem', padding: '0.75rem', borderColor: '#ef4444', color: '#ef4444' }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.1)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'transparent';
+              }}
+            >
+              Cerrar Sesión
+            </button>
+          </div>
         </div>
 
       </div>

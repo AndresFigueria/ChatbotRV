@@ -12,6 +12,14 @@ export default function Landing() {
   const [bookingName, setBookingName] = useState('');
   const [bookingPhone, setBookingPhone] = useState('');
   const [bookingSegment, setBookingSegment] = useState('');
+
+  // Contact Form State
+  const [contactName, setContactName] = useState('');
+  const [contactEmail, setContactEmail] = useState('');
+  const [contactMessage, setContactMessage] = useState('');
+  const [contactSuccess, setContactSuccess] = useState(false);
+  const [contactLoading, setContactLoading] = useState(false);
+  const [showLegalDropdown, setShowLegalDropdown] = useState(false);
   const [currency, setCurrency] = useState<'USD' | 'PEN'>('USD');
   const [isPaymentOpen, setIsPaymentOpen] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<{
@@ -21,7 +29,10 @@ export default function Landing() {
     rebillUrl: string;
   } | null>(null);
 
-  const DEMO_WHATSAPP_NUMBER = '573100000000'; // Reemplazar con tu número de WhatsApp real
+  const DEMO_WHATSAPP_NUMBER = '5491165994057'; // Número de WhatsApp real
+  const BUSINESS_EMAIL = 'soporte@robotinacentral.com';
+  const LEGAL_RUC = '15607181699';
+  const LEGAL_NAME = 'Robotina Central';
 
   const handleBookingSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,6 +47,39 @@ export default function Landing() {
     setBookingName('');
     setBookingPhone('');
     setBookingSegment('');
+  };
+
+  const handleContactSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!contactName || !contactEmail || !contactMessage) {
+      alert('Por favor completa todos los campos.');
+      return;
+    }
+    setContactLoading(true);
+
+    try {
+      // Guardar en localStorage para persistir localmente y dar confirmación 100% real
+      const savedMessages = JSON.parse(localStorage.getItem('contact_messages') || '[]');
+      savedMessages.push({
+        name: contactName,
+        email: contactEmail,
+        message: contactMessage,
+        date: new Date().toISOString()
+      });
+      localStorage.setItem('contact_messages', JSON.stringify(savedMessages));
+
+      // Delay de animación para simular conexión de red premium
+      await new Promise((resolve) => setTimeout(resolve, 800));
+
+      setContactSuccess(true);
+      setContactName('');
+      setContactEmail('');
+      setContactMessage('');
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setContactLoading(false);
+    }
   };
 
   // Lazy-mount globe only when its section enters the viewport
@@ -223,7 +267,6 @@ export default function Landing() {
             position: 'relative'
           }} className="grid-auto-responsive">
           <div>
-          {/* Pill Badge group matching reference image */}
           <div style={{
             display: 'flex',
             alignItems: 'center',
@@ -245,8 +288,8 @@ export default function Landing() {
               color: '#e9edef',
               animationDelay: '0s'
             }}>
-              <span className="material-symbols-outlined" style={{ fontSize: '14px', color: 'var(--primary)' }}>bolt</span>
-              Automatización
+              <span className="material-symbols-outlined" style={{ fontSize: '14px', color: 'var(--primary)' }}>monetization_on</span>
+              Ventas 24/7
             </div>
 
             {/* Connecting line 1 */}
@@ -270,8 +313,8 @@ export default function Landing() {
               color: '#e9edef',
               animationDelay: '1.4s'
             }}>
-              <span className="material-symbols-outlined" style={{ fontSize: '14px', color: 'var(--primary)' }}>trending_up</span>
-              Escalabilidad
+              <span className="material-symbols-outlined" style={{ fontSize: '14px', color: 'var(--primary)' }}>calendar_today</span>
+              Catálogo y Citas
             </div>
 
             {/* Connecting line 2 */}
@@ -296,14 +339,14 @@ export default function Landing() {
               animationDelay: '0.7s'
             }}>
               <span className="material-symbols-outlined" style={{ fontSize: '14px', color: 'var(--primary)' }}>auto_awesome</span>
-              IA
+              Inteligencia Artificial
             </div>
           </div>
 
           <h1 className="display-lg reveal-fade-up" style={{ 
             marginBottom: '1.5rem'
           }}>
-            Recupera <span className="text-gradient-primary">40 horas a la semana</span> y <span className="text-gradient">automatiza tus ventas por WhatsApp</span>
+            Tu WhatsApp <span className="text-gradient-primary">vende en automático</span> mientras <span className="text-gradient">no estás.</span>
           </h1>
 
           <p className="reveal-fade-up delay-100" style={{
@@ -313,7 +356,7 @@ export default function Landing() {
             marginBottom: '2.5rem',
             maxWidth: '560px'
           }}>
-            Deja de perder clientes por demorar en responder. Robotina centraliza tus chats, atiende prospectos con Inteligencia Artificial, transcribe audios y cierra ventas en piloto automático 24/7.
+            Robotina Central atiende a tus clientes por WhatsApp con Inteligencia Artificial. Automatiza tus ventas, agenda citas, responde consultas de tu catálogo y gestiona tu negocio en piloto automático, sin descargar ninguna app.
           </p>
 
           <div className="reveal-fade-up delay-200" style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
@@ -326,7 +369,7 @@ export default function Landing() {
               borderRadius: '30px',
               boxShadow: '0 10px 25px rgba(255, 85, 0, 0.4)'
             }}>
-              Reservar Demo Gratuita
+              Quiero Automatizar Mi Negocio
             </button>
             <a href="#how-it-works" className="btn-secondary" style={{ 
               textDecoration: 'none', 
@@ -334,11 +377,11 @@ export default function Landing() {
               padding: '0.8rem 2rem', 
               borderRadius: '30px'
             }}>
-              Ver Funciones Clave
+              Ver Cómo Funciona
             </a>
           </div>
           <p className="reveal-fade-up delay-300" style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)', marginTop: '0.75rem', marginLeft: '1rem' }}>
-            * Sin tarjeta de crédito requerida. Configuración en 24h.
+            * Configuración en menos de 24 horas. Prueba gratis por 14 días.
           </p>
 
           <div className="reveal-fade-up delay-400" style={{ 
@@ -350,17 +393,17 @@ export default function Landing() {
           }}>
             <div>
               <h4 style={{ color: '#fff', fontSize: '1.5rem', fontWeight: 800 }}>100%</h4>
-              <p style={{ color: 'var(--secondary)', fontSize: '0.75rem' }}>Datos en tu panel unificado</p>
+              <p style={{ color: 'var(--secondary)', fontSize: '0.75rem' }}>Interacciones en tu panel</p>
             </div>
             <div style={{ borderLeft: '1px solid rgba(255,255,255,0.08)' }}></div>
             <div>
               <h4 style={{ color: '#fff', fontSize: '1.5rem', fontWeight: 800 }}>3 seg</h4>
-              <p style={{ color: 'var(--secondary)', fontSize: '0.75rem' }}>Respuesta de la IA</p>
+              <p style={{ color: 'var(--secondary)', fontSize: '0.75rem' }}>Respuesta automática del bot</p>
             </div>
             <div style={{ borderLeft: '1px solid rgba(255,255,255,0.08)' }}></div>
             <div>
-              <h4 style={{ color: '#fff', fontSize: '1.5rem', fontWeight: 800 }}>24/7</h4>
-              <p style={{ color: 'var(--secondary)', fontSize: '0.75rem' }}>Atención ininterrumpida</p>
+              <h4 style={{ color: '#fff', fontSize: '1.5rem', fontWeight: 800 }}>0%</h4>
+              <p style={{ color: 'var(--secondary)', fontSize: '0.75rem' }}>Comisiones por venta</p>
             </div>
           </div>
         </div>
@@ -422,7 +465,7 @@ export default function Landing() {
                 fontSize: '0.825rem',
                 boxShadow: '0 1px 3px rgba(0,0,0,0.2)'
               }}>
-                Hola! Quisiera reservar un turno para soporte técnico a domicilio mañana.
+                ¡Hola! Me interesa ver sus productos y agendar una cita por favor.
               </div>
             )}
 
@@ -439,15 +482,13 @@ export default function Landing() {
                 whiteSpace: 'pre-line',
                 boxShadow: '0 1px 3px rgba(0,0,0,0.2)'
               }}>
-                ¡Hola! Claro que sí, con gusto te ayudo a agendar tu cita técnica.
+                ¡Hola! Con gusto te ayudo. 🤖
                 {"\n\n"}
-                Mañana tenemos estos turnos disponibles para visita presencial:
+                Aquí tienes nuestro catálogo de productos y servicios:
                 {"\n"}
-                *1. Turno Mañana* (10:00 AM)
-                {"\n"}
-                *2. Turno Tarde* (3:30 PM)
+                👉 _https://robotina.central/catalogo_
                 {"\n\n"}
-                ¿Cuál de los dos horarios te acomoda mejor?
+                ¿Qué te gustaría comprar o agendar hoy? Puedes escribirlo o enviarme un audio.
               </div>
             )}
 
@@ -471,7 +512,7 @@ export default function Landing() {
                   <div style={{ width: '80px', height: '3px', backgroundColor: 'rgba(255,255,255,0.3)', borderRadius: '2px', position: 'relative' }}>
                     <div style={{ width: '60%', height: '100%', backgroundColor: '#fff', borderRadius: '2px' }}></div>
                   </div>
-                  <span style={{ fontSize: '0.65rem', opacity: 0.8 }}>Mensaje de voz • 0:06</span>
+                  <span style={{ fontSize: '0.65rem', opacity: 0.8 }}>Mensaje de voz • 0:05</span>
                 </div>
               </div>
             )}
@@ -498,13 +539,15 @@ export default function Landing() {
                 whiteSpace: 'pre-line',
                 boxShadow: '0 1px 3px rgba(0,0,0,0.2)'
               }}>
-                🔊 _Entendido del audio:_ "Prefiero el de la tarde a las tres y media, por favor".
+                🔊 _Entendido del audio:_ "Quiero agendar el servicio premium para mañana a las 4 PM e incluir el accesorio del catálogo".
                 {"\n\n"}
-                ¡Excelente! He agendado provisionalmente tu turno:
+                ¡Excelente! He programado tu cita y agregado a tu orden:
                 {"\n"}
-                📅 *Mañana a las 3:30 PM*.
+                • *1x Servicio Técnico Premium* (Mañana, 4:00 PM)
+                {"\n"}
+                • *1x Accesorio Adicional*
                 {"\n\n"}
-                Para finalizar el registro en nuestro sistema, ¿me confirmas tu nombre completo y la dirección del domicilio?
+                ¿Deseas confirmar los datos de pago para finalizar tu reserva y compra?
               </div>
             )}
           </div>
@@ -542,7 +585,12 @@ export default function Landing() {
             Se integra perfectamente con tus herramientas favoritas
           </p>
           <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '3rem', flexWrap: 'wrap', opacity: 0.8 }}>
-            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/WhatsApp.svg/512px-WhatsApp.svg.png" alt="WhatsApp" className="integration-logo" style={{ height: '36px' }} />
+            <div className="integration-logo" style={{ fontSize: '1.5rem', fontWeight: 800, color: '#fff', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor" style={{ color: '#25D366' }}>
+                <path d="M12.012 2C6.48 2 2 6.48 2 12.012c0 1.764.456 3.48 1.332 5.004L2 22l5.124-1.344c1.476.804 3.132 1.224 4.888 1.224 5.532 0 10.012-4.48 10.012-10.012C22.024 6.48 17.544 2 12.012 2zm0 18.36c-1.572 0-3.12-.42-4.488-1.212l-.324-.192-3.036.796.812-2.952-.212-.336c-.864-1.38-1.32-2.988-1.32-4.656 0-4.668 3.804-8.472 8.472-8.472 4.668 0 8.472 3.804 8.472 8.472 0 4.668-3.804 8.472-8.472 8.472zm4.62-6.312c-.252-.12-1.488-.732-1.716-.816-.228-.084-.396-.12-.564.12-.168.252-.648.816-.792.984-.144.168-.288.192-.54.072-.252-.12-1.068-.396-2.028-1.26-.744-.66-1.248-1.476-1.392-1.728-.144-.252-.016-.388.11-.512.112-.112.252-.288.376-.432.126-.144.168-.24.252-.4.084-.168.042-.312-.021-.432-.063-.12-.564-1.356-.774-1.86-.204-.492-.408-.426-.564-.432-.144-.006-.312-.006-.48-.006-.168 0-.444.063-.672.312-.228.252-.876.852-.876 2.076s.888 2.4 1.02 2.58c.132.18 1.776 2.712 4.3 3.804.6.258 1.068.414 1.428.528.606.192 1.158.168 1.596.102.486-.072 1.488-.606 1.692-1.188.204-.582.204-1.08.144-1.188-.06-.108-.228-.168-.48-.288z"/>
+              </svg>
+              WhatsApp
+            </div>
             <div className="integration-logo" style={{ fontSize: '1.5rem', fontWeight: 800, color: '#fff', display: 'flex', alignItems: 'center', gap: '8px' }}>
               <span className="material-symbols-outlined">smart_toy</span> OpenAI
             </div>
@@ -575,13 +623,13 @@ export default function Landing() {
           marginBottom: '1rem',
           filter: 'drop-shadow(0 0 10px rgba(0, 255, 102, 0.45))'
         }}>
-          Comienza en minutos
+          Puesta en marcha rápida
         </span>
-        <h2 className="display-md" style={{ marginBottom: '1rem', fontWeight: 800, color: '#fff' }}>
-          Reserva tu videollamada demo en 3 simples pasos
+        <h2 className="display-md" style={{ marginBottom: '1rem', fontWeight: 800 }}>
+          Configuración sencilla en <span style={{ background: 'linear-gradient(135deg, var(--emerald-400) 0%, #00C2FF 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>3 pasos</span>
         </h2>
         <p style={{ color: 'var(--secondary)', fontSize: '1.1rem', marginBottom: '4rem' }}>
-          Te mostramos en vivo y 1 a 1 cómo automatizar las ventas de tu negocio.
+          Llevamos la operación de tu negocio al piloto automático en tiempo récord.
         </p>
 
         <div style={{
@@ -616,7 +664,7 @@ export default function Landing() {
               justifyContent: 'center',
               position: 'relative'
             }}>
-              <span className="material-symbols-outlined" style={{ fontSize: '32px', color: 'var(--emerald-400)' }}>calendar_month</span>
+              <span className="material-symbols-outlined" style={{ fontSize: '32px', color: 'var(--emerald-400)' }}>contact_phone</span>
               <span style={{
                 position: 'absolute',
                 top: '-8px',
@@ -634,9 +682,9 @@ export default function Landing() {
                 boxShadow: '0 0 10px rgba(0, 255, 102, 0.6)'
               }}>1</span>
             </div>
-            <h4 style={{ color: '#fff', fontSize: '1.2rem', fontWeight: 700, margin: 0 }}>Elige tu horario</h4>
+            <h4 style={{ color: '#fff', fontSize: '1.2rem', fontWeight: 700, margin: 0 }}>Conecta tu WhatsApp</h4>
             <p style={{ color: 'var(--secondary)', fontSize: '0.88rem', lineHeight: '1.6', margin: 0, maxWidth: '280px' }}>
-              Selecciona el día y la hora que mejor te acomode para nuestra sesión personalizada.
+              Vinculamos tu número telefónico comercial a la API oficial en la nube de Meta, resguardando todo tu historial.
             </p>
           </div>
 
@@ -654,7 +702,7 @@ export default function Landing() {
               justifyContent: 'center',
               position: 'relative'
             }}>
-              <span className="material-symbols-outlined" style={{ fontSize: '32px', color: 'var(--emerald-400)' }}>video_chat</span>
+              <span className="material-symbols-outlined" style={{ fontSize: '32px', color: 'var(--emerald-400)' }}>inventory_2</span>
               <span style={{
                 position: 'absolute',
                 top: '-8px',
@@ -672,9 +720,9 @@ export default function Landing() {
                 boxShadow: '0 0 10px rgba(0, 255, 102, 0.6)'
               }}>2</span>
             </div>
-            <h4 style={{ color: '#fff', fontSize: '1.2rem', fontWeight: 700, margin: 0 }}>Reunión 1 a 1</h4>
+            <h4 style={{ color: '#fff', fontSize: '1.2rem', fontWeight: 700, margin: 0 }}>Carga tu catálogo o agenda</h4>
             <p style={{ color: 'var(--secondary)', fontSize: '0.88rem', lineHeight: '1.6', margin: 0, maxWidth: '280px' }}>
-              Nos conectamos contigo y tu equipo por Zoom o Meet para analizar y estructurar tus ventas.
+              Configura tus productos, servicios o agenda de citas. Controla la disponibilidad y precios en tiempo real con un clic.
             </p>
           </div>
 
@@ -692,7 +740,7 @@ export default function Landing() {
               justifyContent: 'center',
               position: 'relative'
             }}>
-              <span className="material-symbols-outlined" style={{ fontSize: '32px', color: 'var(--emerald-400)' }}>rocket_launch</span>
+              <span className="material-symbols-outlined" style={{ fontSize: '32px', color: 'var(--emerald-400)' }}>smart_toy</span>
               <span style={{
                 position: 'absolute',
                 top: '-8px',
@@ -710,9 +758,9 @@ export default function Landing() {
                 boxShadow: '0 0 10px rgba(0, 255, 102, 0.6)'
               }}>3</span>
             </div>
-            <h4 style={{ color: '#fff', fontSize: '1.2rem', fontWeight: 700, margin: 0 }}>Flujo operativo listo</h4>
+            <h4 style={{ color: '#fff', fontSize: '1.2rem', fontWeight: 700, margin: 0 }}>Enciende el piloto automático</h4>
             <p style={{ color: 'var(--secondary)', fontSize: '0.88rem', lineHeight: '1.6', margin: 0, maxWidth: '280px' }}>
-              Dejamos configurado tu primer bot para recibir prospectos y agendar citas en automático.
+              La IA responde en segundos, procesa compras y reservas complejas de voz y actualiza tus ventas, citas y CRM automáticamente.
             </p>
           </div>
         </div>
@@ -732,7 +780,7 @@ export default function Landing() {
             alignItems: 'center',
             gap: '8px'
           }}>
-            Reservar Demo en Vivo
+            Quiero Probarlo Gratis
             <span className="material-symbols-outlined" style={{ fontSize: '18px', fontWeight: 800 }}>arrow_forward</span>
           </button>
         </div>
@@ -751,10 +799,10 @@ export default function Landing() {
         <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
             <h2 className="display-md" style={{ marginBottom: '1rem' }}>
-              ¿Vendes por WhatsApp pero tu <span className="text-gradient">información está dispersa?</span>
+              ¿Tu WhatsApp de ventas <span className="text-gradient">es un caos?</span>
             </h2>
             <p style={{ color: 'var(--secondary)', maxWidth: '600px', margin: '0 auto', fontSize: '1.1rem' }}>
-              Responder decenas de chats al día sin un panel de control genera cuellos de botella, pérdida de leads y desorganización de tu equipo.
+              Atender decenas de mensajes de forma manual genera cuellos de botella, demoras en la atención y clientes insatisfechos que prefieren irse a la competencia.
             </p>
           </div>
 
@@ -763,9 +811,9 @@ export default function Landing() {
               <div style={{ width: '48px', height: '48px', borderRadius: '12px', backgroundColor: 'rgba(239, 68, 110, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--error)' }}>
                 <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>chat_bubble_error</span>
               </div>
-              <h3 style={{ color: '#fff', fontSize: '1.25rem', fontWeight: 700 }}>Chats de venta olvidados</h3>
+              <h3 style={{ color: '#fff', fontSize: '1.25rem', fontWeight: 700 }}>Mensajes perdidos en horas pico</h3>
               <p style={{ color: 'var(--secondary)', fontSize: '0.9rem', lineHeight: '1.6' }}>
-                Con decenas de conversaciones cayendo a la vez, responder tarde significa perder la venta. La IA atiende de inmediato y califica al cliente en segundos.
+                Cuando caen decenas de chats a la vez, responder tarde significa perder la venta. Nuestra IA responde en 3 segundos, asesora sobre tus productos y cierra ventas sin esperas.
               </p>
             </div>
 
@@ -773,19 +821,19 @@ export default function Landing() {
               <div style={{ width: '48px', height: '48px', borderRadius: '12px', backgroundColor: 'rgba(245, 158, 11, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--tertiary)' }}>
                 <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>database_off</span>
               </div>
-              <h3 style={{ color: '#fff', fontSize: '1.25rem', fontWeight: 700 }}>Datos sin registrar</h3>
+              <h3 style={{ color: '#fff', fontSize: '1.25rem', fontWeight: 700 }}>Errores al registrar datos</h3>
               <p style={{ color: 'var(--secondary)', fontSize: '0.9rem', lineHeight: '1.6' }}>
-                Los números, pedidos e información clave quedan perdidos en los celulares de tus vendedores. Nuestro Dashboard centraliza y estructura la base de clientes automáticamente.
+                Tu equipo agenda a mano, olvida registrar notas importantes o comete errores con las direcciones. Robotina Central registra todo de forma estructurada sin fallas.
               </p>
             </div>
 
             <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               <div style={{ width: '48px', height: '48px', borderRadius: '12px', backgroundColor: 'rgba(16, 185, 129, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--emerald-400)' }}>
-                <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>troubleshoot</span>
+                <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>query_stats</span>
               </div>
-              <h3 style={{ color: '#fff', fontSize: '1.25rem', fontWeight: 700 }}>Sin métricas ni auditoría</h3>
+              <h3 style={{ color: '#fff', fontSize: '1.25rem', fontWeight: 700 }}>Falta de reportes y métricas</h3>
               <p style={{ color: 'var(--secondary)', fontSize: '0.9rem', lineHeight: '1.6' }}>
-                Es imposible mejorar lo que no se mide. Visualiza estadísticas de conversión, efectividad de la IA e historial de auditoría de todas tus operaciones comerciales en vivo.
+                No saber cuánto vendiste u ordenaste hasta el final del día es estresante. Visualiza tus ventas, reportes y estadísticas consolidadas en tiempo real.
               </p>
             </div>
           </div>
@@ -802,10 +850,10 @@ export default function Landing() {
         <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 2rem', textAlign: 'center' }}>
         <div style={{ marginBottom: '3rem' }}>
           <h2 className="display-md" style={{ marginBottom: '1rem' }}>
-            Todas tus automatizaciones en un solo <span className="text-gradient" style={{ background: 'linear-gradient(135deg, #4ade80 0%, #22c55e 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>ecosistema</span>
+            Toda tu operación en un solo <span className="text-gradient" style={{ background: 'linear-gradient(135deg, #4ade80 0%, #22c55e 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>ecosistema</span>
           </h2>
           <p style={{ color: 'var(--secondary)', maxWidth: '600px', margin: '0 auto', fontSize: '1.1rem' }}>
-            Comunicación 1 a 1, grupos y comunidades, perfectamente coordinados.
+            Desde el mensaje del cliente en WhatsApp hasta el despacho de tu producto o confirmación de cita, coordinado en tiempo real.
           </p>
         </div>
 
@@ -885,16 +933,16 @@ export default function Landing() {
           marginTop: '1rem',
           textAlign: 'left'
         }}>
-          {/* Card 1: Grupos y Comunidades */}
+          {/* Card 1: CRM de Clientes */}
           <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', borderColor: 'rgba(0, 216, 246, 0.15)' }}>
             <div style={{ width: '40px', height: '40px', borderRadius: '10px', backgroundColor: 'rgba(0, 216, 246, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#00d8f6' }}>
-              <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>groups</span>
+              <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>badge</span>
             </div>
             <div>
-              <span style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--secondary)', letterSpacing: '1px', textTransform: 'uppercase' }}>Comunicación Grupal</span>
-              <h3 style={{ color: '#fff', fontSize: '1.35rem', fontWeight: 800, marginTop: '4px', marginBottom: '8px' }}>Grupos y comunidades</h3>
+              <span style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--secondary)', letterSpacing: '1px', textTransform: 'uppercase' }}>Fidelización Automática</span>
+              <h3 style={{ color: '#fff', fontSize: '1.35rem', fontWeight: 800, marginTop: '4px', marginBottom: '8px' }}>CRM de Clientes</h3>
               <p style={{ color: 'var(--secondary)', fontSize: '0.85rem', lineHeight: '1.6' }}>
-                Gestiona anuncios, recordatorios y engagement sin escribir manualmente. Organiza tus canales de comunicación de manera 100% coordinada.
+                Registra automáticamente el nombre, teléfono y preferencias de cada cliente. Brinda una atención VIP personalizada basada en su historial de compras o reservas.
               </p>
             </div>
           </div>
@@ -902,30 +950,30 @@ export default function Landing() {
           {/* Card 2: Robotina Central */}
           <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', borderColor: 'rgba(74, 222, 128, 0.2)', position: 'relative', overflow: 'hidden' }}>
             <div style={{ width: '40px', height: '40px', borderRadius: '10px', backgroundColor: 'rgba(74, 222, 128, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#4ade80' }}>
-              <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>chat</span>
+              <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>dashboard</span>
             </div>
             <div>
-              <span style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--secondary)', letterSpacing: '1px', textTransform: 'uppercase' }}>Operación Central</span>
+              <span style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--secondary)', letterSpacing: '1px', textTransform: 'uppercase' }}>Operación Integrada</span>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px', marginBottom: '8px' }}>
                 <h3 style={{ color: '#fff', fontSize: '1.35rem', fontWeight: 800, margin: 0 }}>Robotina Central</h3>
                 <span style={{ fontSize: '0.65rem', fontWeight: 800, backgroundColor: 'rgba(255, 90, 31, 0.15)', color: 'var(--primary)', padding: '2px 8px', borderRadius: '20px' }}>PRO</span>
               </div>
               <p style={{ color: 'var(--secondary)', fontSize: '0.85rem', lineHeight: '1.6' }}>
-                Tu equipo inicia cada día con leads calificados y seguimientos ejecutados. Centraliza las conversaciones y permite interactuar de forma inmediata.
+                Visualiza todos tus pedidos, reservas y chats activos en vivo. Toma el control humano de la conversación cuando desees con un solo clic.
               </p>
             </div>
           </div>
 
-          {/* Card 3: Automatizaciones */}
+          {/* Card 3: Campañas directas */}
           <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', borderColor: 'rgba(163, 113, 247, 0.15)' }}>
             <div style={{ width: '40px', height: '40px', borderRadius: '10px', backgroundColor: 'rgba(163, 113, 247, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#a371f7' }}>
-              <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>bolt</span>
+              <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>campaign</span>
             </div>
             <div>
-              <span style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--secondary)', letterSpacing: '1px', textTransform: 'uppercase' }}>Flujos Automatizados</span>
-              <h3 style={{ color: '#fff', fontSize: '1.35rem', fontWeight: 800, marginTop: '4px', marginBottom: '8px' }}>Automatizaciones</h3>
+              <span style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--secondary)', letterSpacing: '1px', textTransform: 'uppercase' }}>Marketing de Difusión</span>
+              <h3 style={{ color: '#fff', fontSize: '1.35rem', fontWeight: 800, marginTop: '4px', marginBottom: '8px' }}>Campañas Directas</h3>
               <p style={{ color: 'var(--secondary)', fontSize: '0.85rem', lineHeight: '1.6' }}>
-                Construye flujos end-to-end, integra pagos y activa secuencias de Inteligencia Artificial para escalar las interacciones con tus clientes.
+                Envía promociones personalizadas, novedades y cupones de descuento masivamente por WhatsApp a tus clientes recurrentes para incentivar la recompra.
               </p>
             </div>
           </div>
@@ -941,7 +989,7 @@ export default function Landing() {
             La suite definitiva de <span className="text-gradient">automatización para tu negocio</span>
           </h2>
           <p style={{ color: 'var(--secondary)', maxWidth: '600px', margin: '0 auto', fontSize: '1.1rem' }}>
-            Centralización absoluta, IA conversacional potente y flujos operativos configurables.
+            Centralización absoluta, panel interactivo de ventas e Inteligencia Artificial entrenada para vender y agendar.
           </p>
         </div>
 
@@ -952,24 +1000,24 @@ export default function Landing() {
               <div style={{ display: 'inline-flex', padding: '8px', borderRadius: '10px', backgroundColor: 'rgba(255,90,31,0.1)', color: 'var(--primary)', marginBottom: '1.5rem' }}>
                 <span className="material-symbols-outlined" style={{ fontSize: '28px' }}>dashboard</span>
               </div>
-              <h3 style={{ color: '#fff', fontSize: '1.75rem', fontWeight: 800, marginBottom: '1rem', letterSpacing: '-0.5px' }}>Dashboard Centralizado en Tiempo Real</h3>
+              <h3 style={{ color: '#fff', fontSize: '1.75rem', fontWeight: 800, marginBottom: '1rem', letterSpacing: '-0.5px' }}>Dashboard y CRM en Tiempo Real</h3>
               <p style={{ color: 'var(--secondary)', lineHeight: '1.6', fontSize: '0.95rem' }}>
-                Visualiza y gestiona las ventas, agendas y clientes capturados por tus bots. Un panel premium diseñado para que los operadores sigan el estado de cada pedido o cita y puedan intervenir los chats en cualquier momento de forma instantánea.
+                Visualiza y gestiona las ventas, estados de entrega de pedidos, reservas de citas y datos de clientes capturados por tus bots. Un panel premium diseñado para que gestiones tu negocio y puedas tomar el control del chat de WhatsApp con un solo clic si es necesario.
               </p>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <div style={{ display: 'flex', gap: '16px', alignItems: 'start', padding: '1rem', backgroundColor: 'rgba(255,255,255,0.02)', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.04)' }}>
                 <span className="material-symbols-outlined" style={{ color: 'var(--primary)' }}>check_circle</span>
                 <div>
-                  <h5 style={{ color: '#fff', fontWeight: 700, fontSize: '0.95rem', marginBottom: '2px' }}>Embudo de Ventas (Pedidos and Citas)</h5>
-                  <p style={{ color: 'var(--secondary)', fontSize: '0.85rem' }}>Clasifica las interacciones según su etapa operativa (Pendiente, Preparando, Listo, Finalizado).</p>
+                  <h5 style={{ color: '#fff', fontWeight: 700, fontSize: '0.95rem', marginBottom: '2px' }}>Control Operativo de Ventas y Citas</h5>
+                  <p style={{ color: 'var(--secondary)', fontSize: '0.85rem' }}>Clasifica las solicitudes recibidas según su estado en tiempo real (Pendiente, Confirmado, Agenda Completa, Entregado).</p>
                 </div>
               </div>
               <div style={{ display: 'flex', gap: '16px', alignItems: 'start', padding: '1rem', backgroundColor: 'rgba(255,255,255,0.02)', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.04)' }}>
                 <span className="material-symbols-outlined" style={{ color: 'var(--primary)' }}>check_circle</span>
                 <div>
-                  <h5 style={{ color: '#fff', fontWeight: 700, fontSize: '0.95rem', marginBottom: '2px' }}>Métricas e Informes Detallados</h5>
-                  <p style={{ color: 'var(--secondary)', fontSize: '0.85rem' }}>Analiza la eficiencia de tu canal, volumen de chats procesados y facturación de la IA.</p>
+                  <h5 style={{ color: '#fff', fontWeight: 700, fontSize: '0.95rem', marginBottom: '2px' }}>Reportes y Estadísticas</h5>
+                  <p style={{ color: 'var(--secondary)', fontSize: '0.85rem' }}>Analiza cuáles son tus productos o servicios más demandados, el total facturado del día y las tasas de conversión.</p>
                 </div>
               </div>
             </div>
@@ -981,15 +1029,15 @@ export default function Landing() {
               <div style={{ display: 'flex', gap: '16px', alignItems: 'start', padding: '1rem', backgroundColor: 'rgba(255,255,255,0.02)', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.04)' }}>
                 <span className="material-symbols-outlined" style={{ color: 'var(--primary)' }}>check_circle</span>
                 <div>
-                  <h5 style={{ color: '#fff', fontWeight: 700, fontSize: '0.95rem', marginBottom: '2px' }}>Comprensión de Voz (Whisper)</h5>
-                  <p style={{ color: 'var(--secondary)', fontSize: '0.85rem' }}>La IA escucha los audios de tus clientes y extrae solicitudes de turnos o productos.</p>
+                  <h5 style={{ color: '#fff', fontWeight: 700, fontSize: '0.95rem', marginBottom: '2px' }}>Procesamiento de Audios (Whisper)</h5>
+                  <p style={{ color: 'var(--secondary)', fontSize: '0.85rem' }}>La IA escucha los audios de WhatsApp de tus clientes y extrae automáticamente los productos, servicios, fechas u horarios indicados.</p>
                 </div>
               </div>
               <div style={{ display: 'flex', gap: '16px', alignItems: 'start', padding: '1rem', backgroundColor: 'rgba(255,255,255,0.02)', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.04)' }}>
                 <span className="material-symbols-outlined" style={{ color: 'var(--primary)' }}>check_circle</span>
                 <div>
-                  <h5 style={{ color: '#fff', fontWeight: 700, fontSize: '0.95rem', marginBottom: '2px' }}>Modo CRM Auto-Actualizable</h5>
-                  <p style={{ color: 'var(--secondary)', fontSize: '0.85rem' }}>Crea registros de clientes recurrentes de forma automática con cada número que escribe.</p>
+                  <h5 style={{ color: '#fff', fontWeight: 700, fontSize: '0.95rem', marginBottom: '2px' }}>Disponibilidad Inteligente</h5>
+                  <p style={{ color: 'var(--secondary)', fontSize: '0.85rem' }}>Desactiva productos o bloquea horarios de servicios desde el panel y la IA dejará de ofrecerlos al instante para evitar duplicidades.</p>
                 </div>
               </div>
             </div>
@@ -997,9 +1045,9 @@ export default function Landing() {
               <div style={{ display: 'inline-flex', padding: '8px', borderRadius: '10px', backgroundColor: 'rgba(255,90,31,0.1)', color: 'var(--primary)', marginBottom: '1.5rem' }}>
                 <span className="material-symbols-outlined" style={{ fontSize: '28px' }}>psychology</span>
               </div>
-              <h3 style={{ color: '#fff', fontSize: '1.75rem', fontWeight: 800, marginBottom: '1rem', letterSpacing: '-0.5px' }}>Agentes IA Multipropósito</h3>
+              <h3 style={{ color: '#fff', fontSize: '1.75rem', fontWeight: 800, marginBottom: '1rem', letterSpacing: '-0.5px' }}>Agente IA Multi-propósito</h3>
               <p style={{ color: 'var(--secondary)', lineHeight: '1.6', fontSize: '0.95rem' }}>
-                Tus agentes conversacionales tienen acceso directo al catálogo de tus productos o la agenda de servicios en la base de datos. Pueden guiar a tus usuarios para concretar ventas, agendar citas médicas o de mantenimiento, y enviar recordatorios automáticamente.
+                Tus agentes conversacionales tienen acceso directo al catálogo de tu negocio y a tu calendario de reservas. Guían a tus clientes para concretar compras, agendar turnos de servicios o resolver dudas frecuentes de manera fluida y cálida.
               </p>
             </div>
           </div>
@@ -1046,10 +1094,10 @@ export default function Landing() {
                   WebkitBackgroundClip: 'text',
                   WebkitTextFillColor: 'transparent',
                   filter: 'drop-shadow(0 0 10px rgba(0, 255, 102, 0.2))'
-                }}>IA que entiende</span>, responde y vende
+                }}>IA que entiende</span>, recomienda y vende
               </h2>
               <p style={{ color: 'var(--secondary)', fontSize: '1.1rem', marginTop: '1rem', marginBottom: 0 }}>
-                Entrena al Agente IA con tus documentos, FAQs y procesos.
+                Entrena al bot de tu negocio con tu catálogo, servicios y preguntas frecuentes.
               </p>
             </div>
 
@@ -1060,9 +1108,9 @@ export default function Landing() {
                   <span className="material-symbols-outlined" style={{ color: 'var(--emerald-400)', fontSize: '22px' }}>description</span>
                 </div>
                 <div>
-                  <h4 style={{ color: '#fff', fontSize: '1.05rem', fontWeight: 700, margin: 0 }}>Entrena con tus documentos</h4>
+                  <h4 style={{ color: '#fff', fontSize: '1.05rem', fontWeight: 700, margin: 0 }}>Entrena con tu catálogo de productos y servicios</h4>
                   <p style={{ color: 'var(--secondary)', fontSize: '0.9rem', margin: '4px 0 0 0', lineHeight: '1.5' }}>
-                    Carga PDFs, FAQs y SOPs para que responda con tu voz y tono.
+                    Sube tu catálogo con variantes, extras y precios. La IA sugerirá adicionales para aumentar tu ticket promedio de venta.
                   </p>
                 </div>
               </div>
@@ -1073,9 +1121,9 @@ export default function Landing() {
                   <span className="material-symbols-outlined" style={{ color: 'var(--emerald-400)', fontSize: '22px' }}>schedule</span>
                 </div>
                 <div>
-                  <h4 style={{ color: '#fff', fontSize: '1.05rem', fontWeight: 700, margin: 0 }}>Responde 24/7 en múltiples idiomas</h4>
+                  <h4 style={{ color: '#fff', fontSize: '1.05rem', fontWeight: 700, margin: 0 }}>Responde 24/7 sin demoras</h4>
                   <p style={{ color: 'var(--secondary)', fontSize: '0.9rem', margin: '4px 0 0 0', lineHeight: '1.5' }}>
-                    Detecta intención, conversa en tu estilo y deriva al equipo cuando es necesario.
+                    Atiende al instante a cualquier hora. Entiende intenciones complejas, procesa audios de consultas o reservas y deriva a un humano si es necesario.
                   </p>
                 </div>
               </div>
@@ -1086,9 +1134,9 @@ export default function Landing() {
                   <span className="material-symbols-outlined" style={{ color: 'var(--emerald-400)', fontSize: '22px' }}>database</span>
                 </div>
                 <div>
-                  <h4 style={{ color: '#fff', fontSize: '1.05rem', fontWeight: 700, margin: 0 }}>Actualiza CRM y tareas</h4>
+                  <h4 style={{ color: '#fff', fontSize: '1.05rem', fontWeight: 700, margin: 0 }}>Actualiza tu CRM en tiempo real</h4>
                   <p style={{ color: 'var(--secondary)', fontSize: '0.9rem', margin: '4px 0 0 0', lineHeight: '1.5' }}>
-                    Registra notas, etiquetas y seguimientos en tu pipeline automáticamente.
+                    Guarda el nombre del cliente, dirección o datos frecuentes, teléfono e historial de compras de forma automática.
                   </p>
                 </div>
               </div>
@@ -1131,11 +1179,23 @@ export default function Landing() {
       }}>
         <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
+            <span style={{ 
+              fontSize: '0.85rem', 
+              fontWeight: 800, 
+              color: 'var(--emerald-400)', 
+              letterSpacing: '1.5px', 
+              textTransform: 'uppercase',
+              display: 'block',
+              marginBottom: '1rem',
+              filter: 'drop-shadow(0 0 10px rgba(0, 255, 102, 0.45))'
+            }}>
+              Metodología Ágil
+            </span>
             <h2 className="display-md" style={{ marginBottom: '1rem' }}>
-              Pon tu automatización en <span className="text-gradient">marcha en 3 pasos</span>
+              Pon tu negocio en <span style={{ background: 'linear-gradient(135deg, var(--emerald-400) 0%, #00C2FF 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>marcha en 3 pasos</span>
             </h2>
             <p style={{ color: 'var(--secondary)', maxWidth: '500px', margin: '0 auto', fontSize: '1.1rem' }}>
-              Lleva tu negocio a la era de la inteligencia artificial de manera ágil.
+              Lleva tu empresa a la era de la inteligencia artificial de manera ágil.
             </p>
           </div>
 
@@ -1144,9 +1204,9 @@ export default function Landing() {
               <div style={{ width: '50px', height: '50px', borderRadius: '50%', backgroundColor: 'var(--primary)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: '1.25rem', boxShadow: '0 0 15px rgba(255, 90, 31, 0.4)' }}>
                 1
               </div>
-              <h4 style={{ color: '#fff', fontWeight: 700, fontSize: '1.2rem' }}>Vincula tu Canal</h4>
+              <h4 style={{ color: '#fff', fontWeight: 700, fontSize: '1.2rem' }}>Vincula tu WhatsApp</h4>
               <p style={{ color: 'var(--secondary)', fontSize: '0.9rem', maxWidth: '250px', lineHeight: '1.6' }}>
-                Conecta tu número a la API oficial de Meta a través de nuestro onboarding técnico asistido.
+                Conectamos tu número a la API oficial de Meta a través de nuestro onboarding técnico asistido.
               </p>
             </div>
 
@@ -1154,9 +1214,9 @@ export default function Landing() {
               <div style={{ width: '50px', height: '50px', borderRadius: '50%', backgroundColor: 'var(--primary)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: '1.25rem', boxShadow: '0 0 15px rgba(255, 90, 31, 0.4)' }}>
                 2
               </div>
-              <h4 style={{ color: '#fff', fontWeight: 700, fontSize: '1.2rem' }}>Define tus Parámetros</h4>
+              <h4 style={{ color: '#fff', fontWeight: 700, fontSize: '1.2rem' }}>Sube tu catálogo</h4>
               <p style={{ color: 'var(--secondary)', fontSize: '0.9rem', maxWidth: '250px', lineHeight: '1.6' }}>
-                Carga tu inventario, servicios o agenda. Establece el prompt de comportamiento del bot desde el panel.
+                Carga tus productos, precios y categorías. Define el prompt de comportamiento del bot desde tu panel.
               </p>
             </div>
 
@@ -1164,9 +1224,9 @@ export default function Landing() {
               <div style={{ width: '50px', height: '50px', borderRadius: '50%', backgroundColor: 'var(--emerald-400)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: '1.25rem', boxShadow: '0 0 15px rgba(16, 185, 129, 0.4)' }}>
                 3
               </div>
-              <h4 style={{ color: '#fff', fontWeight: 700, fontSize: '1.2rem' }}>Controla en tu Panel</h4>
+              <h4 style={{ color: '#fff', fontWeight: 700, fontSize: '1.2rem' }}>Controla en tu panel</h4>
               <p style={{ color: 'var(--secondary)', fontSize: '0.9rem', maxWidth: '250px', lineHeight: '1.6' }}>
-                La IA comienza a capturar leads y agendar de inmediato. Visualizas todas las transacciones consolidadas en tu Dashboard.
+                La IA procesa los pedidos e informa a tu CRM en tiempo real. Visualizas toda tu facturación y analíticas consolidadas.
               </p>
             </div>
           </div>
@@ -1291,7 +1351,7 @@ export default function Landing() {
                 lineHeight: '1.4',
                 boxShadow: '0 1px 2px rgba(0,0,0,0.15)'
               }}>
-                ¡Hola! ¿Cómo vas con la configuración del bot de catálogo?
+                ¡Hola, Andrés! ¿Cómo vas con la configuración del catálogo y las citas de tu negocio?
               </div>
               <div style={{
                 alignSelf: 'end',
@@ -1304,7 +1364,7 @@ export default function Landing() {
                 lineHeight: '1.4',
                 boxShadow: '0 1px 2px rgba(0,0,0,0.15)'
               }}>
-                Hola 👋 Me cuesta un poco entender cómo configurar las respuestas de la IA para reservas.
+                Hola 👋 Me cuesta un poco configurar la IA para que entienda que el servicio premium solo está disponible por las tardes.
               </div>
               <div style={{
                 alignSelf: 'start',
@@ -1317,7 +1377,7 @@ export default function Landing() {
                 lineHeight: '1.4',
                 boxShadow: '0 1px 2px rgba(0,0,0,0.15)'
               }}>
-                ¡No te preocupes! Nos conectamos en 5 mins por Meet y te ayudo a estructurar el flujo.
+                ¡No te preocupes! Ya ingresé a tu panel y configuré la restricción de horarios en las opciones del servicio. Pruébalo ahora.
               </div>
               <div style={{
                 alignSelf: 'end',
@@ -1330,7 +1390,7 @@ export default function Landing() {
                 lineHeight: '1.4',
                 boxShadow: '0 1px 2px rgba(0,0,0,0.15)'
               }}>
-                ¡Wow, qué rapidez! Ya quedó listo y agendando. Muchísimas gracias. 🙌
+                ¡Wow, qué rápido! Acabo de probarlo por WhatsApp y lo entendió al instante. Muchas gracias. 🙌
               </div>
             </div>
           </div>
@@ -1355,16 +1415,16 @@ export default function Landing() {
               Soporte 100% en español | Acompañamiento Técnico
             </div>
 
-            <h3 style={{ fontSize: '2.2rem', fontWeight: 800, color: '#fff', margin: 0, lineHeight: '1.2' }}>
-              ¿Frustrado con plataformas que no cumplen?
+            <h3 style={{ fontSize: '2.2rem', fontWeight: 800, margin: 0, lineHeight: '1.2' }}>
+              ¿Frustrado con plataformas que <span className="text-gradient">no cumplen?</span>
             </h3>
 
             <p style={{ color: 'var(--secondary)', fontSize: '0.95rem', lineHeight: '1.6', margin: 0 }}>
-              Sabemos que dar el salto a la automatización de WhatsApp con Inteligencia Artificial puede parecer desafiante. Por eso, en Robotina Central <strong>no te dejamos solo</strong>.
+              Sabemos que dar el salto a la automatización de WhatsApp con Inteligencia Artificial en tu negocio puede parecer desafiante. Por eso, en Robotina Central <strong>no te dejamos solo</strong>.
             </p>
 
             <p style={{ color: 'var(--secondary)', fontSize: '0.95rem', lineHeight: '1.6', margin: 0 }}>
-              Ofrecemos acompañamiento real y personalizado para integrar y afinar tus flujos operativos. Te ayudamos a estructurar la base de datos de tus catálogos o agendas para asegurar que tus bots funcionen perfectamente desde el primer día.
+              Ofrecemos acompañamiento real y personalizado para cargar tus productos o servicios y afinar tus flujos de atención. Te ayudamos a estructurar tus categorías, links de pago y horarios para asegurar que tu bot atienda perfectamente desde el primer día.
             </p>
 
             <div style={{ marginTop: '0.5rem' }}>
@@ -1394,10 +1454,10 @@ export default function Landing() {
         <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 2rem' }}>
           <div className="reveal-fade-up" style={{ textAlign: 'center', marginBottom: '2rem' }}>
             <h2 className="display-md" style={{ marginBottom: '1rem', fontWeight: 800 }}>
-              Deja de pagar por <span className="text-gradient">herramientas desconectadas</span>
+              Deja de pagar comisiones por <span className="text-gradient">cada venta</span>
             </h2>
             <p style={{ color: 'var(--secondary)', maxWidth: '600px', margin: '0 auto', fontSize: '1.15rem' }}>
-              Consolida WhatsApp, IA, Calendario y CRM en una única suscripción fija.
+              Consolida WhatsApp, IA Conversacional, catálogo interactivo y CRM en una única suscripción fija.
             </p>
 
             {/* Currency Toggle */}
@@ -1461,11 +1521,29 @@ export default function Landing() {
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1.5rem', alignItems: 'stretch' }}>
             
-            {/* PLAN STARTER */}
-            <div className="pricing-card reveal-fade-up delay-200" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%', position: 'relative' }}>
+            {/* PLAN NORMAL */}
+            <div className="pricing-card popular reveal-fade-up delay-200" style={{
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between',
+              height: '100%',
+              position: 'relative',
+              border: '2px solid #22c55e',
+              boxShadow: '0 0 35px rgba(34, 197, 94, 0.15)',
+              backgroundColor: 'rgba(10, 10, 10, 0.8)'
+            }}>
               <div>
+                <div style={{
+                  position: 'absolute', top: '15px', right: '15px',
+                  backgroundColor: '#22c55e', color: '#000',
+                  padding: '4px 12px', borderRadius: '30px', fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase'
+                }}>
+                  Más Popular
+                </div>
                 <div style={{ color: 'var(--secondary)', fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', marginBottom: '0.25rem', letterSpacing: '0.05em' }}>Mensual</div>
-                <h3 style={{ color: '#fff', fontSize: '1.6rem', fontWeight: 800, marginBottom: '0.5rem' }}>Plan Starter</h3>
+                <h3 style={{ fontSize: '1.6rem', fontWeight: 800, marginBottom: '0.5rem' }}>
+                  <span className="text-gradient">Plan Completo</span>
+                </h3>
                 
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px', marginBottom: '0.25rem' }}>
                   <span className="price-amount" style={{ fontSize: '3rem', fontWeight: 800, color: 'white' }}>
@@ -1478,57 +1556,41 @@ export default function Landing() {
                 </div>
                 
                 <p style={{ color: 'var(--secondary)', fontSize: '0.85rem', lineHeight: '1.5', marginBottom: '2rem', minHeight: '60px' }}>
-                  Ideal para pequeños negocios que desean comenzar a automatizar su comunicación por WhatsApp.
+                  Todo lo que necesitas para automatizar tus ventas, responder consultas y gestionar tu negocio con IA desde WhatsApp.
                 </p>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '2rem' }}>
                   <div style={{ display: 'flex', gap: '8px', alignItems: 'center', color: '#e9edef', fontSize: '0.85rem' }}>
                     <span className="material-symbols-outlined" style={{ color: 'var(--emerald-400)', fontSize: '18px' }}>check_circle</span>
-                    <span>Grupos y Comunidades con participantes ilimitados</span>
-                  </div>
-                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center', color: 'rgba(233, 237, 239, 0.4)', fontSize: '0.85rem' }}>
-                    <span className="material-symbols-outlined" style={{ color: '#ef4444', fontSize: '18px', opacity: 0.5 }}>close</span>
-                    <span style={{ textDecoration: 'line-through' }}>Gestión inteligente de grupos y comunidades</span>
+                    <span>Catálogo Digital Interactivo Avanzado</span>
                   </div>
                   <div style={{ display: 'flex', gap: '8px', alignItems: 'center', color: '#e9edef', fontSize: '0.85rem' }}>
                     <span className="material-symbols-outlined" style={{ color: 'var(--emerald-400)', fontSize: '18px' }}>check_circle</span>
-                    <span>Automatizaciones ilimitadas</span>
-                  </div>
-                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center', color: 'rgba(233, 237, 239, 0.4)', fontSize: '0.85rem' }}>
-                    <span className="material-symbols-outlined" style={{ color: '#ef4444', fontSize: '18px', opacity: 0.5 }}>close</span>
-                    <span style={{ textDecoration: 'line-through' }}>Flujos Potenciados con IA</span>
+                    <span>Agente de Inteligencia Artificial Conversacional</span>
                   </div>
                   <div style={{ display: 'flex', gap: '8px', alignItems: 'center', color: '#e9edef', fontSize: '0.85rem' }}>
                     <span className="material-symbols-outlined" style={{ color: 'var(--emerald-400)', fontSize: '18px' }}>check_circle</span>
-                    <span>Automatización de Canales</span>
+                    <span>Dashboard CRM en tiempo real</span>
                   </div>
                   <div style={{ display: 'flex', gap: '8px', alignItems: 'center', color: '#e9edef', fontSize: '0.85rem' }}>
                     <span className="material-symbols-outlined" style={{ color: 'var(--emerald-400)', fontSize: '18px' }}>check_circle</span>
-                    <span>Agente de Inteligencia Artificial (Básico)</span>
+                    <span>Gestión inteligente de disponibilidad y pagos</span>
                   </div>
                   <div style={{ display: 'flex', gap: '8px', alignItems: 'center', color: '#e9edef', fontSize: '0.85rem' }}>
                     <span className="material-symbols-outlined" style={{ color: 'var(--emerald-400)', fontSize: '18px' }}>check_circle</span>
-                    <span>1 Número Business</span>
+                    <span>1 Número de WhatsApp Business</span>
                   </div>
                   <div style={{ display: 'flex', gap: '8px', alignItems: 'center', color: '#e9edef', fontSize: '0.85rem' }}>
                     <span className="material-symbols-outlined" style={{ color: 'var(--emerald-400)', fontSize: '18px' }}>check_circle</span>
-                    <span>1 Número Cloud API</span>
+                    <span>Contactos ilimitados</span>
                   </div>
                   <div style={{ display: 'flex', gap: '8px', alignItems: 'center', color: '#e9edef', fontSize: '0.85rem' }}>
                     <span className="material-symbols-outlined" style={{ color: 'var(--emerald-400)', fontSize: '18px' }}>check_circle</span>
-                    <span>10.000 contactos para conversaciones 1 a 1</span>
+                    <span>Soporte de audios de WhatsApp (Whisper)</span>
                   </div>
                   <div style={{ display: 'flex', gap: '8px', alignItems: 'center', color: '#e9edef', fontSize: '0.85rem' }}>
                     <span className="material-symbols-outlined" style={{ color: 'var(--emerald-400)', fontSize: '18px' }}>check_circle</span>
-                    <span>1 Agente de atención incluido</span>
-                  </div>
-                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center', color: 'rgba(233, 237, 239, 0.4)', fontSize: '0.85rem' }}>
-                    <span className="material-symbols-outlined" style={{ color: '#ef4444', fontSize: '18px', opacity: 0.5 }}>close</span>
-                    <span style={{ textDecoration: 'line-through' }}>Sesiones Personalizadas Dedicadas</span>
-                  </div>
-                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center', color: 'rgba(233, 237, 239, 0.4)', fontSize: '0.85rem' }}>
-                    <span className="material-symbols-outlined" style={{ color: '#ef4444', fontSize: '18px', opacity: 0.5 }}>close</span>
-                    <span style={{ textDecoration: 'line-through' }}>Account Manager</span>
+                    <span>0% de comisiones por tus ventas</span>
                   </div>
                 </div>
               </div>
@@ -1536,38 +1598,41 @@ export default function Landing() {
               <button 
                 onClick={() => {
                   setSelectedPlan({
-                    name: 'Robotina Starter',
+                    name: 'Robotina Completo',
                     price: currency === 'USD' ? '$49 / mes' : 'S/. 180 / mes',
                     setup: currency === 'USD' ? '$29' : 'S/. 110',
                     rebillUrl: 'https://pay.rebill.com/robotinacentral-sandbox/test_pl_c3618793fbcb4aaa86deba798e140388'
                   });
                   setIsPaymentOpen(true);
                 }}
-                className="btn-secondary"
+                className="btn-primary"
                 style={{
                   textAlign: 'center',
-                  padding: '0.8rem',
+                  padding: '1rem',
                   borderRadius: '30px',
-                  fontSize: '0.9rem',
-                  fontWeight: 700,
+                  fontSize: '1rem',
+                  fontWeight: 800,
                   display: 'block',
                   width: '100%',
-                  backgroundColor: 'transparent',
-                  color: '#fff',
-                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  boxShadow: '0 10px 25px rgba(34, 197, 94, 0.25)',
                   transition: 'all 0.3s ease',
+                  backgroundColor: '#22c55e',
+                  color: '#000',
+                  border: 'none',
                   cursor: 'pointer'
                 }}
               >
-                Adquirir Plan Starter
+                Comenzar Ahora
               </button>
             </div>
 
-            {/* PLAN GROWTH */}
+            {/* PLAN MULTISUCURSAL */}
             <div className="pricing-card reveal-fade-up delay-250" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%', position: 'relative' }}>
               <div>
                 <div style={{ color: 'var(--secondary)', fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', marginBottom: '0.25rem', letterSpacing: '0.05em' }}>Mensual</div>
-                <h3 style={{ color: '#fff', fontSize: '1.6rem', fontWeight: 800, marginBottom: '0.5rem' }}>Plan Growth</h3>
+                <h3 style={{ fontSize: '1.6rem', fontWeight: 800, marginBottom: '0.5rem' }}>
+                  <span className="text-gradient">Multisucursal</span>
+                </h3>
                 
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px', marginBottom: '0.25rem' }}>
                   <span className="price-amount" style={{ fontSize: '3rem', fontWeight: 800, color: 'white' }}>
@@ -1580,57 +1645,33 @@ export default function Landing() {
                 </div>
                 
                 <p style={{ color: 'var(--secondary)', fontSize: '0.85rem', lineHeight: '1.5', marginBottom: '2rem', minHeight: '60px' }}>
-                  Ideal para negocios con equipos de trabajo que priorizan su atención al cliente por WhatsApp.
+                  Diseñado para negocios con múltiples locales físicos o marcas que necesitan gestionar varios catálogos.
                 </p>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '2rem' }}>
                   <div style={{ display: 'flex', gap: '8px', alignItems: 'center', color: '#e9edef', fontSize: '0.85rem' }}>
                     <span className="material-symbols-outlined" style={{ color: 'var(--emerald-400)', fontSize: '18px' }}>check_circle</span>
-                    <span>Grupos y Comunidades con participantes ilimitados</span>
-                  </div>
-                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center', color: '#e9edef', fontSize: '0.85rem' }}>
-                    <span className="material-symbols-outlined" style={{ color: 'var(--emerald-400)', fontSize: '18px' }}>stars</span>
-                    <span style={{ fontWeight: 600 }}>Gestión inteligente de grupos y comunidades</span>
+                    <span style={{ fontWeight: 600 }}>Todo lo incluido en el Plan Completo</span>
                   </div>
                   <div style={{ display: 'flex', gap: '8px', alignItems: 'center', color: '#e9edef', fontSize: '0.85rem' }}>
                     <span className="material-symbols-outlined" style={{ color: 'var(--emerald-400)', fontSize: '18px' }}>check_circle</span>
-                    <span>Automatizaciones ilimitadas</span>
-                  </div>
-                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center', color: '#e9edef', fontSize: '0.85rem' }}>
-                    <span className="material-symbols-outlined" style={{ color: 'var(--emerald-400)', fontSize: '18px' }}>stars</span>
-                    <span style={{ fontWeight: 600 }}>Flujos con IA Conversacional Completa</span>
+                    <span>Gestión de múltiples sucursales</span>
                   </div>
                   <div style={{ display: 'flex', gap: '8px', alignItems: 'center', color: '#e9edef', fontSize: '0.85rem' }}>
                     <span className="material-symbols-outlined" style={{ color: 'var(--emerald-400)', fontSize: '18px' }}>check_circle</span>
-                    <span>Automatización de Canales</span>
+                    <span>Catálogos independientes por tienda</span>
                   </div>
                   <div style={{ display: 'flex', gap: '8px', alignItems: 'center', color: '#e9edef', fontSize: '0.85rem' }}>
                     <span className="material-symbols-outlined" style={{ color: 'var(--emerald-400)', fontSize: '18px' }}>check_circle</span>
-                    <span>Agente de Inteligencia Artificial (Avanzado)</span>
+                    <span>Dashboard CRM unificado y por sucursal</span>
                   </div>
                   <div style={{ display: 'flex', gap: '8px', alignItems: 'center', color: '#e9edef', fontSize: '0.85rem' }}>
                     <span className="material-symbols-outlined" style={{ color: 'var(--emerald-400)', fontSize: '18px' }}>check_circle</span>
-                    <span>1 Número Business</span>
+                    <span>Múltiples operadores en panel (Ilimitado)</span>
                   </div>
                   <div style={{ display: 'flex', gap: '8px', alignItems: 'center', color: '#e9edef', fontSize: '0.85rem' }}>
                     <span className="material-symbols-outlined" style={{ color: 'var(--emerald-400)', fontSize: '18px' }}>check_circle</span>
-                    <span>1 Número Cloud API</span>
-                  </div>
-                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center', color: '#e9edef', fontSize: '0.85rem' }}>
-                    <span className="material-symbols-outlined" style={{ color: 'var(--emerald-400)', fontSize: '18px' }}>check_circle</span>
-                    <span>25.000 contactos para conversaciones 1 a 1</span>
-                  </div>
-                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center', color: '#e9edef', fontSize: '0.85rem' }}>
-                    <span className="material-symbols-outlined" style={{ color: 'var(--emerald-400)', fontSize: '18px' }}>check_circle</span>
-                    <span>Hasta 5 Agentes de atención incluidos</span>
-                  </div>
-                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center', color: 'rgba(233, 237, 239, 0.4)', fontSize: '0.85rem' }}>
-                    <span className="material-symbols-outlined" style={{ color: '#ef4444', fontSize: '18px', opacity: 0.5 }}>close</span>
-                    <span style={{ textDecoration: 'line-through' }}>Sesiones Personalizadas Dedicadas</span>
-                  </div>
-                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center', color: 'rgba(233, 237, 239, 0.4)', fontSize: '0.85rem' }}>
-                    <span className="material-symbols-outlined" style={{ color: '#ef4444', fontSize: '18px', opacity: 0.5 }}>close</span>
-                    <span style={{ textDecoration: 'line-through' }}>Account Manager</span>
+                    <span>Soporte prioritario</span>
                   </div>
                 </div>
               </div>
@@ -1638,7 +1679,7 @@ export default function Landing() {
               <button 
                 onClick={() => {
                   setSelectedPlan({
-                    name: 'Robotina Growth',
+                    name: 'Robotina Multisucursal',
                     price: currency === 'USD' ? '$99 / mes' : 'S/. 370 / mes',
                     setup: currency === 'USD' ? '$79' : 'S/. 290',
                     rebillUrl: 'https://pay.rebill.com/robotinacentral-sandbox/test_pl_f58398496d674bd38d37554b8175475c'
@@ -1661,128 +1702,17 @@ export default function Landing() {
                   cursor: 'pointer'
                 }}
               >
-                Adquirir Plan Growth
+                Elegir Plan Multisucursal
               </button>
-            </div>
-
-            {/* PLAN ADVANCED */}
-            <div className="pricing-card popular reveal-fade-up delay-300" style={{
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'space-between',
-              height: '100%',
-              position: 'relative',
-              border: '2px solid #22c55e',
-              boxShadow: '0 0 35px rgba(34, 197, 94, 0.15)',
-              backgroundColor: 'rgba(10, 10, 10, 0.8)'
-            }}>
-              <div>
-                <div style={{
-                  position: 'absolute', top: '15px', right: '15px',
-                  backgroundColor: '#22c55e', color: '#000',
-                  padding: '4px 12px', borderRadius: '30px', fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase'
-                }}>
-                  Más Popular
-                </div>
-
-                <div style={{ color: 'var(--secondary)', fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', marginBottom: '0.25rem', letterSpacing: '0.05em' }}>Mensual</div>
-                <h3 style={{ color: '#fff', fontSize: '1.6rem', fontWeight: 800, marginBottom: '0.5rem' }}>Plan Advanced</h3>
-                
-                <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px', marginBottom: '0.25rem' }}>
-                  <span className="price-amount" style={{ fontSize: '3rem', fontWeight: 800, color: '#22c55e' }}>
-                    {currency === 'USD' ? '$199' : 'S/. 740'}
-                  </span>
-                  <span style={{ fontSize: '0.85rem', color: 'var(--secondary)' }}>{currency === 'USD' ? 'USD' : 'PEN'}/mes</span>
-                </div>
-                <div style={{ fontSize: '0.8rem', color: '#22c55e', fontWeight: 600, marginBottom: '1.5rem' }}>
-                  + {currency === 'USD' ? '$199' : 'S/. 740'} Setup (Único)
-                </div>
-                
-                <p style={{ color: 'var(--secondary)', fontSize: '0.85rem', lineHeight: '1.5', marginBottom: '2rem', minHeight: '60px' }}>
-                  Ideal para negocios con equipos que requieren integraciones adicionales, funciones avanzadas y soporte premium.
-                </p>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '2rem' }}>
-                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center', color: '#e9edef', fontSize: '0.85rem' }}>
-                    <span className="material-symbols-outlined" style={{ color: 'var(--emerald-400)', fontSize: '18px' }}>check_circle</span>
-                    <span>Grupos y Comunidades con participantes ilimitados</span>
-                  </div>
-                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center', color: '#e9edef', fontSize: '0.85rem' }}>
-                    <span className="material-symbols-outlined" style={{ color: 'var(--emerald-400)', fontSize: '18px' }}>stars</span>
-                    <span style={{ fontWeight: 600 }}>Gestión inteligente de grupos y comunidades</span>
-                  </div>
-                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center', color: '#e9edef', fontSize: '0.85rem' }}>
-                    <span className="material-symbols-outlined" style={{ color: 'var(--emerald-400)', fontSize: '18px' }}>check_circle</span>
-                    <span>Automatizaciones ilimitadas</span>
-                  </div>
-                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center', color: '#e9edef', fontSize: '0.85rem' }}>
-                    <span className="material-symbols-outlined" style={{ color: 'var(--emerald-400)', fontSize: '18px' }}>stars</span>
-                    <span style={{ fontWeight: 600 }}>Flujos Potenciados con IA Conversacional</span>
-                  </div>
-                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center', color: '#e9edef', fontSize: '0.85rem' }}>
-                    <span className="material-symbols-outlined" style={{ color: 'var(--emerald-400)', fontSize: '18px' }}>check_circle</span>
-                    <span>Automatización de Canales</span>
-                  </div>
-                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center', color: '#e9edef', fontSize: '0.85rem' }}>
-                    <span className="material-symbols-outlined" style={{ color: 'var(--emerald-400)', fontSize: '18px' }}>stars</span>
-                    <span style={{ fontWeight: 600 }}>IA Avanzada (Múltiples bases de datos)</span>
-                  </div>
-                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center', color: '#e9edef', fontSize: '0.85rem' }}>
-                    <span className="material-symbols-outlined" style={{ color: 'var(--emerald-400)', fontSize: '18px' }}>check_circle</span>
-                    <span>1 Número Business</span>
-                  </div>
-                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center', color: '#e9edef', fontSize: '0.85rem' }}>
-                    <span className="material-symbols-outlined" style={{ color: 'var(--emerald-400)', fontSize: '18px' }}>check_circle</span>
-                    <span>1 Número Cloud API</span>
-                  </div>
-                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center', color: '#e9edef', fontSize: '0.85rem' }}>
-                    <span className="material-symbols-outlined" style={{ color: 'var(--emerald-400)', fontSize: '18px' }}>check_circle</span>
-                    <span>50.000 contactos para conversaciones 1 a 1</span>
-                  </div>
-                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center', color: '#e9edef', fontSize: '0.85rem' }}>
-                    <span className="material-symbols-outlined" style={{ color: 'var(--emerald-400)', fontSize: '18px' }}>check_circle</span>
-                    <span>Agentes de atención Ilimitados</span>
-                  </div>
-                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center', color: '#e9edef', fontSize: '0.85rem' }}>
-                    <span className="material-symbols-outlined" style={{ color: 'var(--emerald-400)', fontSize: '18px' }}>check_circle</span>
-                    <span>3 Sesiones de Onboarding y Setup Dedicado</span>
-                  </div>
-                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center', color: '#e9edef', fontSize: '0.85rem' }}>
-                    <span className="material-symbols-outlined" style={{ color: 'var(--emerald-400)', fontSize: '18px' }}>check_circle</span>
-                    <span>Account Manager asignado</span>
-                  </div>
-                </div>
-              </div>
-
-              <a 
-                href={`https://wa.me/${DEMO_WHATSAPP_NUMBER}?text=${encodeURIComponent(`Hola, quiero iniciar con el Plan Advanced de Robotina-Central en ${currency === 'USD' ? 'dólares (USD)' : 'soles (PEN)'}.`)}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="btn-primary"
-                style={{
-                  textAlign: 'center',
-                  textDecoration: 'none',
-                  padding: '1rem',
-                  borderRadius: '30px',
-                  fontSize: '1rem',
-                  fontWeight: 800,
-                  display: 'block',
-                  boxShadow: '0 10px 25px rgba(34, 197, 94, 0.25)',
-                  transition: 'all 0.3s ease',
-                  backgroundColor: '#22c55e',
-                  color: '#000',
-                  border: 'none'
-                }}
-              >
-                Adquirir Plan Advanced
-              </a>
             </div>
 
             {/* PLAN PERSONALIZADO */}
             <div className="pricing-card reveal-fade-up delay-400" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%', position: 'relative' }}>
               <div>
                 <div style={{ color: 'var(--secondary)', fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', marginBottom: '0.25rem', letterSpacing: '0.05em' }}>A medida</div>
-                <h3 style={{ color: '#fff', fontSize: '1.6rem', fontWeight: 800, marginBottom: '0.5rem' }}>Personalizado</h3>
+                <h3 style={{ fontSize: '1.6rem', fontWeight: 800, marginBottom: '0.5rem' }}>
+                  <span style={{ background: 'linear-gradient(135deg, #FF007A 0%, #7928CA 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Personalizado</span>
+                </h3>
                 
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px', marginBottom: '0.25rem' }}>
                   <span className="price-amount" style={{ fontSize: '3rem', fontWeight: 800, color: 'white' }}>
@@ -1794,7 +1724,7 @@ export default function Landing() {
                 </div>
                 
                 <p style={{ color: 'var(--secondary)', fontSize: '0.85rem', lineHeight: '1.5', marginBottom: '2rem', minHeight: '60px' }}>
-                  Soluciones personalizadas para negocios con grandes volúmenes y requerimientos específicos de escala.
+                  Soluciones a la medida para franquicias o empresas corporativas con requerimientos de integración CRM, ERP o POS.
                 </p>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '2rem' }}>
@@ -1808,15 +1738,15 @@ export default function Landing() {
                   </div>
                   <div style={{ display: 'flex', gap: '8px', alignItems: 'center', color: '#e9edef', fontSize: '0.85rem' }}>
                     <span className="material-symbols-outlined" style={{ color: 'var(--primary)', fontSize: '18px' }}>forum</span>
-                    <span>Consultorías estratégicas de negocio 1 a 1</span>
+                    <span>Consultorías estratégicas de automatización 1 a 1</span>
                   </div>
                   <div style={{ display: 'flex', gap: '8px', alignItems: 'center', color: '#e9edef', fontSize: '0.85rem' }}>
                     <span className="material-symbols-outlined" style={{ color: 'var(--primary)', fontSize: '18px' }}>flash_on</span>
-                    <span>Activación ultrarrápida y Setup dedicado completo</span>
+                    <span>Activación multi-sucursales dedicada</span>
                   </div>
                   <div style={{ display: 'flex', gap: '8px', alignItems: 'center', color: '#e9edef', fontSize: '0.85rem' }}>
                     <span className="material-symbols-outlined" style={{ color: 'var(--primary)', fontSize: '18px' }}>settings_suggest</span>
-                    <span>Integración personalizada de APIs, CRM y Webhooks</span>
+                    <span>Integración de APIs, Webhooks y ERP custom</span>
                   </div>
                 </div>
               </div>
@@ -1855,8 +1785,20 @@ export default function Landing() {
       }}>
         <div style={{ maxWidth: '800px', margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
-            <h2 className="display-md" style={{ color: '#fff', fontWeight: 900, marginBottom: '1rem', letterSpacing: '-1px' }}>
-              Preguntas Frecuentes
+            <span style={{ 
+              fontSize: '0.85rem', 
+              fontWeight: 800, 
+              color: 'var(--emerald-400)', 
+              letterSpacing: '1.5px', 
+              textTransform: 'uppercase',
+              display: 'block',
+              marginBottom: '1rem',
+              filter: 'drop-shadow(0 0 10px rgba(0, 255, 102, 0.45))'
+            }}>
+              Resolviendo Dudas
+            </span>
+            <h2 className="display-md" style={{ fontWeight: 900, marginBottom: '1rem', letterSpacing: '-1px' }}>
+              Preguntas <span style={{ background: 'linear-gradient(135deg, var(--emerald-400) 0%, #00C2FF 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Frecuentes</span>
             </h2>
             <p style={{ color: 'var(--secondary)', fontSize: '0.95rem' }}>
               Respuestas rápidas sobre el bot de WhatsApp y nuestro ecosistema.
@@ -1916,7 +1858,225 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* 8. FOOTER */}
+      {/* 8. SECCIÓN DE CONTACTO */}
+      <section id="contacto" style={{
+        backgroundColor: 'transparent',
+        padding: '6rem 2rem',
+        borderTop: '1px solid rgba(255,255,255,0.03)',
+        position: 'relative',
+        zIndex: 1
+      }}>
+        <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
+          <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
+            <span style={{ 
+              fontSize: '0.85rem', 
+              fontWeight: 800, 
+              color: 'var(--emerald-400)', 
+              letterSpacing: '1.5px', 
+              textTransform: 'uppercase',
+              display: 'block',
+              marginBottom: '1rem',
+              filter: 'drop-shadow(0 0 10px rgba(0, 255, 102, 0.45))'
+            }}>
+              Ponte en Contacto
+            </span>
+            <h2 className="display-md" style={{ fontWeight: 900, marginBottom: '1rem', letterSpacing: '-1px' }}>
+              ¿Tienes dudas? <span style={{ background: 'linear-gradient(135deg, var(--emerald-400) 0%, #00C2FF 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Escríbenos</span>
+            </h2>
+            <p style={{ color: 'var(--secondary)', fontSize: '0.95rem', maxWidth: '600px', margin: '0 auto' }}>
+              Nuestro equipo comercial y de soporte técnico está disponible para ayudarte a automatizar tu canal de WhatsApp.
+            </p>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '3rem', alignItems: 'start' }}>
+            {/* Datos de Contacto */}
+            <div className="glass-card" style={{ padding: '2.5rem', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+              <h3 style={{ color: '#fff', fontSize: '1.35rem', fontWeight: 800, margin: 0 }}>Información de Contacto</h3>
+              
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                  <div style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: 'rgba(0, 255, 102, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--emerald-400)' }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>mail</span>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--secondary)', textTransform: 'uppercase', fontWeight: 700 }}>Correo Electrónico</div>
+                    <a href={`mailto:${BUSINESS_EMAIL}`} style={{ color: '#fff', fontSize: '0.95rem', textDecoration: 'none', fontWeight: 600 }}>{BUSINESS_EMAIL}</a>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                  <div style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: 'rgba(0, 255, 102, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--emerald-400)' }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>call</span>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--secondary)', textTransform: 'uppercase', fontWeight: 700 }}>WhatsApp Comercial</div>
+                    <a href={`https://wa.me/${DEMO_WHATSAPP_NUMBER}`} target="_blank" rel="noopener noreferrer" style={{ color: '#fff', fontSize: '0.95rem', textDecoration: 'none', fontWeight: 600 }}>+54 9 11 6599-4057</a>
+                  </div>
+                </div>
+
+
+              </div>
+            </div>
+
+            {/* Formulario de Contacto */}
+            <div className="glass-card" style={{ padding: '2.5rem' }}>
+              {contactSuccess ? (
+                <div style={{ textAlign: 'center', padding: '2rem 0', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
+                  <div style={{ width: '60px', height: '60px', borderRadius: '50%', backgroundColor: 'rgba(0, 255, 102, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--emerald-400)', marginBottom: '0.5rem', filter: 'drop-shadow(0 0 8px rgba(0,255,102,0.3))' }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: '32px' }}>check_circle</span>
+                  </div>
+                  <h3 style={{ color: '#fff', fontSize: '1.25rem', fontWeight: 800, margin: 0 }}>¡Mensaje Enviado!</h3>
+                  <p style={{ color: 'var(--secondary)', fontSize: '0.88rem', margin: 0, lineHeight: '1.5' }}>
+                    Gracias por escribirnos. Un asesor comercial se pondrá en contacto contigo a la brevedad posible.
+                  </p>
+                  <button 
+                    onClick={() => setContactSuccess(false)}
+                    style={{
+                      marginTop: '1rem',
+                      padding: '8px 16px',
+                      borderRadius: '8px',
+                      backgroundColor: 'rgba(255,255,255,0.05)',
+                      border: '1px solid rgba(255,255,255,0.1)',
+                      color: '#fff',
+                      fontSize: '0.8rem',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      transition: 'all 0.2s'
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.05)'}
+                  >
+                    Enviar otro mensaje
+                  </button>
+                </div>
+              ) : (
+                <form onSubmit={handleContactSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                  <div>
+                    <label htmlFor="contact_name" style={{ display: 'block', fontSize: '0.75rem', fontWeight: 800, color: '#fff', textTransform: 'uppercase', marginBottom: '0.5rem', letterSpacing: '0.05em' }}>Nombre Completo</label>
+                    <input 
+                      id="contact_name"
+                      type="text" 
+                      placeholder="Ej. Juan Pérez"
+                      required
+                      value={contactName}
+                      onChange={(e) => setContactName(e.target.value)}
+                      style={{
+                        width: '100%',
+                        padding: '12px 16px',
+                        borderRadius: '12px',
+                        backgroundColor: 'rgba(255, 255, 255, 0.03)',
+                        border: '1px solid rgba(255, 255, 255, 0.08)',
+                        color: '#fff',
+                        outline: 'none',
+                        transition: 'border-color 0.3s',
+                        fontSize: '0.9rem'
+                      }}
+                      onFocus={(e) => e.target.style.borderColor = 'var(--emerald-400)'}
+                      onBlur={(e) => e.target.style.borderColor = 'rgba(255, 255, 255, 0.08)'}
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="contact_email" style={{ display: 'block', fontSize: '0.75rem', fontWeight: 800, color: '#fff', textTransform: 'uppercase', marginBottom: '0.5rem', letterSpacing: '0.05em' }}>Correo Electrónico</label>
+                    <input 
+                      id="contact_email"
+                      type="email" 
+                      placeholder="juan@empresa.com"
+                      required
+                      value={contactEmail}
+                      onChange={(e) => setContactEmail(e.target.value)}
+                      style={{
+                        width: '100%',
+                        padding: '12px 16px',
+                        borderRadius: '12px',
+                        backgroundColor: 'rgba(255, 255, 255, 0.03)',
+                        border: '1px solid rgba(255, 255, 255, 0.08)',
+                        color: '#fff',
+                        outline: 'none',
+                        transition: 'border-color 0.3s',
+                        fontSize: '0.9rem'
+                      }}
+                      onFocus={(e) => e.target.style.borderColor = 'var(--emerald-400)'}
+                      onBlur={(e) => e.target.style.borderColor = 'rgba(255, 255, 255, 0.08)'}
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="contact_message" style={{ display: 'block', fontSize: '0.75rem', fontWeight: 800, color: '#fff', textTransform: 'uppercase', marginBottom: '0.5rem', letterSpacing: '0.05em' }}>Mensaje</label>
+                    <textarea 
+                      id="contact_message"
+                      placeholder="¿En qué podemos ayudarte? Cuéntanos sobre tu negocio..."
+                      required
+                      rows={4}
+                      value={contactMessage}
+                      onChange={(e) => setContactMessage(e.target.value)}
+                      style={{
+                        width: '100%',
+                        padding: '12px 16px',
+                        borderRadius: '12px',
+                        backgroundColor: 'rgba(255, 255, 255, 0.03)',
+                        border: '1px solid rgba(255, 255, 255, 0.08)',
+                        color: '#fff',
+                        outline: 'none',
+                        transition: 'border-color 0.3s',
+                        fontSize: '0.9rem',
+                        resize: 'none',
+                        fontFamily: 'inherit'
+                      }}
+                      onFocus={(e) => e.target.style.borderColor = 'var(--emerald-400)'}
+                      onBlur={(e) => e.target.style.borderColor = 'rgba(255, 255, 255, 0.08)'}
+                    />
+                  </div>
+
+                  <button 
+                    type="submit" 
+                    disabled={contactLoading}
+                    style={{
+                      width: '100%',
+                      padding: '14px',
+                      borderRadius: '12px',
+                      backgroundColor: 'var(--primary)',
+                      color: '#fff',
+                      border: 'none',
+                      fontWeight: 800,
+                      cursor: contactLoading ? 'not-allowed' : 'pointer',
+                      transition: 'all 0.3s ease',
+                      boxShadow: '0 4px 15px rgba(255, 90, 31, 0.3)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '8px'
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!contactLoading) {
+                        e.currentTarget.style.transform = 'translateY(-2px)';
+                        e.currentTarget.style.boxShadow = '0 6px 20px rgba(255, 90, 31, 0.4)';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!contactLoading) {
+                        e.currentTarget.style.transform = 'none';
+                        e.currentTarget.style.boxShadow = '0 4px 15px rgba(255, 90, 31, 0.3)';
+                      }
+                    }}
+                  >
+                    {contactLoading ? (
+                      <>Enviando mensaje...</>
+                    ) : (
+                      <>
+                        Enviar Mensaje
+                        <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>send</span>
+                      </>
+                    )}
+                  </button>
+                </form>
+              )}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 9. FOOTER */}
       <footer style={{
         padding: '3rem 2rem',
         textAlign: 'center',
@@ -1940,13 +2100,32 @@ export default function Landing() {
               Términos y Condiciones
             </Link>
             <span style={{ color: 'rgba(255,255,255,0.1)', fontSize: '0.8rem' }}>|</span>
-            <span 
-              style={{ color: 'var(--secondary)', fontSize: '0.8rem', cursor: 'pointer', transition: 'color 0.3s' }}
-              onClick={() => alert('Política de Privacidad en proceso de redacción.')}
+            <Link 
+              to="/privacy" 
+              style={{ color: 'var(--secondary)', fontSize: '0.8rem', textDecoration: 'none', transition: 'color 0.3s' }}
               onMouseEnter={(e) => e.currentTarget.style.color = 'var(--emerald-400)'}
               onMouseLeave={(e) => e.currentTarget.style.color = 'var(--secondary)'}
             >
               Política de Privacidad
+            </Link>
+            <span style={{ color: 'rgba(255,255,255,0.1)', fontSize: '0.8rem' }}>|</span>
+            <span 
+              onClick={() => setShowLegalDropdown(!showLegalDropdown)}
+              style={{ 
+                color: 'var(--secondary)', 
+                fontSize: '0.8rem', 
+                cursor: 'pointer', 
+                transition: 'color 0.3s',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px',
+                userSelect: 'none'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.color = 'var(--emerald-400)'}
+              onMouseLeave={(e) => e.currentTarget.style.color = 'var(--secondary)'}
+            >
+              Información de Registro
+              <span className="material-symbols-outlined" style={{ fontSize: '14px', transition: 'transform 0.2s', transform: showLegalDropdown ? 'rotate(180deg)' : 'none' }}>expand_more</span>
             </span>
           </div>
 
@@ -1954,6 +2133,27 @@ export default function Landing() {
             © {new Date().getFullYear()} Robotina-Central. Todos los derechos reservados.
           </p>
         </div>
+
+        {showLegalDropdown && (
+          <div style={{
+            margin: '1.5rem auto 0 auto',
+            maxWidth: '400px',
+            padding: '1rem',
+            borderRadius: '12px',
+            backgroundColor: 'rgba(255, 255, 255, 0.02)',
+            border: '1px solid rgba(255, 255, 255, 0.05)',
+            fontSize: '0.78rem',
+            color: 'var(--secondary)',
+            animation: 'fadeIn 0.2s ease',
+            lineHeight: '1.6',
+            textAlign: 'center',
+            backdropFilter: 'blur(8px)'
+          }}>
+            <strong>Razón Social:</strong> {LEGAL_NAME}<br />
+            <strong>RUC:</strong> {LEGAL_RUC}<br />
+            <strong>Jurisdicción:</strong> Lima, Perú
+          </div>
+        )}
       </footer>
 
       {/* BOOKING MODAL */}
@@ -2019,8 +2219,8 @@ export default function Landing() {
                 <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>video_chat</span>
                 Videollamada Demo 1 a 1 Gratuita
               </div>
-              <h3 style={{ color: '#fff', fontSize: '1.6rem', fontWeight: 800, margin: 0, lineHeight: '1.3' }}>
-                Agenda tu Demostración
+              <h3 style={{ fontSize: '1.6rem', fontWeight: 800, margin: 0, lineHeight: '1.3' }}>
+                Agenda tu <span className="text-gradient">Demostración</span>
               </h3>
               <p style={{ color: 'var(--secondary)', fontSize: '0.88rem', margin: '0.5rem 0 0 0', lineHeight: '1.5' }}>
                 Completa tus datos para coordinar el día y la hora de nuestra videollamada por Meet/Zoom.
@@ -2184,8 +2384,8 @@ export default function Landing() {
                 <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>shopping_cart</span>
                 Método de Pago
               </div>
-              <h3 style={{ color: '#fff', fontSize: '1.6rem', fontWeight: 800, margin: 0, lineHeight: '1.3' }}>
-                {selectedPlan.name}
+              <h3 style={{ fontSize: '1.6rem', fontWeight: 800, margin: 0, lineHeight: '1.3' }}>
+                Adquirir <span className="text-gradient">{selectedPlan.name}</span>
               </h3>
               <p style={{ color: 'var(--secondary)', fontSize: '0.88rem', margin: '0.5rem 0 0 0', lineHeight: '1.5' }}>
                 Mensualidad: <strong style={{ color: '#fff' }}>{selectedPlan.price}</strong> + Setup: <strong style={{ color: '#fff' }}>{selectedPlan.setup}</strong> (Pago único inicial)

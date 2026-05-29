@@ -72,7 +72,7 @@ export default function Terms() {
             Términos y Condiciones de Uso
           </h1>
           <p style={{ color: 'var(--secondary)', fontSize: '0.85rem', marginBottom: '2.5rem' }}>
-            Última actualización: 27 de mayo de 2026
+            Última actualización: 28 de mayo de 2026
           </p>
 
           <p style={{ marginBottom: '1.5rem' }}>
@@ -80,18 +80,46 @@ export default function Terms() {
           </p>
 
           <h2 style={{ color: '#fff', fontSize: '1.3rem', fontWeight: 700, marginTop: '2.5rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ color: 'var(--emerald-400)', fontWeight: 800 }}>1.</span> Descripción del Servicio
+            <span style={{ color: 'var(--emerald-400)', fontWeight: 800 }}>1.</span> Información Legal del Titular
+          </h2>
+          <p style={{ marginBottom: '1.5rem' }}>
+            La plataforma y el servicio de software SaaS **Robotina Central** son provistos y administrados por la persona jurídica **Robotina Central**, legalmente registrada e identificada con RUC número **15607181699**, con domicilio legal en la República del Perú. Para cualquier consulta o contacto relacionado con este acuerdo, puede escribir a **soporte@robotinacentral.com** o comunicarse por vía telefónica a **+54 9 11 6599-4057**.
+          </p>
+
+          <h2 style={{ color: '#fff', fontSize: '1.3rem', fontWeight: 700, marginTop: '2.5rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ color: 'var(--emerald-400)', fontWeight: 800 }}>2.</span> Descripción del Servicio
           </h2>
           <p style={{ marginBottom: '1.5rem' }}>
             Robotina Central proporciona una plataforma de software SaaS (Software as a Service) que permite la automatización de conversaciones, integraciones de inteligencia artificial conversacional y gestión de leads y reportes por medio de la API oficial de WhatsApp (Meta).
           </p>
 
           <h2 style={{ color: '#fff', fontSize: '1.3rem', fontWeight: 700, marginTop: '2.5rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ color: 'var(--emerald-400)', fontWeight: 800 }}>2.</span> Planes, Suscripción y Costo de Configuración
+            <span style={{ color: 'var(--emerald-400)', fontWeight: 800 }}>3.</span> Procedimiento de Compra y Contratación
+          </h2>
+          <p style={{ marginBottom: '1.5rem' }}>
+            El proceso de adquisición y habilitación de las licencias de software y automatización funciona de la siguiente manera:
+          </p>
+          <ul style={{ paddingLeft: '1.5rem', marginBottom: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            <li>
+              <strong>Selección del Plan:</strong> El cliente selecciona el plan que mejor se adapte a su volumen y necesidades (Starter, Growth, Advanced) directamente en el sitio web.
+            </li>
+            <li>
+              <strong>Pago de Licencia y Configuración:</strong> El cliente efectúa el pago del setup inicial y la primera mensualidad mediante los enlaces provistos por la plataforma (procesados mediante dLocal Go o Rebill).
+            </li>
+            <li>
+              <strong>Activación de Canales:</strong> Confirmado el pago, el equipo de ingeniería realiza la configuración técnica y la conexión oficial con la API de Meta/WhatsApp mediante una sesión de Onboarding/Configuración remota.
+            </li>
+            <li>
+              <strong>Servicio Personalizado:</strong> En caso de requerir un proyecto a medida o integración personalizada, los requerimientos, costos de desarrollo y tiempos de entrega serán presupuestados individualmente mediante una propuesta de servicio previa firma del acuerdo comercial.
+            </li>
+          </ul>
+
+          <h2 style={{ color: '#fff', fontSize: '1.3rem', fontWeight: 700, marginTop: '2.5rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ color: 'var(--emerald-400)', fontWeight: 800 }}>4.</span> Planes, Suscripción y Costo de Configuración
           </h2>
           <ul style={{ paddingLeft: '1.5rem', marginBottom: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
             <li>
-              <strong>Cargos Recurrentes:</strong> Al suscribirse a cualquiera de nuestros planes (Starter, Growth, Advanced), usted autoriza el cobro mensual automático recurrente del precio del plan contratado mediante el procesador de pagos (Rebill u otros autorizados).
+              <strong>Cargos Recurrentes:</strong> Al suscribirse a cualquiera de nuestros planes (Starter, Growth, Advanced), usted autoriza el cobro mensual automático recurrente del precio del plan contratado mediante el procesador de pagos (Rebill o dLocal Go).
             </li>
             <li>
               <strong style={{ color: '#fff' }}>Costo de Configuración (Setup Fee):</strong> Todos nuestros planes incluyen un cargo de configuración inicial y único al momento de la contratación. Este cargo cubre los costos de aprovisionamiento de servidores, asignación de APIs y el tiempo de ingeniería de onboarding personalizado. <strong>Este cargo de configuración es 100% NO REEMBOLSABLE</strong> bajo ninguna circunstancia, incluso si el cliente decide cancelar el servicio antes del primer mes de uso.
@@ -99,7 +127,7 @@ export default function Terms() {
           </ul>
 
           <h2 style={{ color: '#fff', fontSize: '1.3rem', fontWeight: 700, marginTop: '2.5rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ color: 'var(--emerald-400)', fontWeight: 800 }}>3.</span> Política de WhatsApp y Suspensión de Números
+            <span style={{ color: 'var(--emerald-400)', fontWeight: 800 }}>5.</span> Política de WhatsApp y Suspensión de Números
           </h2>
           <p style={{ marginBottom: '1.5rem', color: '#e9edef' }}>
             El uso de la automatización está sujeto estrictamente a las Políticas de Comercio y de Negocios de WhatsApp (Meta). 
@@ -117,21 +145,21 @@ export default function Terms() {
           </div>
 
           <h2 style={{ color: '#fff', fontSize: '1.3rem', fontWeight: 700, marginTop: '2.5rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ color: 'var(--emerald-400)', fontWeight: 800 }}>4.</span> Cancelación del Servicio
+            <span style={{ color: 'var(--emerald-400)', fontWeight: 800 }}>6.</span> Cancelación del Servicio
           </h2>
           <p style={{ marginBottom: '1.5rem' }}>
             Usted puede dar de baja su suscripción en cualquier momento directamente desde su panel de facturación o enviando un correo a soporte. La cancelación tendrá efecto al finalizar el ciclo de facturación mensual en curso. No se emitirán reembolsos parciales ni proporcionales por días no utilizados en el mes corriente.
           </p>
 
           <h2 style={{ color: '#fff', fontSize: '1.3rem', fontWeight: 700, marginTop: '2.5rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ color: 'var(--emerald-400)', fontWeight: 800 }}>5.</span> Limitación de Responsabilidad
+            <span style={{ color: 'var(--emerald-400)', fontWeight: 800 }}>7.</span> Limitación de Responsabilidad
           </h2>
           <p style={{ marginBottom: '1.5rem' }}>
             Robotina Central proporciona la plataforma "tal cual" ("as is"), sin garantías implícitas de ningún tipo sobre la disponibilidad ininterrumpida. La responsabilidad total de Robotina Central ante cualquier reclamación o daño se limitará a la cantidad pagada por el cliente por el servicio durante el último mes de facturación.
           </p>
 
           <h2 style={{ color: '#fff', fontSize: '1.3rem', fontWeight: 700, marginTop: '2.5rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ color: 'var(--emerald-400)', fontWeight: 800 }}>6.</span> Ley Aplicable y Jurisdicción
+            <span style={{ color: 'var(--emerald-400)', fontWeight: 800 }}>8.</span> Ley Aplicable y Jurisdicción
           </h2>
           <p style={{ marginBottom: '0' }}>
             Estos términos se rigen e interpretan según las leyes vigentes de la República del Perú. Cualquier controversia derivada de este acuerdo será resuelta ante los tribunales y juzgados de la ciudad de Lima, Perú, renunciando expresamente a cualquier otra jurisdicción aplicable.

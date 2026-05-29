@@ -130,9 +130,18 @@ export default function Login({ onLogin }: { onLogin: () => void }) {
                 </div>
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '-0.5rem' }}>
-                 <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--secondary)', fontSize: '0.85rem', cursor: 'pointer' }}>
-                   <input type="checkbox" style={{ accentColor: 'var(--primary)', width: '16px', height: '16px' }} />
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.5rem', flexWrap: 'wrap', gap: '0.75rem' }}>
+                 <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--secondary)', fontSize: '0.85rem', cursor: 'pointer', userSelect: 'none' }}>
+                   <input 
+                     type="checkbox" 
+                     style={{ 
+                       accentColor: 'var(--primary)', 
+                       width: '16px', 
+                       height: '16px', 
+                       cursor: 'pointer',
+                       margin: 0
+                     }} 
+                   />
                    Recordar mi sesión (30 días)
                  </label>
                  <a href="#" style={{ color: 'var(--primary)', fontSize: '0.85rem', textDecoration: 'none', fontWeight: 500 }}>¿Olvidaste tu clave?</a>
@@ -158,13 +167,22 @@ export default function Login({ onLogin }: { onLogin: () => void }) {
             </form>
 
             {/* Aviso B2B (Manejo de Suscripción) */}
-            <div style={{ marginTop: '3rem', textAlign: 'center', padding: '1.5rem', borderTop: '1px solid #222' }}>
-               <p style={{ color: 'var(--secondary)', fontSize: '0.9rem', margin: 0, lineHeight: 1.5 }}>
-                 ¿No tienes cuenta? <Link to="/register" style={{ color: '#fff', fontWeight: 600, textDecoration: 'none' }}>Regístrate ahora</Link>
-                 <br/><br/>
-                 O <a href="#" style={{ color: 'var(--primary)', fontWeight: 600, textDecoration: 'underline' }}>Comunícate comercialmente</a> para adquirir un plan mensual.
-               </p>
-            </div>
+             <div style={{ marginTop: '3rem', textAlign: 'center', padding: '1.5rem', borderTop: '1px solid #222' }}>
+                <p style={{ color: 'var(--secondary)', fontSize: '0.9rem', margin: 0, lineHeight: 1.5 }}>
+                  ¿No tienes cuenta? <Link to="/register" style={{ color: '#fff', fontWeight: 600, textDecoration: 'none' }}>Regístrate ahora</Link>
+                  <br/><br/>
+                  O <a href="#" style={{ color: 'var(--primary)', fontWeight: 600, textDecoration: 'underline' }}>Comunícate comercialmente</a> para adquirir un plan mensual.
+                </p>
+                <div style={{ marginTop: '1.5rem' }}>
+                  <Link to="/" style={{ color: 'var(--secondary)', fontSize: '0.85rem', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '4px', transition: 'color 0.2s' }}
+                    onMouseEnter={e => e.currentTarget.style.color = '#fff'}
+                    onMouseLeave={e => e.currentTarget.style.color = 'var(--secondary)'}
+                  >
+                    <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>arrow_back</span>
+                    Volver a la Landing
+                  </Link>
+                </div>
+             </div>
          </div>
       </div>
     </div>

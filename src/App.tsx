@@ -21,6 +21,7 @@ import Onboarding from './pages/Onboarding';
 import NotificationToast from './components/NotificationToast';
 import Landing from './pages/Landing';
 import Terms from './pages/Terms';
+import Privacy from './pages/Privacy';
 
 
 function App() {
@@ -85,6 +86,7 @@ function App() {
       <Route path="/register" element={<Register />} />
       <Route path="/onboarding" element={isAuthenticated ? <Onboarding onComplete={() => {}} /> : <Login onLogin={handleLogin} />} />
       <Route path="/terms" element={<Terms />} />
+      <Route path="/privacy" element={<Privacy />} />
       <Route path="/*" element={<MainLayout />} />
     </Routes>
   );
