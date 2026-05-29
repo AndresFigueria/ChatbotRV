@@ -1679,10 +1679,15 @@ export default function Landing() {
 
               <button 
                 onClick={() => {
-                  const checkoutUrl = currency === 'USD' 
-                    ? 'https://checkout.dlocalgo.com/validate/recurring/cUpwxzpIXmCSErec0FnDwLF5UfUyhqoh' 
-                    : 'https://checkout.dlocalgo.com/validate/recurring/unuYHTStzP5Ycnxfd1E4j0j8mJ2oZohH';
-                  window.location.href = checkoutUrl;
+                  setSelectedPlan({
+                    name: 'Robotina Completo',
+                    price: currency === 'USD' ? '$49 / mes' : 'S/. 180 / mes',
+                    setup: currency === 'USD' ? '$29' : 'S/. 110',
+                    rebillUrl: currency === 'USD' 
+                      ? 'https://checkout.dlocalgo.com/validate/recurring/cUpwxzpIXmCSErec0FnDwLF5UfUyhqoh' 
+                      : 'https://checkout.dlocalgo.com/validate/recurring/unuYHTStzP5Ycnxfd1E4j0j8mJ2oZohH'
+                  });
+                  setIsPaymentOpen(true);
                 }}
                 className="btn-primary"
                 style={{
@@ -2514,58 +2519,65 @@ export default function Landing() {
                   <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>credit_card</span>
                 </div>
                 <div style={{ flexGrow: 1 }}>
-                  <div style={{ color: '#fff', fontWeight: 700, fontSize: '0.95rem' }}>Pago con Tarjeta de Crédito/Débito</div>
+                  <div style={{ color: '#fff', fontWeight: 700, fontSize: '0.95rem' }}>Pago Seguro con Tarjeta</div>
                   <div style={{ color: 'var(--secondary)', fontSize: '0.75rem', marginTop: '2px' }}>
-                    Procesado de forma segura por <strong>Rebill</strong> (Visa, Mastercard, AMEX)
+                    Procesado de forma segura por <strong>dLocal Go</strong> (Visa, Mastercard, AMEX)
                   </div>
                 </div>
                 <span className="material-symbols-outlined" style={{ color: 'var(--secondary)', fontSize: '20px' }}>arrow_forward</span>
               </a>
 
-              {/* Opción 2: dLocal / Pago Local (Próximamente) */}
-              <div
+              {/* Opción 2: Pago Local Manual */}
+              <a
+                href={`https://wa.me/${DEMO_WHATSAPP_NUMBER}?text=Hola,%20quiero%20pagar%20el%20${selectedPlan.name}%20por%20transferencia%20/%20Yape.`}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => setIsPaymentOpen(false)}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
                   gap: '1rem',
                   padding: '1.25rem',
                   borderRadius: '16px',
-                  backgroundColor: 'rgba(255, 255, 255, 0.01)',
-                  border: '1px solid rgba(255, 255, 255, 0.03)',
-                  opacity: 0.6,
-                  position: 'relative'
+                  backgroundColor: 'rgba(255, 255, 255, 0.03)',
+                  border: '1px solid rgba(255, 255, 255, 0.08)',
+                  textDecoration: 'none',
+                  transition: 'all 0.3s ease',
+                  cursor: 'pointer'
+                }}
+                className="payment-option-hover"
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = 'var(--emerald-400)';
+                  e.currentTarget.style.backgroundColor = 'rgba(0, 255, 102, 0.03)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.08)';
+                  e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.03)';
                 }}
               >
                 <div style={{
                   width: '44px',
                   height: '44px',
                   borderRadius: '12px',
-                  backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                  backgroundColor: 'rgba(0, 255, 102, 0.1)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  color: 'var(--secondary)',
+                  color: 'var(--emerald-400)',
                   flexShrink: 0
                 }}>
                   <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>account_balance</span>
                 </div>
                 <div style={{ flexGrow: 1 }}>
-                  <div style={{ color: '#888', fontWeight: 700, fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div style={{ color: '#fff', fontWeight: 700, fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
                     Pago Local / Transferencia
-                    <span style={{
-                      backgroundColor: 'rgba(255, 165, 0, 0.1)',
-                      color: 'orange',
-                      fontSize: '0.65rem',
-                      padding: '2px 8px',
-                      borderRadius: '10px',
-                      fontWeight: 800
-                    }}>Próximamente</span>
                   </div>
                   <div style={{ color: 'var(--secondary)', fontSize: '0.75rem', marginTop: '2px' }}>
-                    Yape, Plin, PagoEfectivo o Transferencia Directa (vía dLocal Go)
+                    Coordina por WhatsApp el pago vía Yape, Plin o Banco.
                   </div>
                 </div>
-              </div>
+                <span className="material-symbols-outlined" style={{ color: 'var(--secondary)', fontSize: '20px' }}>arrow_forward</span>
+              </a>
             </div>
           </div>
         </div>
