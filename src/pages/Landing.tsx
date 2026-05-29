@@ -27,6 +27,7 @@ export default function Landing() {
     price: string;
     setup: string;
     rebillUrl: string;
+    dlocalUrl?: string;
   } | null>(null);
 
   const DEMO_WHATSAPP_NUMBER = '5491165994057'; // Número de WhatsApp real
@@ -1683,7 +1684,8 @@ export default function Landing() {
                     name: 'Robotina Completo',
                     price: currency === 'USD' ? '$49 / mes' : 'S/. 180 / mes',
                     setup: currency === 'USD' ? '$29' : 'S/. 110',
-                    rebillUrl: currency === 'USD' 
+                    rebillUrl: 'https://pay.rebill.com/robotinacentral-sandbox/test_pl_c3618793fbcb4aaa86deba798e140388',
+                    dlocalUrl: currency === 'USD' 
                       ? 'https://checkout.dlocalgo.com/validate/recurring/cUpwxzpIXmCSErec0FnDwLF5UfUyhqoh' 
                       : 'https://checkout.dlocalgo.com/validate/recurring/unuYHTStzP5Ycnxfd1E4j0j8mJ2oZohH'
                   });
@@ -2477,7 +2479,59 @@ export default function Landing() {
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-              {/* Opción 1: Rebill (Tarjeta) */}
+              {/* Opción 1: dLocal Go */}
+              {selectedPlan.dlocalUrl && (
+                <a
+                  href={selectedPlan.dlocalUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => setIsPaymentOpen(false)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '1rem',
+                    padding: '1.25rem',
+                    borderRadius: '16px',
+                    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+                    border: '1px solid rgba(255, 255, 255, 0.08)',
+                    textDecoration: 'none',
+                    transition: 'all 0.3s ease',
+                    cursor: 'pointer'
+                  }}
+                  className="payment-option-hover"
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.borderColor = 'var(--emerald-400)';
+                    e.currentTarget.style.backgroundColor = 'rgba(0, 255, 102, 0.03)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.08)';
+                    e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.03)';
+                  }}
+                >
+                  <div style={{
+                    width: '44px',
+                    height: '44px',
+                    borderRadius: '12px',
+                    backgroundColor: 'rgba(0, 255, 102, 0.1)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: 'var(--emerald-400)',
+                    flexShrink: 0
+                  }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>credit_card</span>
+                  </div>
+                  <div style={{ flexGrow: 1 }}>
+                    <div style={{ color: '#fff', fontWeight: 700, fontSize: '0.95rem' }}>Pago Seguro con Tarjeta</div>
+                    <div style={{ color: 'var(--secondary)', fontSize: '0.75rem', marginTop: '2px' }}>
+                      Procesado por <strong>dLocal Go</strong> (Soporta cuotas y moneda local)
+                    </div>
+                  </div>
+                  <span className="material-symbols-outlined" style={{ color: 'var(--secondary)', fontSize: '20px' }}>arrow_forward</span>
+                </a>
+              )}
+
+              {/* Opción 1.5: Rebill (Tarjeta Alternativa) */}
               <a
                 href={selectedPlan.rebillUrl}
                 target="_blank"
@@ -2519,9 +2573,9 @@ export default function Landing() {
                   <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>credit_card</span>
                 </div>
                 <div style={{ flexGrow: 1 }}>
-                  <div style={{ color: '#fff', fontWeight: 700, fontSize: '0.95rem' }}>Pago Seguro con Tarjeta</div>
+                  <div style={{ color: '#fff', fontWeight: 700, fontSize: '0.95rem' }}>Pago Seguro con Tarjeta (Alternativo)</div>
                   <div style={{ color: 'var(--secondary)', fontSize: '0.75rem', marginTop: '2px' }}>
-                    Procesado de forma segura por <strong>dLocal Go</strong> (Visa, Mastercard, AMEX)
+                    Procesado de forma segura por <strong>Rebill</strong> (Suscripción Internacional)
                   </div>
                 </div>
                 <span className="material-symbols-outlined" style={{ color: 'var(--secondary)', fontSize: '20px' }}>arrow_forward</span>
