@@ -817,7 +817,11 @@ export default function Landing() {
               Todo lo que necesitas para escalar<br/>
               <span style={{ color: '#22c55e' }}>tu comunicación por WhatsApp</span>
             </h2>
+          </div>
+
           <div className="grid-auto-responsive" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.5rem' }}>
+            
+            <div style={{ backgroundColor: '#111315', padding: '2rem', borderRadius: '24px', border: '1px solid rgba(255,255,255,0.03)', display: 'flex', flexDirection: 'column', transition: 'all 0.3s ease' }} className="feature-card-hover">
               <div style={{ width: '48px', height: '48px', borderRadius: '14px', backgroundColor: 'rgba(34, 197, 94, 0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#22c55e', marginBottom: '1.5rem' }}>
                 <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>schedule</span>
               </div>
@@ -1596,6 +1600,8 @@ export default function Landing() {
             <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.8rem', marginTop: '0.5rem' }}>
               Sin contratos ocultos. Cancela cuando quieras.
             </p>
+          </div>
+
           <div className="grid-auto-responsive" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1.5rem', alignItems: 'stretch' }}>
             {/* PLAN NORMAL */}
             <div className="pricing-card popular reveal-fade-up delay-200" style={{
