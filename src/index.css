@@ -399,7 +399,19 @@ button {
   }
 
   .grid-auto-responsive {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr !important;
+  }
+
+  .flex-auto-responsive {
+    flex-direction: column !important;
+  }
+
+  .display-lg {
+    font-size: 2.25rem !important;
+  }
+  
+  .display-md {
+    font-size: 1.75rem !important;
   }
 }
 
@@ -980,3 +992,13 @@ input[type=number] {
   }
 }
 
+/* Feature Grid Cards */
+.feature-card-hover {
+  cursor: pointer;
+}
+.feature-card-hover:hover {
+  transform: translateY(-5px);
+  background-color: #16181b !important;
+  border-color: rgba(34, 197, 94, 0.2) !important;
+  box-shadow: 0 10px 30px rgba(34, 197, 94, 0.05);
+}

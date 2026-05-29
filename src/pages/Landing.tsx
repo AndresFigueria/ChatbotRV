@@ -229,7 +229,7 @@ export default function Landing() {
 
             {/* Buttons */}
             <div style={{ display: 'flex', gap: '1.25rem', alignItems: 'center' }}>
-              <Link to="/login" style={{ color: 'var(--secondary)', textDecoration: 'none', fontSize: '0.85rem', fontWeight: 600 }}>
+              <Link to="/login" className="desktop-only" style={{ color: 'var(--secondary)', textDecoration: 'none', fontSize: '0.85rem', fontWeight: 600 }}>
                 Iniciar sesión
               </Link>
               <button onClick={() => setIsBookingOpen(true)} className="btn-primary" style={{
@@ -787,7 +787,7 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* 3. PAIN POINTS SECTION */}
+      {/* 3. FEATURES GRID SECTION */}
       <section style={{
         backgroundColor: 'transparent',
         padding: '6rem 2rem',
@@ -796,46 +796,87 @@ export default function Landing() {
         position: 'relative',
         zIndex: 1
       }}>
+        {/* Edge Illumination Glows */}
+        <div style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          background: `
+            radial-gradient(circle at 0% 50%, rgba(34, 197, 94, 0.06) 0%, transparent 40%),
+            radial-gradient(circle at 100% 50%, rgba(34, 197, 94, 0.06) 0%, transparent 40%)
+          `,
+          pointerEvents: 'none',
+          zIndex: -1,
+          filter: 'blur(50px)'
+        }}></div>
         <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
-            <h2 className="display-md" style={{ marginBottom: '1rem' }}>
-              ¿Tu WhatsApp de ventas <span className="text-gradient">es un caos?</span>
+            <h2 className="display-md" style={{ marginBottom: '0.5rem', fontWeight: 800 }}>
+              Todo lo que necesitas para escalar<br/>
+              <span style={{ color: '#22c55e' }}>tu comunicación por WhatsApp</span>
             </h2>
-            <p style={{ color: 'var(--secondary)', maxWidth: '600px', margin: '0 auto', fontSize: '1.1rem' }}>
-              Atender decenas de mensajes de forma manual genera cuellos de botella, demoras en la atención y clientes insatisfechos que prefieren irse a la competencia.
-            </p>
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '2rem' }}>
-            <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              <div style={{ width: '48px', height: '48px', borderRadius: '12px', backgroundColor: 'rgba(239, 68, 110, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--error)' }}>
-                <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>chat_bubble_error</span>
+          <div className="grid-auto-responsive" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.5rem' }}>
+              <div style={{ width: '48px', height: '48px', borderRadius: '14px', backgroundColor: 'rgba(34, 197, 94, 0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#22c55e', marginBottom: '1.5rem' }}>
+                <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>schedule</span>
               </div>
-              <h3 style={{ color: '#fff', fontSize: '1.25rem', fontWeight: 700 }}>Mensajes perdidos en horas pico</h3>
-              <p style={{ color: 'var(--secondary)', fontSize: '0.9rem', lineHeight: '1.6' }}>
-                Cuando caen decenas de chats a la vez, responder tarde significa perder la venta. Nuestra IA responde en 3 segundos, asesora sobre tus productos y cierra ventas sin esperas.
+              <h3 style={{ color: '#fff', fontSize: '1.15rem', fontWeight: 700, marginBottom: '0.75rem' }}>Responde al instante 24/7</h3>
+              <p style={{ color: '#9ca3af', fontSize: '0.9rem', lineHeight: '1.6', margin: 0 }}>
+                Atiende preguntas frecuentes y solicitudes aunque tu equipo no esté conectado.
               </p>
             </div>
 
-            <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              <div style={{ width: '48px', height: '48px', borderRadius: '12px', backgroundColor: 'rgba(245, 158, 11, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--tertiary)' }}>
-                <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>database_off</span>
+            <div style={{ backgroundColor: '#111315', padding: '2rem', borderRadius: '24px', border: '1px solid rgba(255,255,255,0.03)', display: 'flex', flexDirection: 'column', transition: 'all 0.3s ease' }} className="feature-card-hover">
+              <div style={{ width: '48px', height: '48px', borderRadius: '14px', backgroundColor: 'rgba(34, 197, 94, 0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#22c55e', marginBottom: '1.5rem' }}>
+                <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>groups</span>
               </div>
-              <h3 style={{ color: '#fff', fontSize: '1.25rem', fontWeight: 700 }}>Errores al registrar datos</h3>
-              <p style={{ color: 'var(--secondary)', fontSize: '0.9rem', lineHeight: '1.6' }}>
-                Tu equipo agenda a mano, olvida registrar notas importantes o comete errores con las direcciones. Robotina Central registra todo de forma estructurada sin fallas.
+              <h3 style={{ color: '#fff', fontSize: '1.15rem', fontWeight: 700, marginBottom: '0.75rem' }}>Automatiza grupos y comunidades</h3>
+              <p style={{ color: '#9ca3af', fontSize: '0.9rem', lineHeight: '1.6', margin: 0 }}>
+                Programa mensajes, envía recordatorios y mantén activos tus lanzamientos.
               </p>
             </div>
 
-            <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              <div style={{ width: '48px', height: '48px', borderRadius: '12px', backgroundColor: 'rgba(16, 185, 129, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--emerald-400)' }}>
-                <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>query_stats</span>
+            <div style={{ backgroundColor: '#111315', padding: '2rem', borderRadius: '24px', border: '1px solid rgba(255,255,255,0.03)', display: 'flex', flexDirection: 'column', transition: 'all 0.3s ease' }} className="feature-card-hover">
+              <div style={{ width: '48px', height: '48px', borderRadius: '14px', backgroundColor: 'rgba(34, 197, 94, 0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#22c55e', marginBottom: '1.5rem' }}>
+                <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>chat</span>
               </div>
-              <h3 style={{ color: '#fff', fontSize: '1.25rem', fontWeight: 700 }}>Falta de reportes y métricas</h3>
-              <p style={{ color: 'var(--secondary)', fontSize: '0.9rem', lineHeight: '1.6' }}>
-                No saber cuánto vendiste u ordenaste hasta el final del día es estresante. Visualiza tus ventas, reportes y estadísticas consolidadas en tiempo real.
+              <h3 style={{ color: '#fff', fontSize: '1.15rem', fontWeight: 700, marginBottom: '0.75rem' }}>Seguimiento inteligente</h3>
+              <p style={{ color: '#9ca3af', fontSize: '0.9rem', lineHeight: '1.6', margin: 0 }}>
+                Clasifica contactos, detecta intención de compra y dispara tareas automáticas.
               </p>
             </div>
+
+            <div style={{ backgroundColor: '#111315', padding: '2rem', borderRadius: '24px', border: '1px solid rgba(255,255,255,0.03)', display: 'flex', flexDirection: 'column', transition: 'all 0.3s ease' }} className="feature-card-hover">
+              <div style={{ width: '48px', height: '48px', borderRadius: '14px', backgroundColor: 'rgba(34, 197, 94, 0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#22c55e', marginBottom: '1.5rem' }}>
+                <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>grid_view</span>
+              </div>
+              <h3 style={{ color: '#fff', fontSize: '1.15rem', fontWeight: 700, marginBottom: '0.75rem' }}>Un WhatsApp para todo el equipo</h3>
+              <p style={{ color: '#9ca3af', fontSize: '0.9rem', lineHeight: '1.6', margin: 0 }}>
+                Enruta cada conversación al agente correcto con contexto completo.
+              </p>
+            </div>
+
+            <div style={{ backgroundColor: '#111315', padding: '2rem', borderRadius: '24px', border: '1px solid rgba(255,255,255,0.03)', display: 'flex', flexDirection: 'column', transition: 'all 0.3s ease' }} className="feature-card-hover">
+              <div style={{ width: '48px', height: '48px', borderRadius: '14px', backgroundColor: 'rgba(34, 197, 94, 0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#22c55e', marginBottom: '1.5rem' }}>
+                <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>smart_toy</span>
+              </div>
+              <h3 style={{ color: '#fff', fontSize: '1.15rem', fontWeight: 700, marginBottom: '0.75rem' }}>Agentes de IA entrenados</h3>
+              <p style={{ color: '#9ca3af', fontSize: '0.9rem', lineHeight: '1.6', margin: 0 }}>
+                Usa plantillas listas o entrena a tu agente en minutos, sin código.
+              </p>
+            </div>
+
+            <div style={{ backgroundColor: '#111315', padding: '2rem', borderRadius: '24px', border: '1px solid rgba(255,255,255,0.03)', display: 'flex', flexDirection: 'column', transition: 'all 0.3s ease' }} className="feature-card-hover">
+              <div style={{ width: '48px', height: '48px', borderRadius: '14px', backgroundColor: 'rgba(34, 197, 94, 0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#22c55e', marginBottom: '1.5rem' }}>
+                <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>bolt</span>
+              </div>
+              <h3 style={{ color: '#fff', fontSize: '1.15rem', fontWeight: 700, marginBottom: '0.75rem' }}>Integraciones sin límites</h3>
+              <p style={{ color: '#9ca3af', fontSize: '0.9rem', lineHeight: '1.6', margin: 0 }}>
+                Conecta CRMs, pasarelas y automatizadores para sincronizar tus datos.
+              </p>
+            </div>
+
           </div>
         </div>
       </section>
@@ -847,6 +888,21 @@ export default function Landing() {
         position: 'relative',
         zIndex: 1
       }}>
+        {/* Edge Illumination Glows */}
+        <div style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          background: `
+            radial-gradient(circle at 0% 70%, rgba(0, 194, 255, 0.06) 0%, transparent 50%),
+            radial-gradient(circle at 100% 70%, rgba(163, 113, 247, 0.06) 0%, transparent 50%)
+          `,
+          pointerEvents: 'none',
+          zIndex: -1,
+          filter: 'blur(50px)'
+        }}></div>
         <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 2rem', textAlign: 'center' }}>
         <div style={{ marginBottom: '3rem' }}>
           <h2 className="display-md" style={{ marginBottom: '1rem' }}>
@@ -926,9 +982,9 @@ export default function Landing() {
         </svg>
 
         {/* Dest Cards corresponding to paths */}
-        <div style={{
+        <div className="grid-auto-responsive" style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
           gap: '2rem',
           marginTop: '1rem',
           textAlign: 'left'
@@ -983,17 +1039,34 @@ export default function Landing() {
 
       {/* 4. FEATURES SECTION (SUPERPOWERS) */}
       <section className="bg-grid-pattern" style={{ width: '100%', padding: '6rem 0', position: 'relative', zIndex: 1 }}>
+        {/* Unified Ambient Glow */}
+        <div style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          background: `
+            radial-gradient(circle at 20% 30%, rgba(255, 85, 0, 0.08) 0%, transparent 60%),
+            radial-gradient(circle at 80% 70%, rgba(255, 179, 0, 0.06) 0%, transparent 60%),
+            radial-gradient(circle at 50% 50%, rgba(255, 85, 0, 0.04) 0%, transparent 80%)
+          `,
+          pointerEvents: 'none',
+          zIndex: -1,
+          filter: 'blur(60px)'
+        }}></div>
+
         <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 2rem' }}>
         <div style={{ textAlign: 'center', marginBottom: '5rem' }}>
           <h2 className="display-md" style={{ marginBottom: '1rem' }}>
-            La suite definitiva de <span className="text-gradient">automatización para tu negocio</span>
+            <span style={{ background: 'linear-gradient(135deg, #FFF 0%, #A0A5B5 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>El centro de control inteligente</span> <span style={{ background: 'linear-gradient(135deg, #FF5500 0%, #FFB300 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>para tus ventas</span>
           </h2>
           <p style={{ color: 'var(--secondary)', maxWidth: '600px', margin: '0 auto', fontSize: '1.1rem' }}>
-            Centralización absoluta, panel interactivo de ventas e Inteligencia Artificial entrenada para vender y agendar.
+            Visualiza tus métricas, gestiona a tus clientes y supervisa el rendimiento de la Inteligencia Artificial en tiempo real.
           </p>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '5rem' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '5rem', position: 'relative' }}>
           {/* Feature 1 */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.2fr', gap: '4rem', alignItems: 'center' }} className="grid-auto-responsive">
             <div className="glass-card">
@@ -1045,7 +1118,9 @@ export default function Landing() {
               <div style={{ display: 'inline-flex', padding: '8px', borderRadius: '10px', backgroundColor: 'rgba(255,90,31,0.1)', color: 'var(--primary)', marginBottom: '1.5rem' }}>
                 <span className="material-symbols-outlined" style={{ fontSize: '28px' }}>psychology</span>
               </div>
-              <h3 style={{ color: '#fff', fontSize: '1.75rem', fontWeight: 800, marginBottom: '1rem', letterSpacing: '-0.5px' }}>Agente IA Multi-propósito</h3>
+              <h3 style={{ color: '#fff', fontSize: '1.75rem', fontWeight: 800, marginBottom: '1rem', letterSpacing: '-0.5px' }}>
+                <span style={{ background: 'linear-gradient(135deg, #FFF 0%, #FFB300 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Agente IA</span> Multi-propósito
+              </h3>
               <p style={{ color: 'var(--secondary)', lineHeight: '1.6', fontSize: '0.95rem' }}>
                 Tus agentes conversacionales tienen acceso directo al catálogo de tu negocio y a tu calendario de reservas. Guían a tus clientes para concretar compras, agendar turnos de servicios o resolver dudas frecuentes de manera fluida y cálida.
               </p>
@@ -1061,7 +1136,11 @@ export default function Landing() {
         padding: '6rem 0',
         position: 'relative',
         zIndex: 1,
-        background: 'radial-gradient(circle at center, rgba(34, 197, 94, 0.15) 0%, rgba(10, 11, 16, 0) 70%)'
+        background: `
+          radial-gradient(circle at 0% 50%, rgba(0, 194, 255, 0.12) 0%, transparent 60%),
+          radial-gradient(circle at 100% 50%, rgba(34, 197, 94, 0.15) 0%, transparent 60%),
+          radial-gradient(circle at center, rgba(34, 197, 94, 0.05) 0%, transparent 70%)
+        `
       }}>
         <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 2rem' }}>
         <div className="glass-card grid-auto-responsive" style={{
@@ -1155,8 +1234,8 @@ export default function Landing() {
             backgroundColor: '#0c0d14'
           }}>
             <img 
-              src="/super_agent_avatar.png" 
-              alt="Super Agente IA" 
+              src="/whatsapp_automation_conveyor.png" 
+              alt="WhatsApp Automatización Industrial" 
               style={{
                 width: '100%',
                 height: '100%',
@@ -1199,7 +1278,7 @@ export default function Landing() {
             </p>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '2rem', textAlign: 'center' }}>
+          <div className="grid-auto-responsive" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '2rem', textAlign: 'center' }}>
             <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
               <div style={{ width: '50px', height: '50px', borderRadius: '50%', backgroundColor: 'var(--primary)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: '1.25rem', boxShadow: '0 0 15px rgba(255, 90, 31, 0.4)' }}>
                 1
@@ -1517,10 +1596,7 @@ export default function Landing() {
             <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.8rem', marginTop: '0.5rem' }}>
               Sin contratos ocultos. Cancela cuando quieras.
             </p>
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1.5rem', alignItems: 'stretch' }}>
-            
+          <div className="grid-auto-responsive" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1.5rem', alignItems: 'stretch' }}>
             {/* PLAN NORMAL */}
             <div className="pricing-card popular reveal-fade-up delay-200" style={{
               display: 'flex',
@@ -1888,7 +1964,7 @@ export default function Landing() {
             </p>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '3rem', alignItems: 'start' }}>
+          <div className="grid-auto-responsive" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '3rem', alignItems: 'start' }}>
             {/* Datos de Contacto */}
             <div className="glass-card" style={{ padding: '2.5rem', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
               <h3 style={{ color: '#fff', fontSize: '1.35rem', fontWeight: 800, margin: 0 }}>Información de Contacto</h3>
