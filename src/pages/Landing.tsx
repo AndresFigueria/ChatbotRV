@@ -1679,13 +1679,10 @@ export default function Landing() {
 
               <button 
                 onClick={() => {
-                  setSelectedPlan({
-                    name: 'Robotina Completo',
-                    price: currency === 'USD' ? '$49 / mes' : 'S/. 180 / mes',
-                    setup: currency === 'USD' ? '$29' : 'S/. 110',
-                    rebillUrl: 'https://pay.rebill.com/robotinacentral-sandbox/test_pl_c3618793fbcb4aaa86deba798e140388'
-                  });
-                  setIsPaymentOpen(true);
+                  const checkoutUrl = currency === 'USD' 
+                    ? 'https://checkout.dlocalgo.com/validate/recurring/cUpwxzpIXmCSErec0FnDwLF5UfUyhqoh' 
+                    : 'https://checkout.dlocalgo.com/validate/recurring/unuYHTStzP5Ycnxfd1E4j0j8mJ2oZohH';
+                  window.location.href = checkoutUrl;
                 }}
                 className="btn-primary"
                 style={{
