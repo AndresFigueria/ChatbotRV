@@ -28,6 +28,7 @@ export default function Landing() {
     setup: string;
     rebillUrl: string;
     dlocalUrl?: string;
+    mercadoPagoUrl?: string;
   } | null>(null);
 
   const DEMO_WHATSAPP_NUMBER = '5491165994057'; // Número de WhatsApp real
@@ -205,14 +206,8 @@ export default function Landing() {
             boxShadow: '0 10px 30px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.05)'
           }}>
             {/* Logo */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <div className="brand-icon" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '32px', height: '32px', borderRadius: '50%', backgroundColor: 'var(--primary)' }}>
-                <span className="material-symbols-outlined" style={{ fontSize: '1.1rem', color: '#fff' }}>terminal</span>
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column' }}>
-                <span style={{ fontSize: '1.1rem', fontWeight: 800, color: '#fff', letterSpacing: '-0.5px', lineHeight: 1 }}>Robotina</span>
-                <span style={{ color: 'var(--primary)', fontWeight: 800, fontSize: '0.65rem', letterSpacing: '1px', textTransform: 'uppercase' }}>Central</span>
-              </div>
+            <div style={{ display: 'flex', alignItems: 'center' }}>
+              <img src="/logo__1_-removebg-preview.png" alt="Robotina Central" style={{ height: '36px', width: 'auto', objectFit: 'contain', transform: 'scale(2.6)', transformOrigin: 'left center' }} />
             </div>
 
             {/* Links */}
@@ -583,7 +578,7 @@ export default function Landing() {
       <div className="integrations-strip reveal-fade-up delay-500">
         <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 2rem' }}>
           <p style={{ textAlign: 'center', color: 'var(--secondary)', fontSize: '0.85rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '1.5rem' }}>
-            Se integra perfectamente con tus herramientas favoritas
+            Integración nativa con tu ecosistema
           </p>
           <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '3rem', flexWrap: 'wrap', opacity: 0.8 }}>
             <div className="integration-logo" style={{ fontSize: '1.5rem', fontWeight: 800, color: '#fff', display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -593,13 +588,13 @@ export default function Landing() {
               WhatsApp
             </div>
             <div className="integration-logo" style={{ fontSize: '1.5rem', fontWeight: 800, color: '#fff', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span className="material-symbols-outlined">smart_toy</span> OpenAI
+              <span className="material-symbols-outlined" style={{ color: '#009EE3' }}>handshake</span> Mercado Pago
             </div>
             <div className="integration-logo" style={{ fontSize: '1.5rem', fontWeight: 800, color: '#fff', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span className="material-symbols-outlined">payments</span> Stripe
+              <span className="material-symbols-outlined" style={{ color: '#b27cf4' }}>autorenew</span> Rebill
             </div>
             <div className="integration-logo" style={{ fontSize: '1.5rem', fontWeight: 800, color: '#fff', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span className="material-symbols-outlined">calendar_month</span> Calendly
+              <span className="material-symbols-outlined" style={{ color: '#FF4A00' }}>bolt</span> Zapier
             </div>
           </div>
         </div>
@@ -627,7 +622,7 @@ export default function Landing() {
           Puesta en marcha rápida
         </span>
         <h2 className="display-md" style={{ marginBottom: '1rem', fontWeight: 800 }}>
-          Configuración sencilla en <span style={{ background: 'linear-gradient(135deg, var(--emerald-400) 0%, #00C2FF 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>3 pasos</span>
+          Configuración en <span style={{ background: 'linear-gradient(135deg, var(--emerald-400) 0%, #00C2FF 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>3 simples pasos</span>
         </h2>
         <p style={{ color: 'var(--secondary)', fontSize: '1.1rem', marginBottom: '4rem' }}>
           Llevamos la operación de tu negocio al piloto automático en tiempo récord.
@@ -788,103 +783,6 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* 3. FEATURES GRID SECTION */}
-      <section style={{
-        backgroundColor: 'transparent',
-        padding: '6rem 2rem',
-        borderTop: '1px solid rgba(255,255,255,0.03)',
-        borderBottom: '1px solid rgba(255,255,255,0.03)',
-        position: 'relative',
-        zIndex: 1
-      }}>
-        {/* Edge Illumination Glows */}
-        <div style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          width: '100%',
-          height: '100%',
-          background: `
-            radial-gradient(circle at 0% 50%, rgba(34, 197, 94, 0.06) 0%, transparent 40%),
-            radial-gradient(circle at 100% 50%, rgba(34, 197, 94, 0.06) 0%, transparent 40%)
-          `,
-          pointerEvents: 'none',
-          zIndex: -1,
-          filter: 'blur(50px)'
-        }}></div>
-        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-          <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
-            <h2 className="display-md" style={{ marginBottom: '0.5rem', fontWeight: 800 }}>
-              Todo lo que necesitas para escalar<br/>
-              <span style={{ color: '#22c55e' }}>tu comunicación por WhatsApp</span>
-            </h2>
-          </div>
-
-          <div className="grid-auto-responsive" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.5rem' }}>
-            
-            <div style={{ backgroundColor: '#111315', padding: '2rem', borderRadius: '24px', border: '1px solid rgba(255,255,255,0.03)', display: 'flex', flexDirection: 'column', transition: 'all 0.3s ease' }} className="feature-card-hover">
-              <div style={{ width: '48px', height: '48px', borderRadius: '14px', backgroundColor: 'rgba(34, 197, 94, 0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#22c55e', marginBottom: '1.5rem' }}>
-                <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>schedule</span>
-              </div>
-              <h3 style={{ color: '#fff', fontSize: '1.15rem', fontWeight: 700, marginBottom: '0.75rem' }}>Responde al instante 24/7</h3>
-              <p style={{ color: '#9ca3af', fontSize: '0.9rem', lineHeight: '1.6', margin: 0 }}>
-                Atiende preguntas frecuentes y solicitudes aunque tu equipo no esté conectado.
-              </p>
-            </div>
-
-            <div style={{ backgroundColor: '#111315', padding: '2rem', borderRadius: '24px', border: '1px solid rgba(255,255,255,0.03)', display: 'flex', flexDirection: 'column', transition: 'all 0.3s ease' }} className="feature-card-hover">
-              <div style={{ width: '48px', height: '48px', borderRadius: '14px', backgroundColor: 'rgba(34, 197, 94, 0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#22c55e', marginBottom: '1.5rem' }}>
-                <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>groups</span>
-              </div>
-              <h3 style={{ color: '#fff', fontSize: '1.15rem', fontWeight: 700, marginBottom: '0.75rem' }}>Automatiza grupos y comunidades</h3>
-              <p style={{ color: '#9ca3af', fontSize: '0.9rem', lineHeight: '1.6', margin: 0 }}>
-                Programa mensajes, envía recordatorios y mantén activos tus lanzamientos.
-              </p>
-            </div>
-
-            <div style={{ backgroundColor: '#111315', padding: '2rem', borderRadius: '24px', border: '1px solid rgba(255,255,255,0.03)', display: 'flex', flexDirection: 'column', transition: 'all 0.3s ease' }} className="feature-card-hover">
-              <div style={{ width: '48px', height: '48px', borderRadius: '14px', backgroundColor: 'rgba(34, 197, 94, 0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#22c55e', marginBottom: '1.5rem' }}>
-                <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>chat</span>
-              </div>
-              <h3 style={{ color: '#fff', fontSize: '1.15rem', fontWeight: 700, marginBottom: '0.75rem' }}>Seguimiento inteligente</h3>
-              <p style={{ color: '#9ca3af', fontSize: '0.9rem', lineHeight: '1.6', margin: 0 }}>
-                Clasifica contactos, detecta intención de compra y dispara tareas automáticas.
-              </p>
-            </div>
-
-            <div style={{ backgroundColor: '#111315', padding: '2rem', borderRadius: '24px', border: '1px solid rgba(255,255,255,0.03)', display: 'flex', flexDirection: 'column', transition: 'all 0.3s ease' }} className="feature-card-hover">
-              <div style={{ width: '48px', height: '48px', borderRadius: '14px', backgroundColor: 'rgba(34, 197, 94, 0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#22c55e', marginBottom: '1.5rem' }}>
-                <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>grid_view</span>
-              </div>
-              <h3 style={{ color: '#fff', fontSize: '1.15rem', fontWeight: 700, marginBottom: '0.75rem' }}>Un WhatsApp para todo el equipo</h3>
-              <p style={{ color: '#9ca3af', fontSize: '0.9rem', lineHeight: '1.6', margin: 0 }}>
-                Enruta cada conversación al agente correcto con contexto completo.
-              </p>
-            </div>
-
-            <div style={{ backgroundColor: '#111315', padding: '2rem', borderRadius: '24px', border: '1px solid rgba(255,255,255,0.03)', display: 'flex', flexDirection: 'column', transition: 'all 0.3s ease' }} className="feature-card-hover">
-              <div style={{ width: '48px', height: '48px', borderRadius: '14px', backgroundColor: 'rgba(34, 197, 94, 0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#22c55e', marginBottom: '1.5rem' }}>
-                <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>smart_toy</span>
-              </div>
-              <h3 style={{ color: '#fff', fontSize: '1.15rem', fontWeight: 700, marginBottom: '0.75rem' }}>Agentes de IA entrenados</h3>
-              <p style={{ color: '#9ca3af', fontSize: '0.9rem', lineHeight: '1.6', margin: 0 }}>
-                Usa plantillas listas o entrena a tu agente en minutos, sin código.
-              </p>
-            </div>
-
-            <div style={{ backgroundColor: '#111315', padding: '2rem', borderRadius: '24px', border: '1px solid rgba(255,255,255,0.03)', display: 'flex', flexDirection: 'column', transition: 'all 0.3s ease' }} className="feature-card-hover">
-              <div style={{ width: '48px', height: '48px', borderRadius: '14px', backgroundColor: 'rgba(34, 197, 94, 0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#22c55e', marginBottom: '1.5rem' }}>
-                <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>bolt</span>
-              </div>
-              <h3 style={{ color: '#fff', fontSize: '1.15rem', fontWeight: 700, marginBottom: '0.75rem' }}>Integraciones sin límites</h3>
-              <p style={{ color: '#9ca3af', fontSize: '0.9rem', lineHeight: '1.6', margin: 0 }}>
-                Conecta CRMs, pasarelas y automatizadores para sincronizar tus datos.
-              </p>
-            </div>
-
-          </div>
-        </div>
-      </section>
 
       {/* 3.5 ECOSYSTEM SECTION (FunnelChat inspired connection nodes) */}
       <section className="bg-grid-pattern" style={{
@@ -944,7 +842,7 @@ export default function Landing() {
               <stop offset="50%" stopColor="#00d8f6" stopOpacity="0.4" />
               <stop offset="100%" stopColor="#00d8f6" stopOpacity="0.15" />
             </linearGradient>
-            <linearGradient id="grad-center" x1="50%" y1="0%" x2="50%" y2="100%">
+            <linearGradient id="grad-center" x1="500" y1="10" x2="500" y2="140" gradientUnits="userSpaceOnUse">
               <stop offset="0%" stopColor="#22c55e" stopOpacity="0.8" />
               <stop offset="100%" stopColor="#39d353" stopOpacity="0.2" />
             </linearGradient>
@@ -959,29 +857,35 @@ export default function Landing() {
           <path
             className="connection-path"
             stroke="url(#grad-left)"
+            strokeWidth="12"
+            fill="none"
             d="M500 10 L500 50 C500 65 485 70 470 70 L190 70 C175 70 166 75 166 90 L166 140"
           />
           {/* Center connection path */}
           <path
             className="connection-path"
             stroke="url(#grad-center)"
+            strokeWidth="12"
+            fill="none"
             d="M500 10 L500 140"
           />
           {/* Right connection path */}
           <path
             className="connection-path"
             stroke="url(#grad-right)"
+            strokeWidth="12"
+            fill="none"
             d="M500 10 L500 50 C500 65 515 70 530 70 L810 70 C825 70 834 75 834 90 L834 140"
           />
 
           {/* Glowing Animated circles flowing along the paths */}
-          <circle r="4" fill="#00d8f6" style={{ filter: 'drop-shadow(0 0 6px #00d8f6)' }}>
+          <circle r="6" fill="#00d8f6" style={{ filter: 'drop-shadow(0 0 15px #00d8f6)' }}>
             <animateMotion dur="4s" repeatCount="indefinite" path="M500 10 L500 50 C500 65 485 70 470 70 L190 70 C175 70 166 75 166 90 L166 140" />
           </circle>
-          <circle r="4" fill="#39d353" style={{ filter: 'drop-shadow(0 0 6px #39d353)' }}>
+          <circle r="6" fill="#39d353" style={{ filter: 'drop-shadow(0 0 15px #39d353)' }}>
             <animateMotion dur="3s" repeatCount="indefinite" path="M500 10 L500 140" />
           </circle>
-          <circle r="4" fill="#a371f7" style={{ filter: 'drop-shadow(0 0 6px #a371f7)' }}>
+          <circle r="6" fill="#a371f7" style={{ filter: 'drop-shadow(0 0 15px #a371f7)' }}>
             <animateMotion dur="4s" repeatCount="indefinite" path="M500 10 L500 50 C500 65 515 70 530 70 L810 70 C825 70 834 75 834 90 L834 140" />
           </circle>
         </svg>
@@ -995,7 +899,7 @@ export default function Landing() {
           textAlign: 'left'
         }}>
           {/* Card 1: CRM de Clientes */}
-          <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', borderColor: 'rgba(0, 216, 246, 0.15)' }}>
+          <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', border: '1px solid rgba(0, 216, 246, 0.4)', boxShadow: '0 10px 30px rgba(0, 216, 246, 0.15)' }}>
             <div style={{ width: '40px', height: '40px', borderRadius: '10px', backgroundColor: 'rgba(0, 216, 246, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#00d8f6' }}>
               <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>badge</span>
             </div>
@@ -1009,7 +913,7 @@ export default function Landing() {
           </div>
 
           {/* Card 2: Robotina Central */}
-          <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', borderColor: 'rgba(74, 222, 128, 0.2)', position: 'relative', overflow: 'hidden' }}>
+          <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', border: '1px solid rgba(74, 222, 128, 0.5)', boxShadow: '0 10px 30px rgba(74, 222, 128, 0.15)', position: 'relative', overflow: 'hidden' }}>
             <div style={{ width: '40px', height: '40px', borderRadius: '10px', backgroundColor: 'rgba(74, 222, 128, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#4ade80' }}>
               <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>dashboard</span>
             </div>
@@ -1026,7 +930,7 @@ export default function Landing() {
           </div>
 
           {/* Card 3: Campañas directas */}
-          <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', borderColor: 'rgba(163, 113, 247, 0.15)' }}>
+          <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', border: '1px solid rgba(163, 113, 247, 0.4)', boxShadow: '0 10px 30px rgba(163, 113, 247, 0.15)' }}>
             <div style={{ width: '40px', height: '40px', borderRadius: '10px', backgroundColor: 'rgba(163, 113, 247, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#a371f7' }}>
               <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>campaign</span>
             </div>
@@ -1253,69 +1157,6 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* 5. HOW IT WORKS SECTION */}
-      <section id="how-it-works" style={{
-        backgroundColor: 'transparent',
-        padding: '6rem 2rem',
-        borderTop: '1px solid rgba(255,255,255,0.03)',
-        position: 'relative',
-        zIndex: 1
-      }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-          <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
-            <span style={{ 
-              fontSize: '0.85rem', 
-              fontWeight: 800, 
-              color: 'var(--emerald-400)', 
-              letterSpacing: '1.5px', 
-              textTransform: 'uppercase',
-              display: 'block',
-              marginBottom: '1rem',
-              filter: 'drop-shadow(0 0 10px rgba(0, 255, 102, 0.45))'
-            }}>
-              Metodología Ágil
-            </span>
-            <h2 className="display-md" style={{ marginBottom: '1rem' }}>
-              Pon tu negocio en <span style={{ background: 'linear-gradient(135deg, var(--emerald-400) 0%, #00C2FF 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>marcha en 3 pasos</span>
-            </h2>
-            <p style={{ color: 'var(--secondary)', maxWidth: '500px', margin: '0 auto', fontSize: '1.1rem' }}>
-              Lleva tu empresa a la era de la inteligencia artificial de manera ágil.
-            </p>
-          </div>
-
-          <div className="grid-auto-responsive" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '2rem', textAlign: 'center' }}>
-            <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
-              <div style={{ width: '50px', height: '50px', borderRadius: '50%', backgroundColor: 'var(--primary)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: '1.25rem', boxShadow: '0 0 15px rgba(255, 90, 31, 0.4)' }}>
-                1
-              </div>
-              <h4 style={{ color: '#fff', fontWeight: 700, fontSize: '1.2rem' }}>Vincula tu WhatsApp</h4>
-              <p style={{ color: 'var(--secondary)', fontSize: '0.9rem', maxWidth: '250px', lineHeight: '1.6' }}>
-                Conectamos tu número a la API oficial de Meta a través de nuestro onboarding técnico asistido.
-              </p>
-            </div>
-
-            <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
-              <div style={{ width: '50px', height: '50px', borderRadius: '50%', backgroundColor: 'var(--primary)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: '1.25rem', boxShadow: '0 0 15px rgba(255, 90, 31, 0.4)' }}>
-                2
-              </div>
-              <h4 style={{ color: '#fff', fontWeight: 700, fontSize: '1.2rem' }}>Sube tu catálogo</h4>
-              <p style={{ color: 'var(--secondary)', fontSize: '0.9rem', maxWidth: '250px', lineHeight: '1.6' }}>
-                Carga tus productos, precios y categorías. Define el prompt de comportamiento del bot desde tu panel.
-              </p>
-            </div>
-
-            <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
-              <div style={{ width: '50px', height: '50px', borderRadius: '50%', backgroundColor: 'var(--emerald-400)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: '1.25rem', boxShadow: '0 0 15px rgba(16, 185, 129, 0.4)' }}>
-                3
-              </div>
-              <h4 style={{ color: '#fff', fontWeight: 700, fontSize: '1.2rem' }}>Controla en tu panel</h4>
-              <p style={{ color: 'var(--secondary)', fontSize: '0.9rem', maxWidth: '250px', lineHeight: '1.6' }}>
-                La IA procesa los pedidos e informa a tu CRM en tiempo real. Visualizas toda tu facturación y analíticas consolidadas.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* 5.3 INTERACTIVE GLOBE SECTION */}
       <section
@@ -1687,7 +1528,8 @@ export default function Landing() {
                     rebillUrl: 'https://pay.rebill.com/robotinacentral-sandbox/test_pl_c3618793fbcb4aaa86deba798e140388',
                     dlocalUrl: currency === 'USD' 
                       ? 'https://checkout.dlocalgo.com/validate/recurring/cUpwxzpIXmCSErec0FnDwLF5UfUyhqoh' 
-                      : 'https://checkout.dlocalgo.com/validate/recurring/unuYHTStzP5Ycnxfd1E4j0j8mJ2oZohH'
+                      : 'https://checkout.dlocalgo.com/validate/recurring/unuYHTStzP5Ycnxfd1E4j0j8mJ2oZohH',
+                    mercadoPagoUrl: `https://wa.me/${DEMO_WHATSAPP_NUMBER}?text=Hola,%20quiero%20pagar%20el%20Plan%20Completo%20v%C3%ADa%20Mercado%20Pago.`
                   });
                   setIsPaymentOpen(true);
                 }}
@@ -2490,7 +2332,7 @@ export default function Landing() {
                     display: 'flex',
                     alignItems: 'center',
                     gap: '1rem',
-                    padding: '1.25rem',
+                    padding: '1rem 1.25rem',
                     borderRadius: '16px',
                     backgroundColor: 'rgba(255, 255, 255, 0.03)',
                     border: '1px solid rgba(255, 255, 255, 0.08)',
@@ -2500,8 +2342,8 @@ export default function Landing() {
                   }}
                   className="payment-option-hover"
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.borderColor = 'var(--emerald-400)';
-                    e.currentTarget.style.backgroundColor = 'rgba(0, 255, 102, 0.03)';
+                    e.currentTarget.style.borderColor = '#1774ff';
+                    e.currentTarget.style.backgroundColor = 'rgba(23, 116, 255, 0.05)';
                   }}
                   onMouseLeave={(e) => {
                     e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.08)';
@@ -2512,19 +2354,23 @@ export default function Landing() {
                     width: '44px',
                     height: '44px',
                     borderRadius: '12px',
-                    backgroundColor: 'rgba(0, 255, 102, 0.1)',
+                    backgroundColor: '#1774ff',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    color: 'var(--emerald-400)',
-                    flexShrink: 0
+                    color: '#fff',
+                    flexShrink: 0,
+                    fontWeight: 900,
+                    fontSize: '0.95rem',
+                    fontStyle: 'italic',
+                    letterSpacing: '-0.5px'
                   }}>
-                    <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>credit_card</span>
+                    dL
                   </div>
                   <div style={{ flexGrow: 1 }}>
                     <div style={{ color: '#fff', fontWeight: 700, fontSize: '0.95rem' }}>Pago Seguro con Tarjeta</div>
                     <div style={{ color: 'var(--secondary)', fontSize: '0.75rem', marginTop: '2px' }}>
-                      Procesado por <strong>dLocal Go</strong> (Soporta cuotas y moneda local)
+                      Procesado por <strong>dLocal Go</strong> (Cuotas y moneda local)
                     </div>
                   </div>
                   <span className="material-symbols-outlined" style={{ color: 'var(--secondary)', fontSize: '20px' }}>arrow_forward</span>
@@ -2541,7 +2387,7 @@ export default function Landing() {
                   display: 'flex',
                   alignItems: 'center',
                   gap: '1rem',
-                  padding: '1.25rem',
+                  padding: '1rem 1.25rem',
                   borderRadius: '16px',
                   backgroundColor: 'rgba(255, 255, 255, 0.03)',
                   border: '1px solid rgba(255, 255, 255, 0.08)',
@@ -2551,8 +2397,8 @@ export default function Landing() {
                 }}
                 className="payment-option-hover"
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.borderColor = 'var(--emerald-400)';
-                  e.currentTarget.style.backgroundColor = 'rgba(0, 255, 102, 0.03)';
+                  e.currentTarget.style.borderColor = '#fff';
+                  e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.08)';
@@ -2560,26 +2406,79 @@ export default function Landing() {
                 }}
               >
                 <div style={{
-                  width: '44px',
+                  width: '80px',
                   height: '44px',
                   borderRadius: '12px',
-                  backgroundColor: 'rgba(0, 255, 102, 0.1)',
+                  backgroundColor: '#111',
+                  border: '1px solid rgba(255,255,255,0.2)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  color: 'var(--emerald-400)',
-                  flexShrink: 0
+                  flexShrink: 0,
+                  padding: '0 12px'
                 }}>
-                  <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>credit_card</span>
+                  <span style={{ color: '#fff', fontWeight: 900, fontSize: '1.2rem', letterSpacing: '-0.5px' }}>rebill</span>
                 </div>
                 <div style={{ flexGrow: 1 }}>
-                  <div style={{ color: '#fff', fontWeight: 700, fontSize: '0.95rem' }}>Pago Seguro con Tarjeta (Alternativo)</div>
+                  <div style={{ color: '#fff', fontWeight: 700, fontSize: '0.95rem' }}>Pago Seguro con Tarjeta (Alt)</div>
                   <div style={{ color: 'var(--secondary)', fontSize: '0.75rem', marginTop: '2px' }}>
-                    Procesado de forma segura por <strong>Rebill</strong> (Suscripción Internacional)
+                    Procesado por <strong>Rebill</strong> (Suscripción Internacional)
                   </div>
                 </div>
                 <span className="material-symbols-outlined" style={{ color: 'var(--secondary)', fontSize: '20px' }}>arrow_forward</span>
               </a>
+
+              {/* Opción Mercado Pago */}
+              {selectedPlan.mercadoPagoUrl && (
+                <a
+                  href={selectedPlan.mercadoPagoUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => setIsPaymentOpen(false)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '1rem',
+                    padding: '1rem 1.25rem',
+                    borderRadius: '16px',
+                    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+                    border: '1px solid rgba(255, 255, 255, 0.08)',
+                    textDecoration: 'none',
+                    transition: 'all 0.3s ease',
+                    cursor: 'pointer'
+                  }}
+                  className="payment-option-hover"
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.borderColor = '#009EE3';
+                    e.currentTarget.style.backgroundColor = 'rgba(0, 158, 227, 0.05)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.08)';
+                    e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.03)';
+                  }}
+                >
+                  <div style={{
+                    width: '80px',
+                    height: '44px',
+                    borderRadius: '12px',
+                    backgroundColor: '#fff',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                    padding: '0 12px'
+                  }}>
+                    <img src="https://http2.mlstatic.com/frontend-assets/ui-navigation/5.19.5/mercadopago/logo__small@2x.png" alt="Mercado Pago" style={{ width: '100%', height: 'auto' }} />
+                  </div>
+                  <div style={{ flexGrow: 1 }}>
+                    <div style={{ color: '#fff', fontWeight: 700, fontSize: '0.95rem' }}>Mercado Pago</div>
+                    <div style={{ color: 'var(--secondary)', fontSize: '0.75rem', marginTop: '2px' }}>
+                      Paga con dinero en cuenta, crédito o débito vía MP.
+                    </div>
+                  </div>
+                  <span className="material-symbols-outlined" style={{ color: 'var(--secondary)', fontSize: '20px' }}>arrow_forward</span>
+                </a>
+              )}
 
               {/* Opción 2: Pago Local Manual */}
               <a
@@ -2591,7 +2490,7 @@ export default function Landing() {
                   display: 'flex',
                   alignItems: 'center',
                   gap: '1rem',
-                  padding: '1.25rem',
+                  padding: '1rem 1.25rem',
                   borderRadius: '16px',
                   backgroundColor: 'rgba(255, 255, 255, 0.03)',
                   border: '1px solid rgba(255, 255, 255, 0.08)',
@@ -2623,9 +2522,7 @@ export default function Landing() {
                   <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>account_balance</span>
                 </div>
                 <div style={{ flexGrow: 1 }}>
-                  <div style={{ color: '#fff', fontWeight: 700, fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    Pago Local / Transferencia
-                  </div>
+                  <div style={{ color: '#fff', fontWeight: 700, fontSize: '0.95rem' }}>Pago Manual / Transferencia</div>
                   <div style={{ color: 'var(--secondary)', fontSize: '0.75rem', marginTop: '2px' }}>
                     Coordina por WhatsApp el pago vía Yape, Plin o Banco.
                   </div>
@@ -2636,6 +2533,37 @@ export default function Landing() {
           </div>
         </div>
       )}
+
+      {/* Floating WhatsApp Button */}
+      <a 
+        href={`https://wa.me/${DEMO_WHATSAPP_NUMBER}?text=Hola! Me gustaría saber más sobre Robotina Central.`} 
+        target="_blank" 
+        rel="noopener noreferrer"
+        style={{
+          position: 'fixed',
+          bottom: '30px',
+          right: '30px',
+          width: '60px',
+          height: '60px',
+          backgroundColor: '#25D366',
+          borderRadius: '50%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          color: '#fff',
+          boxShadow: '0 4px 15px rgba(37, 211, 102, 0.4)',
+          zIndex: 9999,
+          cursor: 'pointer',
+          textDecoration: 'none',
+          transition: 'transform 0.3s ease'
+        }}
+        onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.1)'}
+        onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+      >
+        <svg viewBox="0 0 24 24" width="35" height="35" fill="currentColor">
+          <path d="M12.012 2C6.48 2 2 6.48 2 12.012c0 1.764.456 3.48 1.332 5.004L2 22l5.124-1.344c1.476.804 3.132 1.224 4.888 1.224 5.532 0 10.012-4.48 10.012-10.012C22.024 6.48 17.544 2 12.012 2zm0 18.36c-1.572 0-3.12-.42-4.488-1.212l-.324-.192-3.036.796.812-2.952-.212-.336c-.864-1.38-1.32-2.988-1.32-4.656 0-4.668 3.804-8.472 8.472-8.472 4.668 0 8.472 3.804 8.472 8.472 0 4.668-3.804 8.472-8.472 8.472zm4.62-6.312c-.252-.12-1.488-.732-1.716-.816-.228-.084-.396-.12-.564.12-.168.252-.648.816-.792.984-.144.168-.288.192-.54.072-.252-.12-1.068-.396-2.028-1.26-.744-.66-1.248-1.476-1.392-1.728-.144-.252-.016-.388.11-.512.112-.112.252-.288.376-.432.126-.144.168-.24.252-.4.084-.168.042-.312-.021-.432-.063-.12-.564-1.356-.774-1.86-.204-.492-.408-.426-.564-.432-.144-.006-.312-.006-.48-.006-.168 0-.444.063-.672.312-.228.252-.876.852-.876 2.076s.888 2.4 1.02 2.58c.132.18 1.776 2.712 4.3 3.804.6.258 1.068.414 1.428.528.606.192 1.158.168 1.596.102.486-.072 1.488-.606 1.692-1.188.204-.582.204-1.08.144-1.188-.06-.108-.228-.168-.48-.288z"/>
+        </svg>
+      </a>
     </div>
   );
 }

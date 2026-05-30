@@ -81,11 +81,18 @@ serve(async (req) => {
         }
       }
 
-      // 4. Enviar respuesta por Meta API
-      const phoneNumberId = Deno.env.get("PHONE_NUMBER_ID") || "1091076967420278"
-      const metaToken = Deno.env.get("META_API_TOKEN") || "EAAdRNS7bknMBRZA88CYISBt0ZBZA3WAshaA6nJZAup0mo7ZCsvAswHIX8kFStS0rvRrhuS9le217XLQ0dX6gKbJnZBDAU2HDpA9ntzEZAI73rbSga1mXfo1XRZAkLOGqB3DtZChah255jJcAHWqxXKfd26utRec6KYtfw89hN8vKj95KzuU33JHcGLKwPw8tQsq4gKbk9mD2cwEksObLcCQ9IjxoAZCUnONGIwKHqE5jJN1U16Y8HAtuYIBK3ZBEIxVAqowcWavWwERozUxMAUBESlvQlyGiS1MS7MAlZB5CLFUZD"
+      // 4. Enviar respuesta por Meta API (Extrayendo el Token Permanente de la DB)
+      const incomingPhoneNumberId = body.entry[0].changes[0].value.metadata?.phone_number_id || "1091076967420278";
+      
+      const { data: tenantInfo } = await supabase
+        .from('tenants')
+        .select('whatsapp_token')
+        .eq('phone_number_id', incomingPhoneNumberId)
+        .single();
 
-      const metaResponse = await fetch(`https://graph.facebook.com/v25.0/${phoneNumberId}/messages`, {
+      const metaToken = tenantInfo?.whatsapp_token || Deno.env.get("META_API_TOKEN") || "";
+
+      const metaResponse = await fetch(`https://graph.facebook.com/v25.0/${incomingPhoneNumberId}/messages`, {
         method: "POST",
         headers: { "Authorization": `Bearer ${metaToken}`, "Content-Type": "application/json" },
         body: JSON.stringify({
