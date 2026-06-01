@@ -228,7 +228,7 @@ export default function Landing() {
               <Link to="/login" className="desktop-only" style={{ color: 'var(--secondary)', textDecoration: 'none', fontSize: '0.85rem', fontWeight: 600 }}>
                 Iniciar sesión
               </Link>
-              <button onClick={() => setIsBookingOpen(true)} className="btn-primary" style={{
+              <button onClick={() => window.open('https://calendar.app.google/bMz6yssC1LsmjMQHA', '_blank')} className="btn-primary" style={{
                 border: 'none',
                 cursor: 'pointer',
                 textDecoration: 'none',
@@ -356,7 +356,7 @@ export default function Landing() {
           </p>
 
           <div className="reveal-fade-up delay-200" style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
-            <button onClick={() => setIsBookingOpen(true)} className="btn-primary" style={{ 
+            <button onClick={() => window.open('https://calendar.app.google/bMz6yssC1LsmjMQHA', '_blank')} className="btn-primary" style={{ 
               border: 'none',
               cursor: 'pointer',
               textDecoration: 'none', 
@@ -574,28 +574,118 @@ export default function Landing() {
       </section>
       </div>
 
-      {/* 2.1 SOCIAL PROOF / INTEGRATIONS STRIP */}
-      <div className="integrations-strip reveal-fade-up delay-500">
-        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 2rem' }}>
-          <p style={{ textAlign: 'center', color: 'var(--secondary)', fontSize: '0.85rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '1.5rem' }}>
-            Integración nativa con tu ecosistema
-          </p>
-          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '3rem', flexWrap: 'wrap', opacity: 0.8 }}>
-            <div className="integration-logo" style={{ fontSize: '1.5rem', fontWeight: 800, color: '#fff', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor" style={{ color: '#25D366' }}>
+      {/* NUEVA ZONA NEÓN ORIGINAL (REEMPLAZANDO SOCIAL PROOF) */}
+      <div className="reveal-fade-up delay-500" style={{ 
+        padding: '1.5rem 0', 
+        width: '100%', 
+        position: 'relative', 
+        zIndex: 1,
+        backgroundColor: '#0c0d14',
+        borderTop: '1px solid rgba(0, 255, 102, 0.1)',
+        borderBottom: '1px solid rgba(0, 255, 102, 0.1)',
+        boxShadow: '0 0 80px rgba(0, 255, 102, 0.05)',
+        overflow: 'hidden'
+      }}>
+        <style>{`
+          @keyframes neonPulse {
+            0% { filter: drop-shadow(0 0 5px #25D366) drop-shadow(0 0 10px #25D366); transform: scale(1); }
+            100% { filter: drop-shadow(0 0 10px #25D366) drop-shadow(0 0 20px #25D366) drop-shadow(0 0 30px #25D366); transform: scale(1.05); }
+          }
+        `}</style>
+
+        {/* Background glowing orb */}
+        <div style={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          width: '300px',
+          height: '100px',
+          backgroundColor: 'rgba(0, 255, 102, 0.08)',
+          filter: 'blur(60px)',
+          zIndex: 0,
+          borderRadius: '50%'
+        }}></div>
+
+        <div style={{
+          display: 'flex',
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'center',
+          position: 'relative',
+          width: '100%',
+          maxWidth: '1200px',
+          margin: '0 auto',
+          padding: '0 2rem',
+          gap: '3rem',
+          flexWrap: 'wrap'
+        }}>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '1.5rem',
+            zIndex: 1
+          }}>
+            {/* WhatsApp Neon Icon */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              animation: 'neonPulse 2s infinite alternate',
+              willChange: 'transform, filter'
+            }}>
+              <svg viewBox="0 0 24 24" width="42" height="42" fill="#25D366">
                 <path d="M12.012 2C6.48 2 2 6.48 2 12.012c0 1.764.456 3.48 1.332 5.004L2 22l5.124-1.344c1.476.804 3.132 1.224 4.888 1.224 5.532 0 10.012-4.48 10.012-10.012C22.024 6.48 17.544 2 12.012 2zm0 18.36c-1.572 0-3.12-.42-4.488-1.212l-.324-.192-3.036.796.812-2.952-.212-.336c-.864-1.38-1.32-2.988-1.32-4.656 0-4.668 3.804-8.472 8.472-8.472 4.668 0 8.472 3.804 8.472 8.472 0 4.668-3.804 8.472-8.472 8.472zm4.62-6.312c-.252-.12-1.488-.732-1.716-.816-.228-.084-.396-.12-.564.12-.168.252-.648.816-.792.984-.144.168-.288.192-.54.072-.252-.12-1.068-.396-2.028-1.26-.744-.66-1.248-1.476-1.392-1.728-.144-.252-.016-.388.11-.512.112-.112.252-.288.376-.432.126-.144.168-.24.252-.4.084-.168.042-.312-.021-.432-.063-.12-.564-1.356-.774-1.86-.204-.492-.408-.426-.564-.432-.144-.006-.312-.006-.48-.006-.168 0-.444.063-.672.312-.228.252-.876.852-.876 2.076s.888 2.4 1.02 2.58c.132.18 1.776 2.712 4.3 3.804.6.258 1.068.414 1.428.528.606.192 1.158.168 1.596.102.486-.072 1.488-.606 1.692-1.188.204-.582.204-1.08.144-1.188-.06-.108-.228-.168-.48-.288z"/>
               </svg>
-              WhatsApp
             </div>
-            <div className="integration-logo" style={{ fontSize: '1.5rem', fontWeight: 800, color: '#fff', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span className="material-symbols-outlined" style={{ color: '#009EE3' }}>handshake</span> Mercado Pago
+
+            <span style={{ fontSize: '2rem', fontWeight: 800, color: '#fff', textShadow: '0 0 10px rgba(255,255,255,0.4)' }}>+</span>
+
+            <div style={{
+              fontSize: '2.5rem',
+              fontWeight: 900,
+              background: 'linear-gradient(135deg, #00C2FF 0%, #0066FF 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              filter: 'drop-shadow(0 0 15px rgba(0, 194, 255, 0.5))'
+            }}>
+              IA
             </div>
-            <div className="integration-logo" style={{ fontSize: '1.5rem', fontWeight: 800, color: '#fff', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span className="material-symbols-outlined" style={{ color: '#b27cf4' }}>autorenew</span> Rebill
+
+            <span style={{ fontSize: '2rem', fontWeight: 800, color: '#fff', textShadow: '0 0 10px rgba(255,255,255,0.4)' }}>=</span>
+
+            <div style={{
+              fontSize: '2rem',
+              fontWeight: 900,
+              color: '#FF5A1F',
+              textShadow: '0 0 10px rgba(255, 90, 31, 0.6), 0 0 20px rgba(255, 90, 31, 0.3)',
+              lineHeight: 1,
+              whiteSpace: 'nowrap'
+            }}>
+              MÁS VENTAS
             </div>
-            <div className="integration-logo" style={{ fontSize: '1.5rem', fontWeight: 800, color: '#fff', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span className="material-symbols-outlined" style={{ color: '#FF4A00' }}>bolt</span> Zapier
-            </div>
+          </div>
+
+          <div style={{
+            zIndex: 1,
+            textAlign: 'center',
+            borderLeft: '1px solid rgba(255,255,255,0.1)',
+            paddingLeft: '3rem'
+          }} className="desktop-only">
+            <h3 style={{
+              fontSize: '1.25rem',
+              fontWeight: 600,
+              color: '#fff',
+              margin: 0,
+              lineHeight: '1.4',
+              textAlign: 'left'
+            }}>
+              Tu WhatsApp potenciado con IA,<br/>
+              <span style={{ color: 'var(--emerald-400)', fontWeight: 700, textShadow: '0 0 10px rgba(0, 255, 102, 0.3)' }}>
+                una máquina de ventas bien lubricada.
+              </span>
+            </h3>
           </div>
         </div>
       </div>
@@ -762,7 +852,7 @@ export default function Landing() {
         </div>
 
         <div style={{ marginTop: '4rem' }}>
-          <button onClick={() => setIsBookingOpen(true)} className="btn-primary" style={{
+          <button onClick={() => window.open('https://calendar.app.google/bMz6yssC1LsmjMQHA', '_blank')} className="btn-primary" style={{
             border: 'none',
             cursor: 'pointer',
             backgroundColor: 'var(--emerald-400)',
@@ -946,6 +1036,213 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* 3.8 ADAPTABILITY SECTION */}
+      <section style={{
+        width: '100%',
+        padding: '6rem 0',
+        position: 'relative',
+        zIndex: 1,
+        backgroundColor: '#07070b',
+        borderTop: '1px solid rgba(255,255,255,0.03)',
+        borderBottom: '1px solid rgba(255,255,255,0.03)',
+        overflow: 'hidden'
+      }}>
+        {/* Glow Effects */}
+        <div style={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          width: '800px',
+          height: '450px',
+          background: 'radial-gradient(circle at center, rgba(34, 197, 94, 0.04) 0%, transparent 65%)',
+          zIndex: 0,
+          pointerEvents: 'none',
+          filter: 'blur(80px)'
+        }}></div>
+
+        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 2rem', position: 'relative', zIndex: 1 }}>
+          <div style={{ textAlign: 'center', marginBottom: '4.5rem' }}>
+            <span style={{
+              fontSize: '0.85rem',
+              fontWeight: 800,
+              color: 'var(--emerald-400)',
+              letterSpacing: '1.5px',
+              textTransform: 'uppercase',
+              display: 'block',
+              marginBottom: '1rem',
+              filter: 'drop-shadow(0 0 10px rgba(0, 255, 102, 0.3))'
+            }}>
+              Flexibilidad Absoluta
+            </span>
+            <h2 className="display-md" style={{ marginBottom: '1.25rem', fontWeight: 800 }}>
+              Robotina se adapta a <span className="text-gradient" style={{ background: 'linear-gradient(135deg, var(--emerald-400) 0%, #00C2FF 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>cualquier negocio</span>
+            </h2>
+            <p style={{ color: 'var(--secondary)', maxWidth: '700px', margin: '0 auto', fontSize: '1.15rem', lineHeight: '1.6' }}>
+              Si utilizas WhatsApp para comunicarte con tus clientes y vender tus productos o servicios, nuestra Inteligencia Artificial se moldea perfectamente a tu flujo de trabajo.
+            </p>
+          </div>
+
+          <div className="grid-auto-responsive" style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+            gap: '2rem'
+          }}>
+            {/* Card 1: E-commerce / Tiendas de Ropa / Retail */}
+            <div className="glass-card" style={{
+              padding: '2.5rem',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '1.5rem',
+              border: '1px solid rgba(255,255,255,0.05)',
+              transition: 'transform 0.3s ease, border-color 0.3s ease',
+              cursor: 'default'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'translateY(-5px)';
+              e.currentTarget.style.borderColor = 'rgba(0, 255, 102, 0.2)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.borderColor = 'rgba(255,255,255,0.05)';
+            }}>
+              <div style={{
+                width: '50px',
+                height: '50px',
+                borderRadius: '12px',
+                backgroundColor: 'rgba(0, 194, 255, 0.1)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#00C2FF'
+              }}>
+                <span className="material-symbols-outlined" style={{ fontSize: '28px' }}>shopping_bag</span>
+              </div>
+              <div>
+                <h3 style={{ color: '#fff', fontSize: '1.3rem', fontWeight: 700, marginBottom: '0.75rem' }}>E-commerce & Retail</h3>
+                <p style={{ color: 'var(--secondary)', fontSize: '0.9rem', lineHeight: '1.6', margin: 0 }}>
+                  Resuelve dudas sobre tallas, disponibilidad de stock, materiales, costos de envío y cierra el pago automáticamente enviando el link de compra directa.
+                </p>
+              </div>
+            </div>
+
+            {/* Card 2: Agendamiento / Servicios Profesionales / Clínicas */}
+            <div className="glass-card" style={{
+              padding: '2.5rem',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '1.5rem',
+              border: '1px solid rgba(255,255,255,0.05)',
+              transition: 'transform 0.3s ease, border-color 0.3s ease',
+              cursor: 'default'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'translateY(-5px)';
+              e.currentTarget.style.borderColor = 'rgba(0, 255, 102, 0.2)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.borderColor = 'rgba(255,255,255,0.05)';
+            }}>
+              <div style={{
+                width: '50px',
+                height: '50px',
+                borderRadius: '12px',
+                backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#4ade80'
+              }}>
+                <span className="material-symbols-outlined" style={{ fontSize: '28px' }}>calendar_month</span>
+              </div>
+              <div>
+                <h3 style={{ color: '#fff', fontSize: '1.3rem', fontWeight: 700, marginBottom: '0.75rem' }}>Servicios y Citas</h3>
+                <p style={{ color: 'var(--secondary)', fontSize: '0.9rem', lineHeight: '1.6', margin: 0 }}>
+                  Ideal para clínicas médicas, dentales, estéticas, salones de belleza, consultoras y talleres. Habilita el agendamiento inteligente integrado a tu calendario en segundos.
+                </p>
+              </div>
+            </div>
+
+            {/* Card 3: Restaurantes y Gastronomía */}
+            <div className="glass-card" style={{
+              padding: '2.5rem',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '1.5rem',
+              border: '1px solid rgba(255,255,255,0.05)',
+              transition: 'transform 0.3s ease, border-color 0.3s ease',
+              cursor: 'default'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'translateY(-5px)';
+              e.currentTarget.style.borderColor = 'rgba(0, 255, 102, 0.2)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.borderColor = 'rgba(255,255,255,0.05)';
+            }}>
+              <div style={{
+                width: '50px',
+                height: '50px',
+                borderRadius: '12px',
+                backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#EF4444'
+              }}>
+                <span className="material-symbols-outlined" style={{ fontSize: '28px' }}>restaurant</span>
+              </div>
+              <div>
+                <h3 style={{ color: '#fff', fontSize: '1.3rem', fontWeight: 700, marginBottom: '0.75rem' }}>Restaurantes y Delivery</h3>
+                <p style={{ color: 'var(--secondary)', fontSize: '0.9rem', lineHeight: '1.6', margin: 0 }}>
+                  Comparte tu menú, procesa pedidos complejos del carrito, valida zonas de reparto o delivery, confirma métodos de pago e integra todo con tu sistema POS central.
+                </p>
+              </div>
+            </div>
+
+            {/* Card 4: Academias, Inmobiliarias y Más */}
+            <div className="glass-card" style={{
+              padding: '2.5rem',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '1.5rem',
+              border: '1px solid rgba(255,255,255,0.05)',
+              transition: 'transform 0.3s ease, border-color 0.3s ease',
+              cursor: 'default'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'translateY(-5px)';
+              e.currentTarget.style.borderColor = 'rgba(0, 255, 102, 0.2)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.borderColor = 'rgba(255,255,255,0.05)';
+            }}>
+              <div style={{
+                width: '50px',
+                height: '50px',
+                borderRadius: '12px',
+                backgroundColor: 'rgba(163, 113, 247, 0.1)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#a371f7'
+              }}>
+                <span className="material-symbols-outlined" style={{ fontSize: '28px' }}>domain</span>
+              </div>
+              <div>
+                <h3 style={{ color: '#fff', fontSize: '1.3rem', fontWeight: 700, marginBottom: '0.75rem' }}>Inmobiliarias y Educación</h3>
+                <p style={{ color: 'var(--secondary)', fontSize: '0.9rem', lineHeight: '1.6', margin: 0 }}>
+                  Precalifica prospectos interesados en propiedades de forma automatizada, envía catálogos de departamentos/cursos, recopila datos de contacto y agenda visitas físicas o asesorías.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* 4. FEATURES SECTION (SUPERPOWERS) */}
       <section className="bg-grid-pattern" style={{ width: '100%', padding: '6rem 0', position: 'relative', zIndex: 1 }}>
         {/* Unified Ambient Glow */}
@@ -968,73 +1265,92 @@ export default function Landing() {
         <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 2rem' }}>
         <div style={{ textAlign: 'center', marginBottom: '5rem' }}>
           <h2 className="display-md" style={{ marginBottom: '1rem' }}>
-            <span style={{ background: 'linear-gradient(135deg, #FFF 0%, #A0A5B5 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>El centro de control inteligente</span> <span style={{ background: 'linear-gradient(135deg, #FF5500 0%, #FFB300 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>para tus ventas</span>
+            <span style={{ background: 'linear-gradient(135deg, #FFF 0%, #A0A5B5 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Humano vs</span> <span style={{ background: 'linear-gradient(135deg, var(--emerald-400) 0%, #00C2FF 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Inteligencia Artificial</span>
           </h2>
-          <p style={{ color: 'var(--secondary)', maxWidth: '600px', margin: '0 auto', fontSize: '1.1rem' }}>
-            Visualiza tus métricas, gestiona a tus clientes y supervisa el rendimiento de la Inteligencia Artificial en tiempo real.
+          <p style={{ color: 'var(--secondary)', maxWidth: '650px', margin: '0 auto', fontSize: '1.1rem', lineHeight: '1.6' }}>
+            La diferencia entre perder un cliente por demorar horas en responder, y asegurar la venta en 1 segundo con atención automatizada 24/7.
           </p>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '5rem', position: 'relative' }}>
-          {/* Feature 1 */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.2fr', gap: '4rem', alignItems: 'center' }} className="grid-auto-responsive">
-            <div className="glass-card">
-              <div style={{ display: 'inline-flex', padding: '8px', borderRadius: '10px', backgroundColor: 'rgba(255,90,31,0.1)', color: 'var(--primary)', marginBottom: '1.5rem' }}>
-                <span className="material-symbols-outlined" style={{ fontSize: '28px' }}>dashboard</span>
-              </div>
-              <h3 style={{ color: '#fff', fontSize: '1.75rem', fontWeight: 800, marginBottom: '1rem', letterSpacing: '-0.5px' }}>Dashboard y CRM en Tiempo Real</h3>
-              <p style={{ color: 'var(--secondary)', lineHeight: '1.6', fontSize: '0.95rem' }}>
-                Visualiza y gestiona las ventas, estados de entrega de pedidos, reservas de citas y datos de clientes capturados por tus bots. Un panel premium diseñado para que gestiones tu negocio y puedas tomar el control del chat de WhatsApp con un solo clic si es necesario.
-              </p>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '3rem', position: 'relative' }}>
+          
+          {/* Tarjeta 1: Humano */}
+          <div className="glass-card" style={{ padding: '2.5rem', display: 'flex', flexDirection: 'column', gap: '1.5rem', position: 'relative', overflow: 'hidden' }}>
+            <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '4px', background: '#FF3B30' }}></div>
+            <div>
+              <h3 style={{ color: '#fff', fontSize: '1.5rem', fontWeight: 800, marginBottom: '0.5rem' }}>Atención Tradicional (Humano)</h3>
+              <p style={{ color: 'var(--secondary)', fontSize: '0.95rem', margin: 0 }}>Demoras, cuellos de botella y ventas que se enfrían.</p>
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <div style={{ display: 'flex', gap: '16px', alignItems: 'start', padding: '1rem', backgroundColor: 'rgba(255,255,255,0.02)', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.04)' }}>
-                <span className="material-symbols-outlined" style={{ color: 'var(--primary)' }}>check_circle</span>
-                <div>
-                  <h5 style={{ color: '#fff', fontWeight: 700, fontSize: '0.95rem', marginBottom: '2px' }}>Control Operativo de Ventas y Citas</h5>
-                  <p style={{ color: 'var(--secondary)', fontSize: '0.85rem' }}>Clasifica las solicitudes recibidas según su estado en tiempo real (Pendiente, Confirmado, Agenda Completa, Entregado).</p>
-                </div>
+            
+            {/* Fake Chat UI */}
+            <div style={{ background: 'rgba(255,255,255,0.02)', borderRadius: '16px', padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem', border: '1px solid rgba(255,255,255,0.05)' }}>
+              {/* Client Bubble */}
+              <div style={{ alignSelf: 'flex-end', background: '#22c55e', color: '#fff', padding: '10px 14px', borderRadius: '14px 14px 2px 14px', fontSize: '0.9rem', maxWidth: '85%' }}>
+                Hola, me interesa el servicio. ¿Precios?
+                <div style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.7)', textAlign: 'right', marginTop: '4px' }}>09:00 AM</div>
               </div>
-              <div style={{ display: 'flex', gap: '16px', alignItems: 'start', padding: '1rem', backgroundColor: 'rgba(255,255,255,0.02)', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.04)' }}>
-                <span className="material-symbols-outlined" style={{ color: 'var(--primary)' }}>check_circle</span>
-                <div>
-                  <h5 style={{ color: '#fff', fontWeight: 700, fontSize: '0.95rem', marginBottom: '2px' }}>Reportes y Estadísticas</h5>
-                  <p style={{ color: 'var(--secondary)', fontSize: '0.85rem' }}>Analiza cuáles son tus productos o servicios más demandados, el total facturado del día y las tasas de conversión.</p>
-                </div>
+              
+              {/* Agent Typing Bubble */}
+              <div style={{ alignSelf: 'flex-start', background: '#2A2C38', color: '#fff', padding: '14px 16px', borderRadius: '14px 14px 14px 2px', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span style={{ width: '6px', height: '6px', background: 'rgba(255,255,255,0.5)', borderRadius: '50%', animation: 'pulse 1.5s infinite' }}></span>
+                <span style={{ width: '6px', height: '6px', background: 'rgba(255,255,255,0.5)', borderRadius: '50%', animation: 'pulse 1.5s infinite 0.2s' }}></span>
+                <span style={{ width: '6px', height: '6px', background: 'rgba(255,255,255,0.5)', borderRadius: '50%', animation: 'pulse 1.5s infinite 0.4s' }}></span>
+              </div>
+            </div>
+
+            {/* Status Bar */}
+            <div style={{ marginTop: 'auto', background: 'rgba(255, 59, 48, 0.1)', border: '1px solid rgba(255, 59, 48, 0.2)', padding: '1rem', borderRadius: '12px', display: 'flex', gap: '12px', alignItems: 'center' }}>
+              <span className="material-symbols-outlined" style={{ color: '#FF3B30' }}>timer</span>
+              <div>
+                <div style={{ color: '#FF3B30', fontWeight: 600, fontSize: '0.9rem' }}>Tiempo: 45 min a horas</div>
+                <div style={{ color: 'var(--secondary)', fontSize: '0.8rem' }}>El cliente pierde el interés.</div>
               </div>
             </div>
           </div>
 
-          {/* Feature 2 */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '4rem', alignItems: 'center' }} className="grid-auto-responsive">
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }} className="desktop-only">
-              <div style={{ display: 'flex', gap: '16px', alignItems: 'start', padding: '1rem', backgroundColor: 'rgba(255,255,255,0.02)', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.04)' }}>
-                <span className="material-symbols-outlined" style={{ color: 'var(--primary)' }}>check_circle</span>
-                <div>
-                  <h5 style={{ color: '#fff', fontWeight: 700, fontSize: '0.95rem', marginBottom: '2px' }}>Procesamiento de Audios (Whisper)</h5>
-                  <p style={{ color: 'var(--secondary)', fontSize: '0.85rem' }}>La IA escucha los audios de WhatsApp de tus clientes y extrae automáticamente los productos, servicios, fechas u horarios indicados.</p>
-                </div>
+          {/* Tarjeta 2: Robotina */}
+          <div className="glass-card" style={{ padding: '2.5rem', display: 'flex', flexDirection: 'column', gap: '1.5rem', position: 'relative', overflow: 'hidden', borderColor: 'rgba(0, 194, 255, 0.3)', boxShadow: '0 0 30px rgba(0, 194, 255, 0.1)' }}>
+            <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '4px', background: 'linear-gradient(to right, var(--emerald-400), #00C2FF)' }}></div>
+            <div>
+              <h3 style={{ color: '#fff', fontSize: '1.5rem', fontWeight: 800, marginBottom: '0.5rem' }}>Con Robotina Central</h3>
+              <p style={{ color: 'var(--secondary)', fontSize: '0.95rem', margin: 0 }}>Atención 24/7 y conversiones instantáneas.</p>
+            </div>
+            
+            {/* Fake Chat UI */}
+            <div style={{ background: 'rgba(255,255,255,0.02)', borderRadius: '16px', padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem', border: '1px solid rgba(255,255,255,0.05)' }}>
+              {/* Client Bubble */}
+              <div style={{ alignSelf: 'flex-end', background: '#22c55e', color: '#fff', padding: '10px 14px', borderRadius: '14px 14px 2px 14px', fontSize: '0.9rem', maxWidth: '85%' }}>
+                Hola, me interesa el servicio. ¿Precios?
+                <div style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.7)', textAlign: 'right', marginTop: '4px' }}>09:00 AM</div>
               </div>
-              <div style={{ display: 'flex', gap: '16px', alignItems: 'start', padding: '1rem', backgroundColor: 'rgba(255,255,255,0.02)', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.04)' }}>
-                <span className="material-symbols-outlined" style={{ color: 'var(--primary)' }}>check_circle</span>
-                <div>
-                  <h5 style={{ color: '#fff', fontWeight: 700, fontSize: '0.95rem', marginBottom: '2px' }}>Disponibilidad Inteligente</h5>
-                  <p style={{ color: 'var(--secondary)', fontSize: '0.85rem' }}>Desactiva productos o bloquea horarios de servicios desde el panel y la IA dejará de ofrecerlos al instante para evitar duplicidades.</p>
+              
+              {/* Agent Bubble */}
+              <div style={{ alignSelf: 'flex-start', background: '#2A2C38', color: '#fff', padding: '12px 16px', borderRadius: '14px 14px 14px 2px', fontSize: '0.9rem', maxWidth: '90%', borderLeft: '3px solid #00C2FF' }}>
+                <div style={{ marginBottom: '8px', lineHeight: '1.4' }}>¡Hola! Tenemos planes desde $49 adaptables a ti. Aquí tienes el enlace directo para elegir tu horario de Demo 👇</div>
+                
+                {/* Fake Link Preview */}
+                <div style={{ background: 'rgba(0, 194, 255, 0.1)', border: '1px solid rgba(0, 194, 255, 0.2)', padding: '10px', borderRadius: '8px', display: 'flex', gap: '10px', alignItems: 'center' }}>
+                  <span className="material-symbols-outlined" style={{ color: '#00C2FF', fontSize: '20px' }}>calendar_month</span>
+                  <div>
+                    <div style={{ color: '#00C2FF', fontWeight: 600, fontSize: '0.85rem' }}>Agendar en Calendly</div>
+                    <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.75rem' }}>robotinacentral.com</div>
+                  </div>
                 </div>
+                
+                <div style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.5)', marginTop: '6px' }}>09:00 AM</div>
               </div>
             </div>
-            <div className="glass-card">
-              <div style={{ display: 'inline-flex', padding: '8px', borderRadius: '10px', backgroundColor: 'rgba(255,90,31,0.1)', color: 'var(--primary)', marginBottom: '1.5rem' }}>
-                <span className="material-symbols-outlined" style={{ fontSize: '28px' }}>psychology</span>
+
+            {/* Status Bar */}
+            <div style={{ marginTop: 'auto', background: 'rgba(34, 197, 94, 0.1)', border: '1px solid rgba(34, 197, 94, 0.2)', padding: '1rem', borderRadius: '12px', display: 'flex', gap: '12px', alignItems: 'center' }}>
+              <span className="material-symbols-outlined" style={{ color: 'var(--emerald-400)' }}>bolt</span>
+              <div>
+                <div style={{ color: 'var(--emerald-400)', fontWeight: 600, fontSize: '0.9rem' }}>Tiempo: 1 segundo</div>
+                <div style={{ color: 'var(--secondary)', fontSize: '0.8rem' }}>Venta o Cita asegurada.</div>
               </div>
-              <h3 style={{ color: '#fff', fontSize: '1.75rem', fontWeight: 800, marginBottom: '1rem', letterSpacing: '-0.5px' }}>
-                <span style={{ background: 'linear-gradient(135deg, #FFF 0%, #FFB300 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Agente IA</span> Multi-propósito
-              </h3>
-              <p style={{ color: 'var(--secondary)', lineHeight: '1.6', fontSize: '0.95rem' }}>
-                Tus agentes conversacionales tienen acceso directo al catálogo de tu negocio y a tu calendario de reservas. Guían a tus clientes para concretar compras, agendar turnos de servicios o resolver dudas frecuentes de manera fluida y cálida.
-              </p>
             </div>
           </div>
+          
         </div>
         </div>
       </section>
@@ -1186,7 +1502,7 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* 5.5 SUPPORT / PITCH SECTION */}
+      {/* 5.5 GUARANTEE / PITCH SECTION */}
       <section style={{
         width: '100%',
         padding: '8rem 0',
@@ -1195,182 +1511,258 @@ export default function Landing() {
         background: 'radial-gradient(circle at center, rgba(34, 197, 94, 0.15) 0%, rgba(10, 11, 16, 0) 70%)'
       }}>
         <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 2rem' }}>
+        
         <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
           <h2 className="display-md" style={{ marginBottom: '1.5rem', lineHeight: '1.2', fontWeight: 800 }}>
-            <span style={{ color: '#fff' }}>Soporte real, soluciones reales.</span><br/>
-            <span style={{ color: '#4ade80' }}>¿Frustrado con plataformas que no cumplen?</span>
+            <span style={{ color: '#fff' }}>Cero Riesgos. </span><br/>
+            <span style={{ color: '#4ade80' }}>Resultados Garantizados.</span>
           </h2>
-          <p style={{ color: 'var(--secondary)', fontSize: '1.15rem', maxWidth: '700px', margin: '0 auto' }}>
-            Deja atrás los bots genéricos y las automatizaciones que se rompen. Centraliza tus conversaciones y escala tu atención con IA que realmente funciona.
+          <p style={{ color: 'var(--secondary)', fontSize: '1.15rem', maxWidth: '750px', margin: '0 auto', lineHeight: '1.6' }}>
+            Prueba Robotina Central por 14 días. Si la plataforma no agiliza tus ventas o simplemente no es lo que esperabas, te devolvemos cada centavo de tu inversión inicial. Sin preguntas incómodas.
           </p>
         </div>
 
         <div className="glass-card grid-auto-responsive" style={{
           padding: '4rem 3rem',
           display: 'grid',
-          gridTemplateColumns: '1.1fr 1fr',
+          gridTemplateColumns: '1.2fr 1fr',
           gap: '4rem',
           alignItems: 'center',
-          borderColor: 'rgba(34, 197, 94, 0.15)',
+          borderColor: 'rgba(34, 197, 94, 0.25)',
+          boxShadow: '0 20px 50px rgba(34, 197, 94, 0.1)',
+          background: 'linear-gradient(145deg, rgba(34, 197, 94, 0.05) 0%, rgba(10, 11, 16, 0.8) 100%)'
         }}>
           
-          {/* Left: Chat interface simulation */}
-          <div style={{
-            backgroundColor: '#0b141a',
-            borderRadius: '24px',
-            border: '1px solid rgba(255,255,255,0.06)',
-            boxShadow: '0 15px 30px rgba(0,0,0,0.4)',
-            overflow: 'hidden',
-            display: 'flex',
-            flexDirection: 'column',
-            fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
-          }}>
-            {/* Simulator Header */}
-            <div style={{
-              backgroundColor: '#1f2c34',
-              padding: '1rem 1.25rem',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '12px',
-              borderBottom: '1px solid rgba(255,255,255,0.04)'
-            }}>
-              <div style={{
-                width: '40px',
-                height: '40px',
-                borderRadius: '50%',
-                backgroundColor: 'rgba(74, 222, 128, 0.2)',
-                color: '#4ade80',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}>
-                <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>support_agent</span>
-              </div>
-              <div>
-                <h5 style={{ color: '#fff', margin: 0, fontWeight: 600, fontSize: '0.95rem' }}>Soporte Robotina Central</h5>
-                <span style={{ color: '#8696a0', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#00e676' }}></span> En línea
-                </span>
-              </div>
-            </div>
-
-            {/* Simulator Chat Body */}
-            <div style={{
-              padding: '1.5rem',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '12px',
-              backgroundColor: '#0b141a',
-              backgroundImage: 'radial-gradient(rgba(255,255,255,0.02) 1px, transparent 0)',
-              backgroundSize: '16px 16px',
-              minHeight: '280px'
-            }}>
-              <div style={{
-                alignSelf: 'start',
-                backgroundColor: '#202c33',
-                color: '#e9edef',
-                padding: '0.6rem 0.9rem',
-                borderRadius: '0 12px 12px 12px',
-                maxWidth: '85%',
-                fontSize: '0.85rem',
-                lineHeight: '1.4',
-                boxShadow: '0 1px 2px rgba(0,0,0,0.15)'
-              }}>
-                ¡Hola, Andrés! ¿Cómo vas con la configuración del catálogo y las citas de tu negocio?
-              </div>
-              <div style={{
-                alignSelf: 'end',
-                backgroundColor: '#005c4b',
-                color: '#e9edef',
-                padding: '0.6rem 0.9rem',
-                borderRadius: '12px 12px 0 12px',
-                maxWidth: '85%',
-                fontSize: '0.85rem',
-                lineHeight: '1.4',
-                boxShadow: '0 1px 2px rgba(0,0,0,0.15)'
-              }}>
-                Hola 👋 Me cuesta un poco configurar la IA para que entienda que el servicio premium solo está disponible por las tardes.
-              </div>
-              <div style={{
-                alignSelf: 'start',
-                backgroundColor: '#202c33',
-                color: '#e9edef',
-                padding: '0.6rem 0.9rem',
-                borderRadius: '0 12px 12px 12px',
-                maxWidth: '85%',
-                fontSize: '0.85rem',
-                lineHeight: '1.4',
-                boxShadow: '0 1px 2px rgba(0,0,0,0.15)'
-              }}>
-                ¡No te preocupes! Ya ingresé a tu panel y configuré la restricción de horarios en las opciones del servicio. Pruébalo ahora.
-              </div>
-              <div style={{
-                alignSelf: 'end',
-                backgroundColor: '#005c4b',
-                color: '#e9edef',
-                padding: '0.6rem 0.9rem',
-                borderRadius: '12px 12px 0 12px',
-                maxWidth: '85%',
-                fontSize: '0.85rem',
-                lineHeight: '1.4',
-                boxShadow: '0 1px 2px rgba(0,0,0,0.15)'
-              }}>
-                ¡Wow, qué rápido! Acabo de probarlo por WhatsApp y lo entendió al instante. Muchas gracias. 🙌
-              </div>
-            </div>
-          </div>
-
-          {/* Right: Copywriting / Pitch details */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', textAlign: 'left' }}>
+          {/* Left: Guarantee Details */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem', textAlign: 'left' }}>
             
-            {/* Small support badge */}
             <div style={{
               display: 'inline-flex',
               alignItems: 'center',
               gap: '8px',
               padding: '6px 12px',
               borderRadius: '20px',
-              backgroundColor: 'rgba(74, 222, 128, 0.1)',
+              backgroundColor: 'rgba(74, 222, 128, 0.15)',
               color: '#4ade80',
-              fontSize: '0.75rem',
+              fontSize: '0.8rem',
               fontWeight: 800,
               width: 'fit-content'
             }}>
-              <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>headset_mic</span>
-              Soporte 100% en español | Acompañamiento Técnico
+              <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>verified_user</span>
+              Protección Total del Comprador
             </div>
 
-            <h3 style={{ fontSize: '2.2rem', fontWeight: 800, margin: 0, lineHeight: '1.2' }}>
-              ¿Frustrado con plataformas que <span className="text-gradient">no cumplen?</span>
-            </h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
+              <div style={{ display: 'flex', gap: '16px', alignItems: 'start' }}>
+                <span className="material-symbols-outlined" style={{ color: '#4ade80', fontSize: '24px', marginTop: '2px' }}>task_alt</span>
+                <div>
+                  <h4 style={{ color: '#fff', fontSize: '1.1rem', fontWeight: 700, margin: '0 0 4px 0' }}>Sin Riesgo Inicial</h4>
+                  <p style={{ color: 'var(--secondary)', fontSize: '0.95rem', margin: 0, lineHeight: '1.5' }}>Tu inversión de configuración y el primer mes están 100% protegidos por nuestra garantía de satisfacción.</p>
+                </div>
+              </div>
+              
+              <div style={{ display: 'flex', gap: '16px', alignItems: 'start' }}>
+                <span className="material-symbols-outlined" style={{ color: '#4ade80', fontSize: '24px', marginTop: '2px' }}>event_available</span>
+                <div>
+                  <h4 style={{ color: '#fff', fontSize: '1.1rem', fontWeight: 700, margin: '0 0 4px 0' }}>14 Días de Prueba Real</h4>
+                  <p style={{ color: 'var(--secondary)', fontSize: '0.95rem', margin: 0, lineHeight: '1.5' }}>Tiempo suficiente para ver a tu bot agendando citas, respondiendo audios y cerrando ventas en piloto automático.</p>
+                </div>
+              </div>
 
-            <p style={{ color: 'var(--secondary)', fontSize: '0.95rem', lineHeight: '1.6', margin: 0 }}>
-              Sabemos que dar el salto a la automatización de WhatsApp con Inteligencia Artificial en tu negocio puede parecer desafiante. Por eso, en Robotina Central <strong>no te dejamos solo</strong>.
-            </p>
+              <div style={{ display: 'flex', gap: '16px', alignItems: 'start' }}>
+                <span className="material-symbols-outlined" style={{ color: '#4ade80', fontSize: '24px', marginTop: '2px' }}>currency_exchange</span>
+                <div>
+                  <h4 style={{ color: '#fff', fontSize: '1.1rem', fontWeight: 700, margin: '0 0 4px 0' }}>Reembolso en 24 Horas</h4>
+                  <p style={{ color: 'var(--secondary)', fontSize: '0.95rem', margin: 0, lineHeight: '1.5' }}>Si decides cancelar, te devolvemos tu dinero directo a tu cuenta el mismo día. Sin peros, sin trabas.</p>
+                </div>
+              </div>
+            </div>
 
-            <p style={{ color: 'var(--secondary)', fontSize: '0.95rem', lineHeight: '1.6', margin: 0 }}>
-              Ofrecemos acompañamiento real y personalizado para cargar tus productos o servicios y afinar tus flujos de atención. Te ayudamos a estructurar tus categorías, links de pago y horarios para asegurar que tu bot atienda perfectamente desde el primer día.
-            </p>
-
-            <div style={{ marginTop: '0.5rem' }}>
-              <button onClick={() => setIsBookingOpen(true)} className="btn-primary" style={{
+            <div style={{ marginTop: '1rem' }}>
+              <button onClick={() => window.open('https://calendar.app.google/bMz6yssC1LsmjMQHA', '_blank')} className="btn-primary" style={{
                 border: 'none',
                 cursor: 'pointer',
                 textDecoration: 'none',
                 borderRadius: '30px',
-                padding: '0.75rem 1.6rem',
-                fontSize: '0.9rem',
+                padding: '0.85rem 1.8rem',
+                fontSize: '0.95rem',
                 fontWeight: 700,
-                boxShadow: '0 0 15px rgba(255, 85, 0, 0.25)',
+                boxShadow: '0 0 20px rgba(34, 197, 94, 0.4)',
+                backgroundColor: '#22c55e',
                 display: 'inline-block'
               }}>
-                Reservar Videollamada Demo
+                Agendar Demo Ahora
               </button>
+              <div style={{ color: 'var(--secondary)', fontSize: '0.8rem', marginTop: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>lock</span> Tu inversión está segura.
+              </div>
             </div>
 
           </div>
 
+          {/* Right: Guarantee Badge / Seal */}
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+            <div className="guarantee-badge-container" style={{
+              width: '100%',
+              maxWidth: '350px',
+              aspectRatio: '1',
+              borderRadius: '50%',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              position: 'relative',
+              cursor: 'pointer',
+              transition: 'transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
+            onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+            >
+              <style>{`
+                @keyframes auraPulse {
+                  0% { transform: translate(-50%, -50%) scale(0.95); opacity: 0.4; filter: blur(40px); }
+                  50% { transform: translate(-50%, -50%) scale(1.05); opacity: 0.7; filter: blur(50px); }
+                  100% { transform: translate(-50%, -50%) scale(0.95); opacity: 0.4; filter: blur(40px); }
+                }
+                @keyframes dashRotate {
+                  0% { transform: rotate(0deg); }
+                  100% { transform: rotate(360deg); }
+                }
+              `}</style>
+              
+              {/* Latent Aura Background */}
+              <div style={{
+                position: 'absolute',
+                top: '50%', left: '50%',
+                width: '110%', height: '110%',
+                background: 'radial-gradient(circle at center, rgba(34,197,94,0.3) 0%, transparent 70%)',
+                animation: 'auraPulse 4s infinite ease-in-out',
+                zIndex: 0,
+                pointerEvents: 'none'
+              }}></div>
+
+              {/* Outer dashed ring */}
+              <div style={{
+                position: 'absolute',
+                top: '10%', left: '10%', right: '10%', bottom: '10%',
+                border: '2px dashed rgba(34, 197, 94, 0.3)',
+                borderRadius: '50%',
+                animation: 'dashRotate 30s infinite linear',
+                zIndex: 1
+              }}></div>
+              
+              {/* Inner Badge */}
+              <div style={{
+                width: '65%',
+                height: '65%',
+                borderRadius: '50%',
+                background: 'linear-gradient(135deg, #16a34a 0%, #22c55e 100%)',
+                boxShadow: '0 0 40px rgba(34, 197, 94, 0.5), inset 0 0 20px rgba(255,255,255,0.2)',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'center',
+                alignItems: 'center',
+                color: '#fff',
+                textAlign: 'center',
+                border: '4px solid rgba(255,255,255,0.1)',
+                zIndex: 2,
+                transition: 'box-shadow 0.3s ease'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 0 60px rgba(34, 197, 94, 0.8), inset 0 0 30px rgba(255,255,255,0.3)'}
+              onMouseLeave={(e) => e.currentTarget.style.boxShadow = '0 0 40px rgba(34, 197, 94, 0.5), inset 0 0 20px rgba(255,255,255,0.2)'}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: '48px', marginBottom: '4px', filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))' }}>workspace_premium</span>
+                <span style={{ fontSize: '2.5rem', fontWeight: 900, lineHeight: '1', filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))' }}>100%</span>
+                <span style={{ fontSize: '0.85rem', fontWeight: 700, letterSpacing: '1px', textTransform: 'uppercase', opacity: 0.9 }}>Garantizado</span>
+              </div>
+            </div>
+          </div>
+
         </div>
+        </div>
+      </section>
+
+      {/* 5.8 METRICS SECTION */}
+      <section style={{
+        width: '100%',
+        padding: '6rem 0',
+        position: 'relative',
+        zIndex: 1,
+        backgroundColor: '#0a0a0a',
+        borderTop: '1px solid rgba(255,255,255,0.05)',
+        borderBottom: '1px solid rgba(255,255,255,0.05)'
+      }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 2rem' }}>
+          
+          <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
+            <h2 className="display-md" style={{ marginBottom: '1rem', fontWeight: 800 }}>
+              No prometemos. <span style={{ background: 'linear-gradient(135deg, var(--emerald-400) 0%, #00C2FF 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Demostramos con datos.</span>
+            </h2>
+            <p style={{ color: 'var(--secondary)', fontSize: '1.15rem', maxWidth: '700px', margin: '0 auto', lineHeight: '1.6' }}>
+              Este es el impacto promedio que nuestros clientes experimentan durante el primer mes de integrar Robotina Central en su canal de WhatsApp.
+            </p>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem' }}>
+            
+            {/* Metric 1: Circular Progress */}
+            <div className="glass-card" style={{ padding: '2.5rem', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: '1.5rem', background: 'rgba(255,255,255,0.01)' }}>
+              <div style={{
+                position: 'relative', width: '120px', height: '120px', borderRadius: '50%',
+                background: 'conic-gradient(var(--emerald-400) 0% 99%, rgba(255,255,255,0.1) 99% 100%)',
+                display: 'flex', justifyContent: 'center', alignItems: 'center',
+                boxShadow: '0 0 30px rgba(34,197,94,0.2)'
+              }}>
+                <div style={{ width: '104px', height: '104px', borderRadius: '50%', backgroundColor: '#0c0d14', display: 'flex', justifyContent: 'center', alignItems: 'center', flexDirection: 'column' }}>
+                  <span style={{ color: '#fff', fontSize: '1.8rem', fontWeight: 800, lineHeight: 1 }}>99%</span>
+                  <span style={{ color: 'var(--emerald-400)', fontSize: '0.65rem', fontWeight: 700, textTransform: 'uppercase' }}>en &lt; 3s</span>
+                </div>
+              </div>
+              <div>
+                <h4 style={{ color: '#fff', fontSize: '1.2rem', fontWeight: 700, marginBottom: '8px' }}>Respuesta Inmediata</h4>
+                <p style={{ color: 'var(--secondary)', fontSize: '0.9rem', margin: 0, lineHeight: '1.5' }}>Tus clientes jamás sentirán que hablan con una pared. La IA atiende de inmediato las 24 horas.</p>
+              </div>
+            </div>
+
+            {/* Metric 2: Trend Line Chart */}
+            <div className="glass-card" style={{ padding: '2.5rem', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: '1.5rem', background: 'rgba(255,255,255,0.01)' }}>
+              <div style={{ width: '100%', height: '120px', position: 'relative', display: 'flex', alignItems: 'flex-end', paddingBottom: '10px' }}>
+                <svg viewBox="0 0 100 40" style={{ width: '100%', height: '100%', overflow: 'visible' }}>
+                  <path d="M 0 35 Q 20 35, 30 25 T 60 15 T 100 5" fill="none" stroke="var(--primary)" strokeWidth="3" filter="drop-shadow(0 4px 6px rgba(255, 85, 0, 0.4))" strokeLinecap="round" />
+                  <circle cx="100" cy="5" r="4" fill="#fff" stroke="var(--primary)" strokeWidth="2" />
+                </svg>
+                <div style={{ position: 'absolute', top: 0, right: 0, background: 'rgba(255, 85, 0, 0.15)', color: 'var(--primary)', padding: '4px 10px', borderRadius: '12px', fontSize: '0.8rem', fontWeight: 800 }}>
+                  +45%
+                </div>
+              </div>
+              <div>
+                <h4 style={{ color: '#fff', fontSize: '1.2rem', fontWeight: 700, marginBottom: '8px' }}>Aumento en Conversión</h4>
+                <p style={{ color: 'var(--secondary)', fontSize: '0.9rem', margin: 0, lineHeight: '1.5' }}>Al eliminar las esperas y ofrecer pagos o reservas directas, tus probabilidades de cierre se disparan.</p>
+              </div>
+            </div>
+
+            {/* Metric 3: Bar Chart Comparison */}
+            <div className="glass-card" style={{ padding: '2.5rem', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: '1.5rem', background: 'rgba(255,255,255,0.01)' }}>
+              <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'center', gap: '1.5rem', height: '120px', width: '100%' }}>
+                {/* Human Bar */}
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ color: '#FF3B30', fontSize: '0.75rem', fontWeight: 700 }}>35 hrs</span>
+                  <div style={{ width: '40px', height: '90px', background: 'rgba(255, 59, 48, 0.2)', borderTop: '2px solid #FF3B30', borderRadius: '4px 4px 0 0' }}></div>
+                  <span style={{ color: 'var(--secondary)', fontSize: '0.7rem' }}>Humano</span>
+                </div>
+                {/* Bot Bar */}
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ color: '#00C2FF', fontSize: '0.75rem', fontWeight: 700 }}>5 hrs</span>
+                  <div style={{ width: '40px', height: '20px', background: 'rgba(0, 194, 255, 0.2)', borderTop: '2px solid #00C2FF', borderRadius: '4px 4px 0 0', boxShadow: '0 -5px 15px rgba(0, 194, 255, 0.3)' }}></div>
+                  <span style={{ color: 'var(--secondary)', fontSize: '0.7rem' }}>Robotina</span>
+                </div>
+              </div>
+              <div>
+                <h4 style={{ color: '#fff', fontSize: '1.2rem', fontWeight: 700, marginBottom: '8px' }}>30+ Horas Salvadas</h4>
+                <p style={{ color: 'var(--secondary)', fontSize: '0.9rem', margin: 0, lineHeight: '1.5' }}>Delega la fase repetitiva. Tu equipo humano entra solo para cerrar tratos o casos especiales.</p>
+              </div>
+            </div>
+
+          </div>
         </div>
       </section>
 
@@ -1446,24 +1838,14 @@ export default function Landing() {
 
           <div className="grid-auto-responsive" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1.5rem', alignItems: 'stretch' }}>
             {/* PLAN NORMAL */}
-            <div className="pricing-card popular reveal-fade-up delay-200" style={{
+            <div className="pricing-card reveal-fade-up delay-200" style={{
               display: 'flex',
               flexDirection: 'column',
               justifyContent: 'space-between',
               height: '100%',
-              position: 'relative',
-              border: '2px solid #22c55e',
-              boxShadow: '0 0 35px rgba(34, 197, 94, 0.15)',
-              backgroundColor: 'rgba(10, 10, 10, 0.8)'
+              position: 'relative'
             }}>
               <div>
-                <div style={{
-                  position: 'absolute', top: '15px', right: '15px',
-                  backgroundColor: '#22c55e', color: '#000',
-                  padding: '4px 12px', borderRadius: '30px', fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase'
-                }}>
-                  Más Popular
-                </div>
                 <div style={{ color: 'var(--secondary)', fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', marginBottom: '0.25rem', letterSpacing: '0.05em' }}>Mensual</div>
                 <h3 style={{ fontSize: '1.6rem', fontWeight: 800, marginBottom: '0.5rem' }}>
                   <span className="text-gradient">Plan Completo</span>
@@ -1533,20 +1915,19 @@ export default function Landing() {
                   });
                   setIsPaymentOpen(true);
                 }}
-                className="btn-primary"
+                className="btn-secondary"
                 style={{
                   textAlign: 'center',
-                  padding: '1rem',
+                  padding: '0.8rem',
                   borderRadius: '30px',
-                  fontSize: '1rem',
-                  fontWeight: 800,
+                  fontSize: '0.9rem',
+                  fontWeight: 700,
                   display: 'block',
                   width: '100%',
-                  boxShadow: '0 10px 25px rgba(34, 197, 94, 0.25)',
+                  backgroundColor: 'transparent',
+                  color: '#fff',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
                   transition: 'all 0.3s ease',
-                  backgroundColor: '#22c55e',
-                  color: '#000',
-                  border: 'none',
                   cursor: 'pointer'
                 }}
               >
@@ -1555,8 +1936,24 @@ export default function Landing() {
             </div>
 
             {/* PLAN MULTISUCURSAL */}
-            <div className="pricing-card reveal-fade-up delay-250" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%', position: 'relative' }}>
+            <div className="pricing-card popular reveal-fade-up delay-250" style={{
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between',
+              height: '100%',
+              position: 'relative',
+              border: '2px solid #22c55e',
+              boxShadow: '0 0 35px rgba(34, 197, 94, 0.15)',
+              backgroundColor: 'rgba(10, 10, 10, 0.8)'
+            }}>
               <div>
+                <div style={{
+                  position: 'absolute', top: '15px', right: '15px',
+                  backgroundColor: '#22c55e', color: '#000',
+                  padding: '4px 12px', borderRadius: '30px', fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase'
+                }}>
+                  Más Popular
+                </div>
                 <div style={{ color: 'var(--secondary)', fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', marginBottom: '0.25rem', letterSpacing: '0.05em' }}>Mensual</div>
                 <h3 style={{ fontSize: '1.6rem', fontWeight: 800, marginBottom: '0.5rem' }}>
                   <span className="text-gradient">Multisucursal</span>
@@ -1614,19 +2011,20 @@ export default function Landing() {
                   });
                   setIsPaymentOpen(true);
                 }}
-                className="btn-secondary"
+                className="btn-primary"
                 style={{
                   textAlign: 'center',
-                  padding: '0.8rem',
+                  padding: '1rem',
                   borderRadius: '30px',
-                  fontSize: '0.9rem',
-                  fontWeight: 700,
+                  fontSize: '1rem',
+                  fontWeight: 800,
                   display: 'block',
                   width: '100%',
-                  backgroundColor: 'transparent',
-                  color: '#fff',
-                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  boxShadow: '0 10px 25px rgba(34, 197, 94, 0.25)',
                   transition: 'all 0.3s ease',
+                  backgroundColor: '#22c55e',
+                  color: '#000',
+                  border: 'none',
                   cursor: 'pointer'
                 }}
               >

@@ -3,12 +3,12 @@ import { supabase } from '../supabaseClient';
 
 export default function Settings() {
   const [config, setConfig] = useState({
-    businessName: 'Robotina Business',
-    businessPhone: '',
-    botIdentity: 'Asistente Virtual Robotina',
+    businessName: 'Robotina Central',
+    businessPhone: '+54 9 11 6599-4057',
+    botIdentity: 'Robotina SDR',
     botTone: 'Profesional y Atento',
-    botSystemContext: 'Eres una asistente de inteligencia artificial para un negocio de alta gama. Tu objetivo es ayudar a los clientes a agendar citas, responder dudas sobre servicios y cerrar ventas de manera fluida y elegante.',
-    botWelcomeMsg: '¡Hola! 🤖 Soy la asistente virtual de nuestro negocio. ¿En qué puedo ayudarte hoy?',
+    botSystemContext: 'Eres Robotina, la asesora de ventas y experta en automatización de "Robotina Central". Tu objetivo principal y único es calificar a los dueños de negocios que nos contactan y lograr que agenden una demostración en vivo (Meet) a través de este enlace: https://calendar.app.google/bMz6yssC1LsmjMQHA\n\nREGLAS ESTRICTAS DE COMPORTAMIENTO:\n1. Sé concisa, humana y persuasiva. Tus mensajes deben ser cortos (máximo 2 a 3 oraciones cortas). Evita enviar bloques de texto largos.\n2. NUNCA des asesoría técnica gratuita y extensa. Tú eres ventas, no soporte.\n3. Si el prospecto pregunta precios, dile que tenemos planes desde $49 USD/mes, pero que la mejor forma de cotizar es viendo cómo funciona en vivo, y mándalo al enlace.\n4. Usa un tono amigable, empático, seguro y con autoridad tecnológica. Usa emojis con moderación.\n5. LIMITA EL CHATEO: Después de 2 intercambios de mensajes, DEBES buscar el cierre pidiéndole que elija un horario en el enlace.\n\nEL EMBUDO DE CONVERSACIÓN:\n- Paso 1 (Apertura): Saluda cordialmente, preséntate brevemente y haz la pregunta clave: "¿De qué trata exactamente tu negocio y cuántos mensajes recibes al día aproximadamente?".\n- Paso 2 (Agitación): Basado en su respuesta, empatiza con el tiempo o ventas perdidas por no automatizar.\n- Paso 3 (Solución): Explícale que Robotina automatiza reservas, pedidos y CRM 24/7.\n- Paso 4 (Cierre): Dile: "Lo ideal es que te muestre la plataforma en vivo para tu caso. Elige el horario que mejor te quede aquí: https://calendar.app.google/bMz6yssC1LsmjMQHA".',
+    botWelcomeMsg: '¡Hola! 🤖 Soy la asistente virtual de Robotina Central. Estoy aquí para ayudarte a poner las ventas de tu negocio en piloto automático. Para ver cómo podemos ayudarte, cuéntame: ¿Qué producto o servicio vende tu negocio y cómo gestionas tus chats de WhatsApp actualmente?',
     botOffHoursMsg: 'Lo sentimos, en este momento nuestro equipo está fuera de línea. Atendemos de 09h00 a 18h00. 🕒',
     openingTime: '09:00',
     closingTime: '18:00',
@@ -30,7 +30,7 @@ export default function Settings() {
       if (!error && data) {
         setConfig({
           businessName: data.business_name || 'Robotina Business',
-          businessPhone: data.business_phone || '',
+          businessPhone: data.business_phone || '+54 9 11 6599-4057',
           botIdentity: data.bot_identity || '',
           botTone: data.bot_tone || '',
           botSystemContext: data.bot_system_context || '',
@@ -112,7 +112,23 @@ export default function Settings() {
                  </div>
                  <div style={{ flex: 1 }}>
                    <label className="label-sm" style={{ display: 'block', marginBottom: '0.5rem' }}>WhatsApp Business</label>
-                   <input required type="text" className="input-base" style={{ width: '100%' }} value={config.businessPhone} onChange={e => setConfig({...config, businessPhone: e.target.value})} />
+                   <input 
+                     readOnly 
+                     type="text" 
+                     className="input-base" 
+                     style={{ 
+                       width: '100%', 
+                       opacity: 0.6, 
+                       cursor: 'not-allowed', 
+                       backgroundColor: 'rgba(255, 255, 255, 0.02)',
+                       border: '1px solid rgba(255, 255, 255, 0.08)'
+                     }} 
+                     value={config.businessPhone} 
+                     title="Número oficial vinculado a la API de Meta. Para cambiarlo contacta a soporte."
+                   />
+                   <span style={{ fontSize: '0.7rem', color: 'var(--secondary)', marginTop: '0.25rem', display: 'block' }}>
+                     Número vinculado a la API oficial (Solo lectura)
+                   </span>
                  </div>
                </div>
 
