@@ -182,17 +182,7 @@ export default function Landing() {
         </div>
 
         {/* 1. FLOATING NAVIGATION BAR */}
-        <div style={{
-          position: 'sticky',
-          top: '1.5rem',
-          left: 0,
-          right: 0,
-          zIndex: 1000,
-          maxWidth: '1100px',
-          width: 'calc(100% - 2rem)',
-          margin: '0 auto',
-          padding: '0.25rem'
-        }}>
+        <div className="floating-nav-container">
           <nav style={{
             display: 'flex',
             alignItems: 'center',
@@ -207,7 +197,7 @@ export default function Landing() {
           }}>
             {/* Logo */}
             <div style={{ display: 'flex', alignItems: 'center' }}>
-              <img src="/logo__1_-removebg-preview.png" alt="Robotina Central" style={{ height: '36px', width: 'auto', objectFit: 'contain', transform: 'scale(2.6)', transformOrigin: 'left center' }} />
+              <img src="/logo__1_-removebg-preview.png" alt="Robotina Central" className="nav-logo" />
             </div>
 
             {/* Links */}
@@ -228,14 +218,7 @@ export default function Landing() {
               <Link to="/login" className="desktop-only" style={{ color: 'var(--secondary)', textDecoration: 'none', fontSize: '0.85rem', fontWeight: 600 }}>
                 Iniciar sesión
               </Link>
-              <button onClick={() => window.open('https://calendar.app.google/bMz6yssC1LsmjMQHA', '_blank')} className="btn-primary" style={{
-                border: 'none',
-                cursor: 'pointer',
-                textDecoration: 'none',
-                borderRadius: '30px',
-                padding: '0.6rem 1.4rem',
-                fontSize: '0.85rem',
-                fontWeight: 700,
+              <button onClick={() => window.open('https://calendar.app.google/bMz6yssC1LsmjMQHA', '_blank')} className="btn-primary nav-button" style={{
                 boxShadow: '0 0 15px rgba(255, 85, 0, 0.25)'
               }}>
                 Agendar Demo
