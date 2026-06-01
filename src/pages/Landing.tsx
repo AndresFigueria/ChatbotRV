@@ -63,13 +63,6 @@ export default function Landing() {
   };
 
   const handleConfirmBooking = () => {
-    // Generar mensaje para enviar al administrador por WhatsApp
-    const message = `¡Hola! Me llamo ${bookingName}, mi WhatsApp de negocio es ${bookingPhone} y mi giro es ${bookingSegment}. Volumen mensual de mensajes: ${bookingVolume}. Principal dolor: ${bookingGoal}. Me gustaría reservar una videollamada demo.`;
-    const encoded = encodeURIComponent(message);
-    
-    // Abrir WhatsApp en pestaña
-    window.open(`https://wa.me/${DEMO_WHATSAPP_NUMBER}?text=${encoded}`, '_blank');
-    
     // Abrir Google Calendar en otra pestaña
     window.open('https://calendar.app.google/bMz6yssC1LsmjMQHA', '_blank');
     
@@ -2507,12 +2500,12 @@ export default function Landing() {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          padding: '2rem'
+          padding: '1rem'
         }}>
           <div className="glass-card" style={{
             maxWidth: '520px',
             width: '100%',
-            padding: '2.5rem 2rem',
+            padding: 'var(--glass-card-padding)',
             position: 'relative',
             border: '1px solid rgba(0, 255, 102, 0.25)',
             boxShadow: '0 25px 50px rgba(0, 255, 102, 0.15), 0 0 100px rgba(0, 255, 102, 0.05)',
@@ -2776,7 +2769,7 @@ export default function Landing() {
                   Seleccionar Día y Hora
                 </button>
                 <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.72rem', margin: 0 }}>
-                  * Al hacer clic, se abrirá tu Google Calendar para reservar y te enviaremos una confirmación a tu WhatsApp.
+                  * Al hacer clic, se abrirá tu Google Calendar en una pestaña nueva para elegir la fecha y hora.
                 </p>
               </div>
             )}
