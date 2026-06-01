@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { InteractiveGlobe } from '../components/InteractiveGlobe';
+import { supabase } from '../supabaseClient';
 
 export default function Landing() {
   const [activeFaq, setActiveFaq] = useState<number | null>(null);
@@ -39,7 +40,7 @@ export default function Landing() {
   const LEGAL_RUC = '15607181699';
   const LEGAL_NAME = 'Robotina Central';
 
-  const handleBookingSubmit = (e: React.FormEvent) => {
+  const handleBookingSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!bookingName || !bookingPhone || !bookingSegment || !bookingVolume || !bookingGoal) {
       alert('Por favor completa todos los campos.');
@@ -57,6 +58,22 @@ export default function Landing() {
       date: new Date().toISOString()
     });
     localStorage.setItem('booking_leads', JSON.stringify(savedLeads));
+
+    // Guardar en Supabase
+    try {
+      const { error } = await supabase.from('landing_leads').insert([{
+        name: bookingName,
+        phone: bookingPhone,
+        segment: bookingSegment,
+        volume: bookingVolume,
+        goal: bookingGoal
+      }]);
+      if (error) {
+        console.error('Error al guardar lead en Supabase:', error);
+      }
+    } catch (err) {
+      console.error('Error de red al guardar lead:', err);
+    }
 
     // Pasar al paso de agendamiento
     setBookingStep(1);
