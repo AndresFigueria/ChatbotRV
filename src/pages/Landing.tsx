@@ -12,6 +12,9 @@ export default function Landing() {
   const [bookingName, setBookingName] = useState('');
   const [bookingPhone, setBookingPhone] = useState('');
   const [bookingSegment, setBookingSegment] = useState('');
+  const [bookingVolume, setBookingVolume] = useState('');
+  const [bookingGoal, setBookingGoal] = useState('');
+  const [bookingStep, setBookingStep] = useState(0); // 0 = Questionnaire, 1 = Show Calendar / Confirm
 
   // Contact Form State
   const [contactName, setContactName] = useState('');
@@ -38,17 +41,46 @@ export default function Landing() {
 
   const handleBookingSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!bookingName || !bookingPhone || !bookingSegment) {
+    if (!bookingName || !bookingPhone || !bookingSegment || !bookingVolume || !bookingGoal) {
       alert('Por favor completa todos los campos.');
       return;
     }
-    const message = `¡Hola! Me llamo ${bookingName}, mi WhatsApp de negocio es ${bookingPhone} y mi giro es ${bookingSegment}. Me gustaría reservar una videollamada demo de Robotina Central.`;
+    
+    // Guardar en localStorage para persistencia y analíticas
+    const savedLeads = JSON.parse(localStorage.getItem('booking_leads') || '[]');
+    savedLeads.push({
+      name: bookingName,
+      phone: bookingPhone,
+      segment: bookingSegment,
+      volume: bookingVolume,
+      goal: bookingGoal,
+      date: new Date().toISOString()
+    });
+    localStorage.setItem('booking_leads', JSON.stringify(savedLeads));
+
+    // Pasar al paso de agendamiento
+    setBookingStep(1);
+  };
+
+  const handleConfirmBooking = () => {
+    // Generar mensaje para enviar al administrador por WhatsApp
+    const message = `¡Hola! Me llamo ${bookingName}, mi WhatsApp de negocio es ${bookingPhone} y mi giro es ${bookingSegment}. Volumen mensual de mensajes: ${bookingVolume}. Principal dolor: ${bookingGoal}. Me gustaría reservar una videollamada demo.`;
     const encoded = encodeURIComponent(message);
+    
+    // Abrir WhatsApp en pestaña
     window.open(`https://wa.me/${DEMO_WHATSAPP_NUMBER}?text=${encoded}`, '_blank');
+    
+    // Abrir Google Calendar en otra pestaña
+    window.open('https://calendar.app.google/bMz6yssC1LsmjMQHA', '_blank');
+    
+    // Cerrar modal y resetear estados
     setIsBookingOpen(false);
+    setBookingStep(0);
     setBookingName('');
     setBookingPhone('');
     setBookingSegment('');
+    setBookingVolume('');
+    setBookingGoal('');
   };
 
   const handleContactSubmit = async (e: React.FormEvent) => {
@@ -218,7 +250,7 @@ export default function Landing() {
               <Link to="/login" className="desktop-only" style={{ color: 'var(--secondary)', textDecoration: 'none', fontSize: '0.85rem', fontWeight: 600 }}>
                 Iniciar sesión
               </Link>
-              <button onClick={() => window.open('https://calendar.app.google/bMz6yssC1LsmjMQHA', '_blank')} className="btn-primary nav-button" style={{
+              <button onClick={() => { setIsBookingOpen(true); setBookingStep(0); }} className="btn-primary nav-button" style={{
                 boxShadow: '0 0 15px rgba(255, 85, 0, 0.25)'
               }}>
                 Agendar Demo
@@ -339,7 +371,7 @@ export default function Landing() {
           </p>
 
           <div className="reveal-fade-up delay-200" style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
-            <button onClick={() => window.open('https://calendar.app.google/bMz6yssC1LsmjMQHA', '_blank')} className="btn-primary" style={{ 
+            <button onClick={() => { setIsBookingOpen(true); setBookingStep(0); }} className="btn-primary" style={{ 
               border: 'none',
               cursor: 'pointer',
               textDecoration: 'none', 
@@ -1557,7 +1589,7 @@ export default function Landing() {
             </div>
 
             <div style={{ marginTop: '1rem' }}>
-              <button onClick={() => window.open('https://calendar.app.google/bMz6yssC1LsmjMQHA', '_blank')} className="btn-primary" style={{
+              <button onClick={() => { setIsBookingOpen(true); setBookingStep(0); }} className="btn-primary" style={{
                 border: 'none',
                 cursor: 'pointer',
                 textDecoration: 'none',
@@ -2478,9 +2510,9 @@ export default function Landing() {
           padding: '2rem'
         }}>
           <div className="glass-card" style={{
-            maxWidth: '480px',
+            maxWidth: '520px',
             width: '100%',
-            padding: '3rem 2.5rem',
+            padding: '2.5rem 2rem',
             position: 'relative',
             border: '1px solid rgba(0, 255, 102, 0.25)',
             boxShadow: '0 25px 50px rgba(0, 255, 102, 0.15), 0 0 100px rgba(0, 255, 102, 0.05)',
@@ -2488,7 +2520,9 @@ export default function Landing() {
             display: 'flex',
             flexDirection: 'column',
             gap: '1.5rem',
-            textAlign: 'left'
+            textAlign: 'left',
+            maxHeight: '90vh',
+            overflowY: 'auto'
           }}>
             {/* Close Button */}
             <button onClick={() => setIsBookingOpen(false)} style={{
@@ -2501,126 +2535,244 @@ export default function Landing() {
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center'
+              justifyContent: 'center',
+              zIndex: 10
             }}>
               <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>close</span>
             </button>
 
-            <div>
-              <div style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '8px',
-                padding: '6px 12px',
-                borderRadius: '20px',
-                backgroundColor: 'rgba(0, 255, 102, 0.1)',
-                color: 'var(--emerald-400)',
-                fontSize: '0.75rem',
-                fontWeight: 800,
-                marginBottom: '1rem',
-                filter: 'drop-shadow(0 0 8px rgba(0, 255, 102, 0.3))'
-              }}>
-                <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>video_chat</span>
-                Videollamada Demo 1 a 1 Gratuita
-              </div>
-              <h3 style={{ fontSize: '1.6rem', fontWeight: 800, margin: 0, lineHeight: '1.3' }}>
-                Agenda tu <span className="text-gradient">Demostración</span>
-              </h3>
-              <p style={{ color: 'var(--secondary)', fontSize: '0.88rem', margin: '0.5rem 0 0 0', lineHeight: '1.5' }}>
-                Completa tus datos para coordinar el día y la hora de nuestra videollamada por Meet/Zoom.
-              </p>
-            </div>
+            {bookingStep === 0 ? (
+              <>
+                <div>
+                  <div style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    padding: '6px 12px',
+                    borderRadius: '20px',
+                    backgroundColor: 'rgba(0, 255, 102, 0.1)',
+                    color: 'var(--emerald-400)',
+                    fontSize: '0.75rem',
+                    fontWeight: 800,
+                    marginBottom: '0.75rem',
+                    filter: 'drop-shadow(0 0 8px rgba(0, 255, 102, 0.3))'
+                  }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>video_chat</span>
+                    Perfilado de Negocio
+                  </div>
+                  <h3 style={{ fontSize: '1.5rem', fontWeight: 800, margin: 0, lineHeight: '1.3' }}>
+                    Agenda tu <span className="text-gradient">Demostración</span>
+                  </h3>
+                  <p style={{ color: 'var(--secondary)', fontSize: '0.85rem', margin: '0.35rem 0 0 0', lineHeight: '1.4' }}>
+                    Completa la información de tu negocio para habilitar tu enlace de reserva en Google Calendar.
+                  </p>
+                </div>
 
-            <form onSubmit={handleBookingSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                <label style={{ color: '#fff', fontSize: '0.8rem', fontWeight: 600 }}>Nombre Completo</label>
-                <input 
-                  type="text" 
-                  value={bookingName}
-                  onChange={(e) => setBookingName(e.target.value)}
-                  placeholder="Ej. Juan Pérez" 
-                  required
-                  style={{
-                    backgroundColor: 'rgba(255, 255, 255, 0.03)',
-                    border: '1px solid rgba(255, 255, 255, 0.08)',
-                    borderRadius: '12px',
-                    padding: '0.8rem 1rem',
-                    color: '#fff',
-                    fontSize: '0.9rem',
-                    outline: 'none',
-                    transition: 'border-color 0.3s'
-                  }}
-                  onFocus={(e) => e.target.style.borderColor = 'var(--emerald-400)'}
-                  onBlur={(e) => e.target.style.borderColor = 'rgba(255, 255, 255, 0.08)'}
-                />
-              </div>
+                <form onSubmit={handleBookingSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.1rem' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                    <label style={{ color: '#fff', fontSize: '0.8rem', fontWeight: 600 }}>Nombre Completo</label>
+                    <input 
+                      type="text" 
+                      value={bookingName}
+                      onChange={(e) => setBookingName(e.target.value)}
+                      placeholder="Ej. Juan Pérez" 
+                      required
+                      style={{
+                        backgroundColor: 'rgba(255, 255, 255, 0.03)',
+                        border: '1px solid rgba(255, 255, 255, 0.08)',
+                        borderRadius: '12px',
+                        padding: '0.75rem 1rem',
+                        color: '#fff',
+                        fontSize: '0.9rem',
+                        outline: 'none',
+                        transition: 'border-color 0.3s'
+                      }}
+                      onFocus={(e) => e.target.style.borderColor = 'var(--emerald-400)'}
+                      onBlur={(e) => e.target.style.borderColor = 'rgba(255, 255, 255, 0.08)'}
+                    />
+                  </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                <label style={{ color: '#fff', fontSize: '0.8rem', fontWeight: 600 }}>WhatsApp de tu Negocio</label>
-                <input 
-                  type="tel" 
-                  value={bookingPhone}
-                  onChange={(e) => setBookingPhone(e.target.value)}
-                  placeholder="Ej. +34 600 000 000" 
-                  required
-                  style={{
-                    backgroundColor: 'rgba(255, 255, 255, 0.03)',
-                    border: '1px solid rgba(255, 255, 255, 0.08)',
-                    borderRadius: '12px',
-                    padding: '0.8rem 1rem',
-                    color: '#fff',
-                    fontSize: '0.9rem',
-                    outline: 'none',
-                    transition: 'border-color 0.3s'
-                  }}
-                  onFocus={(e) => e.target.style.borderColor = 'var(--emerald-400)'}
-                  onBlur={(e) => e.target.style.borderColor = 'rgba(255, 255, 255, 0.08)'}
-                />
-              </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                    <label style={{ color: '#fff', fontSize: '0.8rem', fontWeight: 600 }}>WhatsApp de tu Negocio</label>
+                    <input 
+                      type="tel" 
+                      value={bookingPhone}
+                      onChange={(e) => setBookingPhone(e.target.value)}
+                      placeholder="Ej. +34 600 000 000" 
+                      required
+                      style={{
+                        backgroundColor: 'rgba(255, 255, 255, 0.03)',
+                        border: '1px solid rgba(255, 255, 255, 0.08)',
+                        borderRadius: '12px',
+                        padding: '0.75rem 1rem',
+                        color: '#fff',
+                        fontSize: '0.9rem',
+                        outline: 'none',
+                        transition: 'border-color 0.3s'
+                      }}
+                      onFocus={(e) => e.target.style.borderColor = 'var(--emerald-400)'}
+                      onBlur={(e) => e.target.style.borderColor = 'rgba(255, 255, 255, 0.08)'}
+                    />
+                  </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                <label style={{ color: '#fff', fontSize: '0.8rem', fontWeight: 600 }}>Giro o Sector del Negocio</label>
-                <input 
-                  type="text" 
-                  value={bookingSegment}
-                  onChange={(e) => setBookingSegment(e.target.value)}
-                  placeholder="Ej. Restaurante, Clínica, E-commerce, Inmobiliaria" 
-                  required
-                  style={{
-                    backgroundColor: 'rgba(255, 255, 255, 0.03)',
-                    border: '1px solid rgba(255, 255, 255, 0.08)',
-                    borderRadius: '12px',
-                    padding: '0.8rem 1rem',
-                    color: '#fff',
-                    fontSize: '0.9rem',
-                    outline: 'none',
-                    transition: 'border-color 0.3s'
-                  }}
-                  onFocus={(e) => e.target.style.borderColor = 'var(--emerald-400)'}
-                  onBlur={(e) => e.target.style.borderColor = 'rgba(255, 255, 255, 0.08)'}
-                />
-              </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                    <label style={{ color: '#fff', fontSize: '0.8rem', fontWeight: 600 }}>¿Cuál es tu Giro o Sector de Negocio?</label>
+                    <select
+                      value={bookingSegment}
+                      onChange={(e) => setBookingSegment(e.target.value)}
+                      required
+                      style={{
+                        backgroundColor: '#0c0d14',
+                        border: '1px solid rgba(255, 255, 255, 0.08)',
+                        borderRadius: '12px',
+                        padding: '0.75rem 1rem',
+                        color: '#fff',
+                        fontSize: '0.9rem',
+                        outline: 'none',
+                        transition: 'border-color 0.3s',
+                        width: '100%',
+                        cursor: 'pointer'
+                      }}
+                      onFocus={(e) => e.target.style.borderColor = 'var(--emerald-400)'}
+                      onBlur={(e) => e.target.style.borderColor = 'rgba(255, 255, 255, 0.08)'}
+                    >
+                      <option value="" disabled style={{ backgroundColor: '#0f1016', color: 'rgba(255,255,255,0.4)' }}>Selecciona una opción...</option>
+                      <option value="Farmacia" style={{ backgroundColor: '#0f1016', color: '#fff' }}>Farmacia / Boticas</option>
+                      <option value="E-commerce" style={{ backgroundColor: '#0f1016', color: '#fff' }}>E-commerce / Tienda Online</option>
+                      <option value="Restaurante" style={{ backgroundColor: '#0f1016', color: '#fff' }}>Restaurante / Venta de comida</option>
+                      <option value="Inmobiliaria" style={{ backgroundColor: '#0f1016', color: '#fff' }}>Inmobiliaria / Bienes raíces</option>
+                      <option value="Academias" style={{ backgroundColor: '#0f1016', color: '#fff' }}>Academias / Escolar / Educativo</option>
+                      <option value="Clínica Médica" style={{ backgroundColor: '#0f1016', color: '#fff' }}>Clínica Médica / Dental / Estética</option>
+                      <option value="Servicios Profesionales" style={{ backgroundColor: '#0f1016', color: '#fff' }}>Servicios Profesionales (Consultoría, Legal, etc.)</option>
+                      <option value="Otro sector" style={{ backgroundColor: '#0f1016', color: '#fff' }}>Otro sector de negocio</option>
+                    </select>
+                  </div>
 
-              <button type="submit" className="btn-primary" style={{
-                border: 'none',
-                cursor: 'pointer',
-                backgroundColor: 'var(--emerald-400)',
-                color: '#050508',
-                fontSize: '0.95rem',
-                padding: '0.9rem 2rem',
-                borderRadius: '30px',
-                fontWeight: 800,
-                boxShadow: '0 0 20px rgba(0, 255, 102, 0.3)',
-                marginTop: '0.5rem',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '8px'
-              }}>
-                Confirmar y Agendar por WhatsApp
-                <span className="material-symbols-outlined" style={{ fontSize: '18px', fontWeight: 800 }}>send</span>
-              </button>
-            </form>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                    <label style={{ color: '#fff', fontSize: '0.8rem', fontWeight: 600 }}>Volumen aproximado de mensajes mensuales por WhatsApp</label>
+                    <select
+                      value={bookingVolume}
+                      onChange={(e) => setBookingVolume(e.target.value)}
+                      required
+                      style={{
+                        backgroundColor: '#0c0d14',
+                        border: '1px solid rgba(255, 255, 255, 0.08)',
+                        borderRadius: '12px',
+                        padding: '0.75rem 1rem',
+                        color: '#fff',
+                        fontSize: '0.9rem',
+                        outline: 'none',
+                        transition: 'border-color 0.3s',
+                        width: '100%',
+                        cursor: 'pointer'
+                      }}
+                      onFocus={(e) => e.target.style.borderColor = 'var(--emerald-400)'}
+                      onBlur={(e) => e.target.style.borderColor = 'rgba(255, 255, 255, 0.08)'}
+                    >
+                      <option value="" disabled style={{ backgroundColor: '#0f1016', color: 'rgba(255,255,255,0.4)' }}>Selecciona una opción...</option>
+                      <option value="Menos de 500 mensajes/mes" style={{ backgroundColor: '#0f1016', color: '#fff' }}>Menos de 500 mensajes/mes</option>
+                      <option value="Entre 500 y 2,000 mensajes/mes" style={{ backgroundColor: '#0f1016', color: '#fff' }}>Entre 500 y 2,000 mensajes/mes</option>
+                      <option value="Entre 2,000 y 5,000 mensajes/mes" style={{ backgroundColor: '#0f1016', color: '#fff' }}>Entre 2,000 y 5,000 mensajes/mes</option>
+                      <option value="Más de 5,000 mensajes/mes" style={{ backgroundColor: '#0f1016', color: '#fff' }}>Más de 5,000 mensajes/mes</option>
+                    </select>
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                    <label style={{ color: '#fff', fontSize: '0.8rem', fontWeight: 600 }}>¿Qué te gustaría automatizar principalmente?</label>
+                    <select
+                      value={bookingGoal}
+                      onChange={(e) => setBookingGoal(e.target.value)}
+                      required
+                      style={{
+                        backgroundColor: '#0c0d14',
+                        border: '1px solid rgba(255, 255, 255, 0.08)',
+                        borderRadius: '12px',
+                        padding: '0.75rem 1rem',
+                        color: '#fff',
+                        fontSize: '0.9rem',
+                        outline: 'none',
+                        transition: 'border-color 0.3s',
+                        width: '100%',
+                        cursor: 'pointer'
+                      }}
+                      onFocus={(e) => e.target.style.borderColor = 'var(--emerald-400)'}
+                      onBlur={(e) => e.target.style.borderColor = 'rgba(255, 255, 255, 0.08)'}
+                    >
+                      <option value="" disabled style={{ backgroundColor: '#0f1016', color: 'rgba(255,255,255,0.4)' }}>Selecciona una opción...</option>
+                      <option value="Responder preguntas frecuentes y derivar" style={{ backgroundColor: '#0f1016', color: '#fff' }}>Responder preguntas frecuentes y derivar</option>
+                      <option value="Enviar catálogo interactivo y tomar pedidos" style={{ backgroundColor: '#0f1016', color: '#fff' }}>Enviar catálogo interactivo y tomar pedidos</option>
+                      <option value="Agendar citas, turnos o reservas automáticamente" style={{ backgroundColor: '#0f1016', color: '#fff' }}>Agendar citas, turnos o reservas automáticamente</option>
+                      <option value="Todo lo anterior en automático" style={{ backgroundColor: '#0f1016', color: '#fff' }}>Todo lo anterior en automático</option>
+                    </select>
+                  </div>
+
+                  <button type="submit" className="btn-primary" style={{
+                    border: 'none',
+                    cursor: 'pointer',
+                    backgroundColor: 'var(--emerald-400)',
+                    color: '#050508',
+                    fontSize: '0.95rem',
+                    padding: '0.9rem 2rem',
+                    borderRadius: '30px',
+                    fontWeight: 800,
+                    boxShadow: '0 0 20px rgba(0, 255, 102, 0.3)',
+                    marginTop: '0.5rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px'
+                  }}>
+                    Siguiente Paso
+                    <span className="material-symbols-outlined" style={{ fontSize: '18px', fontWeight: 800 }}>arrow_forward</span>
+                  </button>
+                </form>
+              </>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: '1.5rem', padding: '1rem 0' }}>
+                <div style={{
+                  width: '72px',
+                  height: '72px',
+                  borderRadius: '50%',
+                  backgroundColor: 'rgba(0, 255, 102, 0.1)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: 'var(--emerald-400)',
+                  boxShadow: '0 0 30px rgba(0, 255, 102, 0.2)'
+                }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: '36px', fontWeight: 800 }}>check_circle</span>
+                </div>
+                <div>
+                  <h4 style={{ color: '#fff', fontSize: '1.25rem', fontWeight: 800, margin: '0 0 8px 0' }}>¡Todo Listo, {bookingName}!</h4>
+                  <p style={{ color: 'var(--secondary)', fontSize: '0.88rem', margin: 0, lineHeight: '1.5' }}>
+                    Tu perfil de negocio ha sido registrado con éxito. Ahora selecciona la fecha y hora de tu videollamada demo 1-a-1 en Google Calendar.
+                  </p>
+                </div>
+                <button onClick={handleConfirmBooking} className="btn-primary" style={{
+                  border: 'none',
+                  cursor: 'pointer',
+                  backgroundColor: 'var(--emerald-400)',
+                  color: '#050508',
+                  fontSize: '0.95rem',
+                  padding: '1rem 2rem',
+                  borderRadius: '30px',
+                  fontWeight: 800,
+                  boxShadow: '0 0 25px rgba(0, 255, 102, 0.4)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '10px',
+                  width: '100%',
+                  marginTop: '0.5rem'
+                }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: '20px', fontWeight: 800 }}>calendar_today</span>
+                  Seleccionar Día y Hora
+                </button>
+                <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.72rem', margin: 0 }}>
+                  * Al hacer clic, se abrirá tu Google Calendar para reservar y te enviaremos una confirmación a tu WhatsApp.
+                </p>
+              </div>
+            )}
           </div>
         </div>
       )}
