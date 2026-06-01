@@ -2593,7 +2593,7 @@ export default function Landing() {
                   </div>
 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-                    <label style={{ color: '#fff', fontSize: '0.8rem', fontWeight: 600 }}>WhatsApp de tu Negocio</label>
+                    <label style={{ color: '#fff', fontSize: '0.8rem', fontWeight: 600 }}>WhatsApp</label>
                     <input 
                       type="tel" 
                       value={bookingPhone}
@@ -2613,6 +2613,9 @@ export default function Landing() {
                       onFocus={(e) => e.target.style.borderColor = 'var(--emerald-400)'}
                       onBlur={(e) => e.target.style.borderColor = 'rgba(255, 255, 255, 0.08)'}
                     />
+                    <span style={{ color: 'var(--secondary)', fontSize: '0.72rem', marginTop: '2px', lineHeight: '1.3' }}>
+                      Un asesor se pondrá en contacto contigo por esta vía para coordinar la sesión.
+                    </span>
                   </div>
 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
