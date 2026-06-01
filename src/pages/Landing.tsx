@@ -197,7 +197,7 @@ export default function Landing() {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            padding: '0.75rem 2rem',
+            padding: '0.75rem var(--nav-padding-x)',
             backgroundColor: 'rgba(10, 11, 16, 0.75)',
             backdropFilter: 'blur(16px)',
             WebkitBackdropFilter: 'blur(16px)',
@@ -254,11 +254,11 @@ export default function Landing() {
           
           <div style={{
             maxWidth: '1200px',
-            margin: '0 auto 4rem auto',
-            padding: '0 2rem',
+            margin: '0 auto var(--hero-gap) auto',
+            padding: '0 var(--nav-padding-x)',
             display: 'grid',
             gridTemplateColumns: '1.10fr 0.90fr',
-            gap: '4rem',
+            gap: 'var(--hero-gap)',
             alignItems: 'center',
             position: 'relative'
           }} className="grid-auto-responsive">
@@ -380,23 +380,17 @@ export default function Landing() {
             * Configuración en menos de 24 horas. Prueba gratis por 14 días.
           </p>
 
-          <div className="reveal-fade-up delay-400" style={{ 
-            display: 'flex', 
-            gap: '24px', 
-            marginTop: '2.5rem', 
-            borderTop: '1px solid rgba(255,255,255,0.05)', 
-            paddingTop: '2rem' 
-          }}>
+          <div className="reveal-fade-up delay-400 hero-stats-container">
             <div>
               <h4 style={{ color: '#fff', fontSize: '1.5rem', fontWeight: 800 }}>100%</h4>
               <p style={{ color: 'var(--secondary)', fontSize: '0.75rem' }}>Interacciones en tu panel</p>
             </div>
-            <div style={{ borderLeft: '1px solid rgba(255,255,255,0.08)' }}></div>
+            <div className="hero-stats-divider"></div>
             <div>
               <h4 style={{ color: '#fff', fontSize: '1.5rem', fontWeight: 800 }}>3 seg</h4>
               <p style={{ color: 'var(--secondary)', fontSize: '0.75rem' }}>Respuesta automática del bot</p>
             </div>
-            <div style={{ borderLeft: '1px solid rgba(255,255,255,0.08)' }}></div>
+            <div className="hero-stats-divider"></div>
             <div>
               <h4 style={{ color: '#fff', fontSize: '1.5rem', fontWeight: 800 }}>0%</h4>
               <p style={{ color: 'var(--secondary)', fontSize: '0.75rem' }}>Comisiones por venta</p>
@@ -616,16 +610,17 @@ export default function Landing() {
           width: '100%',
           maxWidth: '1200px',
           margin: '0 auto',
-          padding: '0 2rem',
-          gap: '3rem',
+          padding: '0 var(--nav-padding-x)',
+          gap: 'var(--neon-gap)',
           flexWrap: 'wrap'
         }}>
           <div style={{
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            gap: '1.5rem',
-            zIndex: 1
+            gap: 'var(--neon-gap)',
+            zIndex: 1,
+            flexWrap: 'wrap'
           }}>
             {/* WhatsApp Neon Icon */}
             <div style={{
@@ -635,15 +630,15 @@ export default function Landing() {
               animation: 'neonPulse 2s infinite alternate',
               willChange: 'transform, filter'
             }}>
-              <svg viewBox="0 0 24 24" width="42" height="42" fill="#25D366">
+              <svg viewBox="0 0 24 24" fill="#25D366" style={{ width: 'var(--neon-svg-size)', height: 'var(--neon-svg-size)' }}>
                 <path d="M12.012 2C6.48 2 2 6.48 2 12.012c0 1.764.456 3.48 1.332 5.004L2 22l5.124-1.344c1.476.804 3.132 1.224 4.888 1.224 5.532 0 10.012-4.48 10.012-10.012C22.024 6.48 17.544 2 12.012 2zm0 18.36c-1.572 0-3.12-.42-4.488-1.212l-.324-.192-3.036.796.812-2.952-.212-.336c-.864-1.38-1.32-2.988-1.32-4.656 0-4.668 3.804-8.472 8.472-8.472 4.668 0 8.472 3.804 8.472 8.472 0 4.668-3.804 8.472-8.472 8.472zm4.62-6.312c-.252-.12-1.488-.732-1.716-.816-.228-.084-.396-.12-.564.12-.168.252-.648.816-.792.984-.144.168-.288.192-.54.072-.252-.12-1.068-.396-2.028-1.26-.744-.66-1.248-1.476-1.392-1.728-.144-.252-.016-.388.11-.512.112-.112.252-.288.376-.432.126-.144.168-.24.252-.4.084-.168.042-.312-.021-.432-.063-.12-.564-1.356-.774-1.86-.204-.492-.408-.426-.564-.432-.144-.006-.312-.006-.48-.006-.168 0-.444.063-.672.312-.228.252-.876.852-.876 2.076s.888 2.4 1.02 2.58c.132.18 1.776 2.712 4.3 3.804.6.258 1.068.414 1.428.528.606.192 1.158.168 1.596.102.486-.072 1.488-.606 1.692-1.188.204-.582.204-1.08.144-1.188-.06-.108-.228-.168-.48-.288z"/>
               </svg>
             </div>
 
-            <span style={{ fontSize: '2rem', fontWeight: 800, color: '#fff', textShadow: '0 0 10px rgba(255,255,255,0.4)' }}>+</span>
+            <span style={{ fontSize: 'var(--neon-font-sign)', fontWeight: 800, color: '#fff', textShadow: '0 0 10px rgba(255,255,255,0.4)' }}>+</span>
 
             <div style={{
-              fontSize: '2.5rem',
+              fontSize: 'var(--neon-font-ia)',
               fontWeight: 900,
               background: 'linear-gradient(135deg, #00C2FF 0%, #0066FF 100%)',
               WebkitBackgroundClip: 'text',
@@ -653,10 +648,10 @@ export default function Landing() {
               IA
             </div>
 
-            <span style={{ fontSize: '2rem', fontWeight: 800, color: '#fff', textShadow: '0 0 10px rgba(255,255,255,0.4)' }}>=</span>
+            <span style={{ fontSize: 'var(--neon-font-sign)', fontWeight: 800, color: '#fff', textShadow: '0 0 10px rgba(255,255,255,0.4)' }}>=</span>
 
             <div style={{
-              fontSize: '2rem',
+              fontSize: 'var(--neon-font-result)',
               fontWeight: 900,
               color: '#FF5A1F',
               textShadow: '0 0 10px rgba(255, 90, 31, 0.6), 0 0 20px rgba(255, 90, 31, 0.3)',
@@ -693,12 +688,12 @@ export default function Landing() {
       {/* 2.5 STEPS TO BOOK MEETING (Estilo FunnelChat) */}
       <section style={{
         width: '100%',
-        padding: '6rem 0',
+        padding: 'var(--section-padding) 0',
         position: 'relative',
         zIndex: 1,
         background: 'radial-gradient(circle at center, rgba(34, 197, 94, 0.15) 0%, rgba(10, 11, 16, 0) 70%)'
       }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 2rem', textAlign: 'center' }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 var(--nav-padding-x)', textAlign: 'center' }}>
         <span style={{ 
           fontSize: '0.85rem', 
           fontWeight: 800, 
@@ -721,7 +716,7 @@ export default function Landing() {
         <div style={{
           display: 'grid',
           gridTemplateColumns: '1fr 1fr 1fr',
-          gap: '2.5rem',
+          gap: 'var(--hero-gap)',
           position: 'relative',
           alignItems: 'start'
         }} className="grid-auto-responsive">
@@ -983,7 +978,7 @@ export default function Landing() {
         {/* Dest Cards corresponding to paths */}
         <div className="grid-auto-responsive" style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
           gap: '2rem',
           marginTop: '1rem',
           textAlign: 'left'
@@ -1039,7 +1034,7 @@ export default function Landing() {
       {/* 3.8 ADAPTABILITY SECTION */}
       <section style={{
         width: '100%',
-        padding: '6rem 0',
+        padding: 'var(--section-padding) 0',
         position: 'relative',
         zIndex: 1,
         backgroundColor: '#07070b',
@@ -1061,7 +1056,7 @@ export default function Landing() {
           filter: 'blur(80px)'
         }}></div>
 
-        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 2rem', position: 'relative', zIndex: 1 }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 var(--nav-padding-x)', position: 'relative', zIndex: 1 }}>
           <div style={{ textAlign: 'center', marginBottom: '4.5rem' }}>
             <span style={{
               fontSize: '0.85rem',
@@ -1090,7 +1085,7 @@ export default function Landing() {
           }}>
             {/* Card 1: E-commerce / Tiendas de Ropa / Retail */}
             <div className="glass-card" style={{
-              padding: '2.5rem',
+              padding: 'var(--glass-card-padding)',
               display: 'flex',
               flexDirection: 'column',
               gap: '1.5rem',
@@ -1128,7 +1123,7 @@ export default function Landing() {
 
             {/* Card 2: Agendamiento / Servicios Profesionales / Clínicas */}
             <div className="glass-card" style={{
-              padding: '2.5rem',
+              padding: 'var(--glass-card-padding)',
               display: 'flex',
               flexDirection: 'column',
               gap: '1.5rem',
@@ -1166,7 +1161,7 @@ export default function Landing() {
 
             {/* Card 3: Restaurantes y Gastronomía */}
             <div className="glass-card" style={{
-              padding: '2.5rem',
+              padding: 'var(--glass-card-padding)',
               display: 'flex',
               flexDirection: 'column',
               gap: '1.5rem',
@@ -1204,7 +1199,7 @@ export default function Landing() {
 
             {/* Card 4: Academias, Inmobiliarias y Más */}
             <div className="glass-card" style={{
-              padding: '2.5rem',
+              padding: 'var(--glass-card-padding)',
               display: 'flex',
               flexDirection: 'column',
               gap: '1.5rem',
@@ -1272,10 +1267,10 @@ export default function Landing() {
           </p>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '3rem', position: 'relative' }}>
+        <div className="grid-auto-responsive" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 'var(--big-card-gap)', position: 'relative' }}>
           
           {/* Tarjeta 1: Humano */}
-          <div className="glass-card" style={{ padding: '2.5rem', display: 'flex', flexDirection: 'column', gap: '1.5rem', position: 'relative', overflow: 'hidden' }}>
+          <div className="glass-card" style={{ padding: 'var(--glass-card-padding)', display: 'flex', flexDirection: 'column', gap: '1.5rem', position: 'relative', overflow: 'hidden' }}>
             <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '4px', background: '#FF3B30' }}></div>
             <div>
               <h3 style={{ color: '#fff', fontSize: '1.5rem', fontWeight: 800, marginBottom: '0.5rem' }}>Atención Tradicional (Humano)</h3>
@@ -1309,7 +1304,7 @@ export default function Landing() {
           </div>
 
           {/* Tarjeta 2: Robotina */}
-          <div className="glass-card" style={{ padding: '2.5rem', display: 'flex', flexDirection: 'column', gap: '1.5rem', position: 'relative', overflow: 'hidden', borderColor: 'rgba(0, 194, 255, 0.3)', boxShadow: '0 0 30px rgba(0, 194, 255, 0.1)' }}>
+          <div className="glass-card" style={{ padding: 'var(--glass-card-padding)', display: 'flex', flexDirection: 'column', gap: '1.5rem', position: 'relative', overflow: 'hidden', borderColor: 'rgba(0, 194, 255, 0.3)', boxShadow: '0 0 30px rgba(0, 194, 255, 0.1)' }}>
             <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '4px', background: 'linear-gradient(to right, var(--emerald-400), #00C2FF)' }}></div>
             <div>
               <h3 style={{ color: '#fff', fontSize: '1.5rem', fontWeight: 800, marginBottom: '0.5rem' }}>Con Robotina Central</h3>
@@ -1358,7 +1353,7 @@ export default function Landing() {
       {/* 4.5 SUPER AGENT SECTION */}
       <section style={{
         width: '100%',
-        padding: '6rem 0',
+        padding: 'var(--section-padding) 0',
         position: 'relative',
         zIndex: 1,
         background: `
@@ -1367,13 +1362,13 @@ export default function Landing() {
           radial-gradient(circle at center, rgba(34, 197, 94, 0.05) 0%, transparent 70%)
         `
       }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 2rem' }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 var(--nav-padding-x)' }}>
         <div className="glass-card grid-auto-responsive" style={{
           display: 'grid',
           gridTemplateColumns: '1.2fr 1fr',
-          gap: '4rem',
+          gap: 'var(--big-card-gap)',
           alignItems: 'center',
-          padding: '4rem',
+          padding: 'var(--big-card-padding)',
           overflow: 'hidden',
           borderColor: 'rgba(255, 255, 255, 0.05)',
           boxShadow: '0 30px 60px rgba(0,0,0,0.5)',
@@ -1455,7 +1450,7 @@ export default function Landing() {
             border: '1px solid rgba(255,255,255,0.08)',
             boxShadow: '0 20px 40px rgba(0,0,0,0.6)',
             width: '100%',
-            height: '460px',
+            height: 'var(--image-box-height)',
             backgroundColor: '#0c0d14'
           }}>
             <img 
@@ -1505,12 +1500,12 @@ export default function Landing() {
       {/* 5.5 GUARANTEE / PITCH SECTION */}
       <section style={{
         width: '100%',
-        padding: '8rem 0',
+        padding: 'var(--section-padding) 0',
         position: 'relative',
         zIndex: 1,
         background: 'radial-gradient(circle at center, rgba(34, 197, 94, 0.15) 0%, rgba(10, 11, 16, 0) 70%)'
       }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 2rem' }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 var(--nav-padding-x)' }}>
         
         <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
           <h2 className="display-md" style={{ marginBottom: '1.5rem', lineHeight: '1.2', fontWeight: 800 }}>
@@ -1523,10 +1518,10 @@ export default function Landing() {
         </div>
 
         <div className="glass-card grid-auto-responsive" style={{
-          padding: '4rem 3rem',
+          padding: 'var(--big-card-padding)',
           display: 'grid',
           gridTemplateColumns: '1.2fr 1fr',
-          gap: '4rem',
+          gap: 'var(--big-card-gap)',
           alignItems: 'center',
           borderColor: 'rgba(34, 197, 94, 0.25)',
           boxShadow: '0 20px 50px rgba(34, 197, 94, 0.1)',
@@ -1767,8 +1762,8 @@ export default function Landing() {
       </section>
 
       {/* 6. PRICING SECTION */}
-      <section id="pricing" className="bg-grid-pattern" style={{ width: '100%', padding: '8rem 0', position: 'relative', zIndex: 1 }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 2rem' }}>
+      <section id="pricing" className="bg-grid-pattern" style={{ width: '100%', padding: 'var(--section-padding) 0', position: 'relative', zIndex: 1 }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 var(--nav-padding-x)' }}>
           <div className="reveal-fade-up" style={{ textAlign: 'center', marginBottom: '2rem' }}>
             <h2 className="display-md" style={{ marginBottom: '1rem', fontWeight: 800 }}>
               Deja de pagar comisiones por <span className="text-gradient">cada venta</span>
@@ -1836,7 +1831,7 @@ export default function Landing() {
             </p>
           </div>
 
-          <div className="grid-auto-responsive" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1.5rem', alignItems: 'stretch' }}>
+          <div className="grid-auto-responsive" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1.5rem', alignItems: 'stretch' }}>
             {/* PLAN NORMAL */}
             <div className="pricing-card reveal-fade-up delay-200" style={{
               display: 'flex',
@@ -2105,7 +2100,7 @@ export default function Landing() {
       {/* 7. FAQ SECTION */}
       <section style={{
         backgroundColor: 'var(--surface-container-low)',
-        padding: '6rem 2rem',
+        padding: 'var(--section-padding) var(--nav-padding-x)',
         borderTop: '1px solid rgba(255,255,255,0.03)',
         borderBottom: '1px solid rgba(255,255,255,0.03)'
       }}>
@@ -2187,7 +2182,7 @@ export default function Landing() {
       {/* 8. SECCIÓN DE CONTACTO */}
       <section id="contacto" style={{
         backgroundColor: 'transparent',
-        padding: '6rem 2rem',
+        padding: 'var(--section-padding) var(--nav-padding-x)',
         borderTop: '1px solid rgba(255,255,255,0.03)',
         position: 'relative',
         zIndex: 1
@@ -2214,9 +2209,9 @@ export default function Landing() {
             </p>
           </div>
 
-          <div className="grid-auto-responsive" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '3rem', alignItems: 'start' }}>
+          <div className="grid-auto-responsive" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 'var(--big-card-gap)', alignItems: 'start' }}>
             {/* Datos de Contacto */}
-            <div className="glass-card" style={{ padding: '2.5rem', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+            <div className="glass-card" style={{ padding: 'var(--glass-card-padding)', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
               <h3 style={{ color: '#fff', fontSize: '1.35rem', fontWeight: 800, margin: 0 }}>Información de Contacto</h3>
               
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
@@ -2245,7 +2240,7 @@ export default function Landing() {
             </div>
 
             {/* Formulario de Contacto */}
-            <div className="glass-card" style={{ padding: '2.5rem' }}>
+            <div className="glass-card" style={{ padding: 'var(--glass-card-padding)' }}>
               {contactSuccess ? (
                 <div style={{ textAlign: 'center', padding: '2rem 0', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
                   <div style={{ width: '60px', height: '60px', borderRadius: '50%', backgroundColor: 'rgba(0, 255, 102, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--emerald-400)', marginBottom: '0.5rem', filter: 'drop-shadow(0 0 8px rgba(0,255,102,0.3))' }}>

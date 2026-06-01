@@ -42,6 +42,23 @@
   --font-family: 'Inter', sans-serif;
   --font-display: 'Outfit', sans-serif;
   --font-accent: 'Space Grotesk', sans-serif;
+
+  /* Responsive Design System Tokens */
+  --nav-padding-x: 2rem;
+  --section-padding: 6rem;
+  --hero-gap: 4rem;
+  --glass-card-padding: 2.5rem;
+  --big-card-padding: 4rem;
+  --big-card-gap: 4rem;
+  --pricing-card-padding: 3rem 2.5rem;
+  --image-box-height: 460px;
+
+  /* Neon Formula Variables */
+  --neon-gap: 1.5rem;
+  --neon-svg-size: 42px;
+  --neon-font-sign: 2rem;
+  --neon-font-ia: 2.5rem;
+  --neon-font-result: 2rem;
 }
 
 * {
@@ -1001,4 +1018,55 @@ input[type=number] {
   background-color: #16181b !important;
   border-color: rgba(34, 197, 94, 0.2) !important;
   box-shadow: 0 10px 30px rgba(34, 197, 94, 0.05);
+}
+
+/* Responsive Variables Overrides on Mobile */
+@media (max-width: 768px) {
+  :root {
+    --nav-padding-x: 1rem;
+    --section-padding: 3.5rem;
+    --hero-gap: 1.5rem;
+    --glass-card-padding: 1.5rem;
+    --big-card-padding: 1.5rem;
+    --big-card-gap: 2rem;
+    --pricing-card-padding: 2rem 1.25rem;
+    --image-box-height: 260px;
+
+    /* Neon Formula Variables */
+    --neon-gap: 0.75rem;
+    --neon-svg-size: 32px;
+    --neon-font-sign: 1.25rem;
+    --neon-font-ia: 1.75rem;
+    --neon-font-result: 1.35rem;
+  }
+
+  .pricing-card {
+    padding: var(--pricing-card-padding) !important;
+  }
+}
+
+/* Hero Stats Layout Classes */
+.hero-stats-container {
+  display: flex;
+  gap: 24px;
+  margin-top: 2.5rem;
+  border-top: 1px solid rgba(255,255,255,0.05);
+  padding-top: 2rem;
+}
+.hero-stats-divider {
+  border-left: 1px solid rgba(255,255,255,0.08);
+}
+@media (max-width: 768px) {
+  .hero-stats-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    align-items: center;
+    text-align: center;
+  }
+  .hero-stats-divider {
+    display: none;
+  }
 }
