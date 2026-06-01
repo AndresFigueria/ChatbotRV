@@ -70,6 +70,14 @@ export default function WhatsApp() {
   useEffect(() => {
     if (activeChatId) {
       fetchMessages(activeChatId);
+      
+      const clearUnread = async () => {
+        await supabase
+          .from('whatsapp_chats')
+          .update({ unread_count: 0 })
+          .eq('id', activeChatId);
+      };
+      clearUnread();
 
       // Usar Supabase Realtime para capturar nuevos mensajes al vuelo!
       const msgSubscription = supabase

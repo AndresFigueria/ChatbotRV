@@ -1,4 +1,4 @@
-import { NavLink } from 'react-router-dom';
+import { NavLink, useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
 
@@ -33,9 +33,37 @@ const navGroups = [
 ];
 
 export default function Sidebar({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) {
+  const location = useLocation();
   const [panelName, setPanelName] = useState('Robotina Central');
   const [userName] = useState('Senior Admin');
   const [isConnected, setIsConnected] = useState(true);
+  const [totalUnread, setTotalUnread] = useState(0);
+
+  const fetchUnreadCount = async () => {
+    const { data } = await supabase
+      .from('whatsapp_chats')
+      .select('unread_count')
+      .gt('unread_count', 0);
+    if (data) {
+      const sum = data.reduce((acc, curr) => acc + (curr.unread_count || 0), 0);
+      setTotalUnread(sum);
+    } else {
+      setTotalUnread(0);
+    }
+  };
+
+  useEffect(() => {
+    fetchUnreadCount();
+    const channel = supabase.channel('sidebar_unread_chats')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'whatsapp_chats' }, () => {
+        fetchUnreadCount();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
 
   useEffect(() => {
     const loadSettings = () => {
@@ -100,17 +128,33 @@ export default function Sidebar({ isOpen, onClose }: { isOpen: boolean, onClose:
         {navGroups.map((group) => (
           <div key={group.group} className="nav-group">
             <p className="nav-group-title">{group.group}</p>
-            {group.items.map((item) => (
-              <NavLink
-                key={item.path}
-                to={item.path}
-                onClick={() => { if (window.innerWidth <= 768) onClose(); }}
-                className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
-              >
-                <span className="material-symbols-outlined">{item.icon}</span>
-                <span className="nav-label">{item.label}</span>
-              </NavLink>
-            ))}
+            {group.items.map((item) => {
+              const isAtWhatsApp = location.pathname === '/whatsapp';
+              return (
+                <NavLink
+                  key={item.path}
+                  to={item.path}
+                  onClick={() => { if (window.innerWidth <= 768) onClose(); }}
+                  className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
+                  style={{ display: 'flex', alignItems: 'center', width: '100%' }}
+                >
+                  <span className="material-symbols-outlined">{item.icon}</span>
+                  <span className="nav-label">{item.label}</span>
+                  {item.path === '/whatsapp' && totalUnread > 0 && !isAtWhatsApp && (
+                    <span className="unread-dot" style={{
+                      width: '8px',
+                      height: '8px',
+                      borderRadius: '50%',
+                      backgroundColor: 'var(--emerald-400)',
+                      boxShadow: '0 0 10px var(--emerald-400)',
+                      marginLeft: 'auto',
+                      marginRight: '0.5rem',
+                      animation: 'pulse 1.5s infinite'
+                    }}></span>
+                  )}
+                </NavLink>
+              );
+            })}
           </div>
         ))}
       </nav>

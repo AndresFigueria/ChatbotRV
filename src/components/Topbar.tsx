@@ -5,10 +5,11 @@ import { useNavigate } from 'react-router-dom';
 export default function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
   const navigate = useNavigate();
   const [pendingOrders, setPendingOrders] = useState<any[]>([]);
+  const [unreadChats, setUnreadChats] = useState<any[]>([]);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [hasViewedNotifications, setHasViewedNotifications] = useState(false);
   const [prevCount, setPrevCount] = useState(0);
-  const [dismissedOrderIds, setDismissedOrderIds] = useState<string[]>([]);
+  const [dismissedNotificationIds, setDismissedNotificationIds] = useState<string[]>([]);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Close dropdown when clicking outside
@@ -52,33 +53,77 @@ export default function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
         .order('created_at', { ascending: false });
       if (data) setPendingOrders(data);
     };
+
+    const fetchUnreadChats = async () => {
+      const { data } = await supabase
+        .from('whatsapp_chats')
+        .select('*')
+        .gt('unread_count', 0)
+        .order('last_message_at', { ascending: false });
+      if (data) setUnreadChats(data);
+    };
     
     fetchPending();
+    fetchUnreadChats();
 
-    const channel = supabase.channel('topbar-notifications')
+    const channelOrders = supabase.channel('topbar-notifications-orders')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, _payload => {
         fetchPending();
       })
       .subscribe();
 
+    const channelChats = supabase.channel('topbar-notifications-chats')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'whatsapp_chats' }, _payload => {
+        fetchUnreadChats();
+      })
+      .subscribe();
+
     return () => {
-      supabase.removeChannel(channel);
+      supabase.removeChannel(channelOrders);
+      supabase.removeChannel(channelChats);
     };
   }, []);
 
+  const notificationsList = [
+    ...pendingOrders.map(o => ({
+      id: `order-${o.id}`,
+      originalId: o.id,
+      type: 'order',
+      title: `Pedido Pendiente: ${o.order_code}`,
+      desc: `Pedido por $${Number(o.total_amount).toFixed(2)}`,
+      time: o.created_at,
+      icon: 'shopping_cart_checkout',
+      color: 'var(--primary)',
+      link: '/orders',
+      count: 0
+    })),
+    ...unreadChats.map(c => ({
+      id: `chat-${c.id}`,
+      originalId: c.id,
+      type: 'chat',
+      title: `Mensaje de ${c.contact_name || 'Cliente'}`,
+      desc: c.last_message || 'Mensaje de WhatsApp',
+      time: c.last_message_at,
+      icon: 'forum',
+      color: 'var(--emerald-400)',
+      link: '/whatsapp',
+      count: c.unread_count
+    }))
+  ].sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime());
+
+  const visibleNotifications = notificationsList.filter(n => !dismissedNotificationIds.includes(n.id));
+
   useEffect(() => {
-    const visibleCount = pendingOrders.filter(o => !dismissedOrderIds.includes(o.id)).length;
+    const visibleCount = visibleNotifications.length;
     if (visibleCount > prevCount) {
       setHasViewedNotifications(false);
     }
     setPrevCount(visibleCount);
-  }, [pendingOrders.length, dismissedOrderIds, prevCount]);
-
-  const visibleOrders = pendingOrders.filter(o => !dismissedOrderIds.includes(o.id));
+  }, [pendingOrders.length, unreadChats.length, dismissedNotificationIds.length, prevCount]);
 
   const handleClearAll = () => {
-    const allIds = pendingOrders.map(o => o.id);
-    setDismissedOrderIds(prev => [...new Set([...prev, ...allIds])]);
+    const allIds = notificationsList.map(n => n.id);
+    setDismissedNotificationIds(prev => [...new Set([...prev, ...allIds])]);
     setHasViewedNotifications(true);
   };
 
@@ -198,7 +243,7 @@ export default function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
             title="Centro de Alertas"
           >
             <span className="material-symbols-outlined">notifications</span>
-            {visibleOrders.length > 0 && (
+            {visibleNotifications.length > 0 && (
               <span style={{ 
                 position: 'absolute', top: '0', right: '0', 
                 backgroundColor: 'var(--error)', color: '#fff', 
@@ -210,7 +255,7 @@ export default function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
                 boxShadow: '0 0 10px rgba(239, 68, 68, 0.5)',
                 transition: 'all 0.2s ease'
               }}>
-                {!hasViewedNotifications && visibleOrders.length}
+                {!hasViewedNotifications && visibleNotifications.length}
               </span>
             )}
           </button>
@@ -226,8 +271,8 @@ export default function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem', alignItems: 'center' }}>
                 <h4 style={{ fontWeight: 600, margin: 0, color: 'var(--on-surface)' }}>Alertas Logísticas</h4>
                 <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                  {visibleOrders.length > 0 && <span style={{ fontSize: '0.7rem', color: 'var(--error)', fontWeight: 'bold', padding: '2px 8px', borderRadius: '1rem', backgroundColor: 'rgba(239, 68, 68, 0.1)' }}>{visibleOrders.length} Por Aceptar</span>}
-                  {visibleOrders.length > 0 && (
+                  {visibleNotifications.length > 0 && <span style={{ fontSize: '0.7rem', color: 'var(--error)', fontWeight: 'bold', padding: '2px 8px', borderRadius: '1rem', backgroundColor: 'rgba(239, 68, 68, 0.1)' }}>{visibleNotifications.length} Por Aceptar</span>}
+                  {visibleNotifications.length > 0 && (
                     <button onClick={handleClearAll} style={{ background: 'none', border: 'none', color: 'var(--secondary)', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: '4px', borderRadius: '4px' }} title="Borrar todas las alertas">
                       <span className="material-symbols-outlined" style={{ fontSize: '1rem' }}>clear_all</span>
                     </button>
@@ -235,36 +280,60 @@ export default function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
                 </div>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxHeight: '300px', overflowY: 'auto', paddingRight: '0.2rem' }}>
-                {visibleOrders.length === 0 ? (
+                {visibleNotifications.length === 0 ? (
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '2rem 1rem', color: 'var(--secondary)', gap: '0.5rem' }}>
                     <span className="material-symbols-outlined" style={{ fontSize: '2rem', opacity: 0.5 }}>check_circle</span>
-                    <p style={{ fontSize: '0.85rem', textAlign: 'center', margin: 0 }}>Cero pedidos en alerta.</p>
+                    <p style={{ fontSize: '0.85rem', textAlign: 'center', margin: 0 }}>Cero alertas pendientes.</p>
                   </div>
                 ) : (
-                  visibleOrders.map(o => (
+                  visibleNotifications.map(n => (
                     <div 
-                      key={o.id}
-                      onClick={() => {
+                      key={n.id}
+                      onClick={async () => {
                         setIsDropdownOpen(false);
-                        navigate('/orders');
+                        if (n.type === 'chat') {
+                          await supabase.from('whatsapp_chats').update({ unread_count: 0 }).eq('id', n.originalId);
+                        }
+                        navigate(n.link);
                       }}
                       style={{ 
                         padding: '0.75rem', borderRadius: '0.5rem', 
                         backgroundColor: 'var(--surface-container)', 
                         border: '1px solid var(--surface-container-highest)',
-                        cursor: 'pointer', display: 'flex', gap: '0.75rem', alignItems: 'start', transition: 'background 0.2s' 
+                        cursor: 'pointer', display: 'flex', gap: '0.75rem', alignItems: 'start', transition: 'background 0.2s',
+                        position: 'relative'
                       }}
                       onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--surface-container-high)'}
                       onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--surface-container)'}
                     >
-                      <div style={{ color: 'var(--primary)', marginTop: '2px' }}>
-                        <span className="material-symbols-outlined" style={{ fontSize: '1.25rem' }}>shopping_cart_checkout</span>
+                      <div style={{ color: n.color, marginTop: '2px' }}>
+                        <span className="material-symbols-outlined" style={{ fontSize: '1.25rem' }}>{n.icon}</span>
                       </div>
-                      <div className="flex flex-col flex-1">
-                        <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--on-surface)' }}>Pedido de Bot {o.order_code}</span>
-                        <span style={{ fontSize: '0.7rem', color: 'var(--secondary)' }}>Monto exacto: ${Number(o.total_amount).toFixed(2)}</span>
+                      <div className="flex flex-col flex-1" style={{ minWidth: 0 }}>
+                        <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--on-surface)', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>{n.title}</span>
+                        <span style={{ fontSize: '0.7rem', color: 'var(--secondary)', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>{n.desc}</span>
                       </div>
-                      <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: 'var(--error)', marginTop: '6px' }}></div>
+                      
+                      {n.count > 0 ? (
+                        <div style={{ 
+                          backgroundColor: 'var(--emerald-400)', 
+                          color: '#000', 
+                          fontSize: '0.65rem', 
+                          fontWeight: 'bold', 
+                          padding: '2px 6px', 
+                          borderRadius: '10px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          marginTop: '2px',
+                          minWidth: '18px',
+                          height: '18px'
+                        }}>
+                          {n.count}
+                        </div>
+                      ) : (
+                        <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: 'var(--error)', marginTop: '6px' }}></div>
+                      )}
                     </div>
                   ))
                 )}
