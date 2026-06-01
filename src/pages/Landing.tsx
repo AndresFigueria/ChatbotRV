@@ -2573,6 +2573,8 @@ export default function Landing() {
                     <label style={{ color: '#fff', fontSize: '0.8rem', fontWeight: 600 }}>Nombre Completo</label>
                     <input 
                       type="text" 
+                      name="name"
+                      autoComplete="name"
                       value={bookingName}
                       onChange={(e) => setBookingName(e.target.value)}
                       placeholder="Ej. Juan Pérez" 
@@ -2596,6 +2598,8 @@ export default function Landing() {
                     <label style={{ color: '#fff', fontSize: '0.8rem', fontWeight: 600 }}>WhatsApp</label>
                     <input 
                       type="tel" 
+                      name="tel"
+                      autoComplete="tel"
                       value={bookingPhone}
                       onChange={(e) => setBookingPhone(e.target.value)}
                       placeholder="Ej. +34 600 000 000" 
