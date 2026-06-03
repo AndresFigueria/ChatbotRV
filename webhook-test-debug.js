@@ -1,7 +1,7 @@
 import http from 'http';
 import { URL } from 'url';
 
-const VERIFY_TOKEN = 'maitre-silencioso-token-123';
+const VERIFY_TOKEN = 'robotina-central-token-123';
 
 const server = http.createServer((req, res) => {
   const reqUrl = new URL(req.url, `http://${req.headers.host}`);

@@ -2,7 +2,7 @@
 
 ![Banner del Proyecto](https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&q=80&w=1200&h=300)
 
-Bienvenido al sistema **Maître Silencioso**, un panel administrativo de nivel corporativo (Enterprise SaaS) diseñado específicamente para controlar de principio a fin la logística, ventas y marketing de un restaurante o cadena alimenticia que opera con pedidos 100% automatizados por un Bot de Inteligencia Artificial (WhatsApp/Meta Cloud).
+Bienvenido al sistema **RobotinaCentral**, un panel administrativo de nivel corporativo (Enterprise SaaS) diseñado específicamente para controlar de principio a fin la logística, ventas y marketing de un restaurante o cadena alimenticia que opera con pedidos 100% automatizados por un Bot de Inteligencia Artificial (WhatsApp/Meta Cloud).
 
 ---
 

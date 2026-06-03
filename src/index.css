@@ -170,7 +170,7 @@ button {
 }
 
 .sidebar-header {
-  padding: 1.5rem;
+  padding: 0.5rem 1.5rem 2.5rem 1.5rem; /* Quitamos arriba y agregamos abajo para mover la línea sin cambiar la altura total */
   border-bottom: 1px solid var(--surface-container-highest);
 }
 
@@ -216,15 +216,17 @@ button {
 .sidebar-nav {
   flex: 1;
   overflow-y: auto;
-  padding: 1rem 0.75rem;
+  padding: 0.25rem 0.75rem 0 0.75rem; /* Súper reducido */
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 0.5rem; /* Casi sin separación entre grupos */
+  scrollbar-color: rgba(255, 90, 31, 0.5) transparent;
+  scrollbar-width: thin;
 }
 
 /* Custom Scrollbar for Sidebar */
 .sidebar-nav::-webkit-scrollbar {
-  width: 5px;
+  width: 3px; /* Más sutil */
 }
 
 .sidebar-nav::-webkit-scrollbar-track {
@@ -232,18 +234,18 @@ button {
 }
 
 .sidebar-nav::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 90, 31, 0.2); /* Menos chillón */
   border-radius: 10px;
 }
 
 .sidebar-nav::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 90, 31, 0.4);
+  background: rgba(255, 90, 31, 0.5);
 }
 
 .nav-group {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 0px; /* Cero separación extra */
 }
 
 .nav-group-title {
@@ -252,18 +254,18 @@ button {
   color: var(--secondary);
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  padding: 0 0.75rem 0.5rem;
+  padding: 0 0.75rem 0.2rem;
 }
 
 .nav-link {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 0.625rem 0.75rem;
+  gap: 8px; /* Ícono y texto más juntos */
+  padding: 0.35rem 0.75rem; /* Compresión extrema vertical por botón */
   border-radius: 8px;
   color: var(--secondary);
   text-decoration: none;
-  font-size: 0.875rem;
+  font-size: 0.8rem; /* Letra un poquitín más pequeña */
   font-weight: 500;
   transition: all 0.2s ease;
 }
@@ -283,7 +285,7 @@ button {
 }
 
 .sidebar-footer {
-  padding: 1rem;
+  padding: 1rem 1rem 0 1rem; /* Sin espacio abajo para pegar la tarjeta al fondo */
   border-top: 1px solid var(--surface-container-highest);
 }
 
@@ -365,7 +367,7 @@ button {
 }
 
 .card:hover {
-  border-color: rgba(255, 90, 31, 0.2); /* Subtle primary hint */
+  border-color: var(--primary); /* Hover naranja brillante */
 }
 
 .metrics-grid {
@@ -466,6 +468,10 @@ button {
 .status-ready { background-color: var(--tertiary); color: var(--background); }
 .status-delivered { background-color: var(--surface-container-highest); color: var(--secondary); }
 
+/* 
+=====================================================
+OLD LIGHT MODE (Comentado por si quieres volver atrás)
+=====================================================
 html.light-mode {
   --background: #F8FAFC;
   --surface: #F8FAFC;
@@ -476,20 +482,68 @@ html.light-mode {
   --surface-container-highest: #E2E8F0;
   --surface-bright: #FFFFFF;
   --surface-variant: #E2E8F0;
-  
   --surface-blur: rgba(255, 255, 255, 0.85);
   --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -2px rgba(0, 0, 0, 0.04);
-  --card-border: 1px solid rgba(0, 0, 0, 0.25); /* Bordes más oscuros y definidos en modo claro */
+  --card-border: 1px solid rgba(0, 0, 0, 0.25);
   --table-border: 1px solid rgba(0, 0, 0, 0.25);
+  --primary: #FF5A1F;
+  --primary-container: #FFF0EB;
+  --on-primary: #FFFFFF;
+  --on-primary-container: #C23800;
+  --secondary: #64748B;
+  --on-surface: #0F172A;
+  --on-surface-variant: #334155;
+  --tertiary: #F59E0B;
+  --tertiary-container: #FEF3C7;
+  --error: #EF4444;
+  --error-dim: #DC2626;
+  --error-container: #FEE2E2;
+  --outline: #94A3B8;
+  --outline-variant: #64748B;
+  --emerald-400: #10B981;
+}
+*/
+
+/* 
+=====================================================
+NEW PREMIUM LIGHT MODE (Robotina Central) - BORDES GRUESOS
+=====================================================
+*/
+html.light-mode {
+  /* Fondo general muy suave */
+  --background: #FAFAFA;
   
+  /* Tarjetas blancas puras */
+  --surface: #FFFFFF;
+  --surface-container-lowest: #FFFFFF;
+  --surface-container-low: #FFFFFF;
+  --surface-container: #FFFFFF;
+  
+  /* Estados interactivos */
+  --surface-container-high: #F4F4F5;
+  --surface-container-highest: #E4E4E7;
+  --surface-bright: #FFFFFF;
+  --surface-variant: #F4F4F5;
+  
+  --surface-blur: rgba(255, 255, 255, 0.90);
+  
+  /* Sombras sutiles */
+  --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -2px rgba(0, 0, 0, 0.04);
+  
+  /* Bordes MÁS GRUESOS Y VISIBLES (a petición del usuario) */
+  --card-border: 2px solid rgba(0, 0, 0, 0.4); 
+  --table-border: 2px solid rgba(0, 0, 0, 0.4);
+  
+  /* El color de marca */
   --primary: #FF5A1F;
   --primary-container: #FFF0EB;
   --on-primary: #FFFFFF;
   --on-primary-container: #C23800;
   
-  --secondary: #64748B;
-  --on-surface: #0F172A;
-  --on-surface-variant: #334155;
+  /* Jerarquía de textos */
+  --secondary: #475569; /* Slate 600 - más oscuro para mejor contraste */
+  --on-surface: #0F172A; /* Slate 900 */
+  --on-surface-variant: #334155; /* Slate 700 */
   
   --tertiary: #F59E0B;
   --tertiary-container: #FEF3C7;
@@ -498,8 +552,9 @@ html.light-mode {
   --error-dim: #DC2626;
   --error-container: #FEE2E2;
   
-  --outline: #94A3B8; /* Más oscuro para inputs */
-  --outline-variant: #64748B;
+  /* Bordes de inputs MÁS GRUESOS */
+  --outline: rgba(0, 0, 0, 0.4); 
+  --outline-variant: rgba(0, 0, 0, 0.3); 
   
   --emerald-400: #10B981;
 }

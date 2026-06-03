@@ -1,4 +1,4 @@
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
 
@@ -33,7 +33,6 @@ const navGroups = [
 ];
 
 export default function Sidebar({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) {
-  const location = useLocation();
   const [panelName, setPanelName] = useState('Robotina Central');
   const [userName] = useState('Senior Admin');
   const [isConnected, setIsConnected] = useState(true);
@@ -129,7 +128,6 @@ export default function Sidebar({ isOpen, onClose }: { isOpen: boolean, onClose:
           <div key={group.group} className="nav-group">
             <p className="nav-group-title">{group.group}</p>
             {group.items.map((item) => {
-              const isAtWhatsApp = location.pathname === '/whatsapp';
               return (
                 <NavLink
                   key={item.path}
@@ -140,7 +138,7 @@ export default function Sidebar({ isOpen, onClose }: { isOpen: boolean, onClose:
                 >
                   <span className="material-symbols-outlined">{item.icon}</span>
                   <span className="nav-label">{item.label}</span>
-                  {item.path === '/whatsapp' && totalUnread > 0 && !isAtWhatsApp && (
+                  {item.path === '/whatsapp' && totalUnread > 0 && (
                     <span className="unread-dot" style={{
                       width: '8px',
                       height: '8px',

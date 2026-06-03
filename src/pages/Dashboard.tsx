@@ -56,18 +56,18 @@ export default function Dashboard() {
     setLoading(false);
   };
 
-  if (loading) return <div className="p-8">Sincronizando Dashboard...</div>;
+  if (loading) return <div style={{ padding: '2rem' }}>Sincronizando Dashboard...</div>;
 
   return (
-    <div className="p-8">
-      <header className="page-header mb-8">
+    <div style={{ padding: '0.5rem 2.5rem' }}>
+      <header className="page-header mb-4">
         <div>
           <h2 className="display-md">Robotina Business Control 🤖</h2>
           <p className="body-md" style={{ color: 'var(--secondary)' }}>Panel de control operativo y estratégico.</p>
         </div>
       </header>
 
-      <div className="metrics-grid mb-8">
+      <div className="metrics-grid mb-4">
         <div className="card">
           <p className="label-sm">Facturación Total</p>
           <h3 className="display-md" style={{ color: 'var(--primary)', marginTop: '0.5rem' }}>${stats.revenue.toLocaleString()}</h3>
@@ -87,9 +87,9 @@ export default function Dashboard() {
       </div>
 
       <div className="dashboard-grid-main">
-        <div className="card">
-          <h3 className="title-md mb-6">Ingresos (Últimos 7 Días)</h3>
-          <div style={{ width: '100%', height: '240px' }}>
+        <div className="card" style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column' }}>
+          <h3 className="title-md mb-3">Ingresos (Últimos 7 Días)</h3>
+          <div style={{ width: '100%', flex: 1, minHeight: '180px' }}>
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={chartData7D} margin={{ top: 10, right: 0, left: -20, bottom: 0 }}>
                 <defs>

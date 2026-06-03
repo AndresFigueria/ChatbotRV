@@ -93,6 +93,9 @@ export default function WhatsApp() {
             setMessages(prev => [...prev, payload.new as Message]);
             setIsTyping(false);
           }, 800); // Pequeño delay para que se vea el "escribiendo"
+          
+          // Clear unread count immediately since the user is actively viewing this chat
+          clearUnread();
         })
         .subscribe();
 
@@ -155,8 +158,8 @@ export default function WhatsApp() {
   };
 
   return (
-    <div className="page-container" style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
-      <header className="page-header">
+    <div className="page-container" style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 4rem)', overflow: 'hidden', padding: '1.5rem 2rem', boxSizing: 'border-box' }}>
+      <header className="page-header" style={{ marginBottom: '1rem' }}>
         <div>
           <h2 className="display-md">Atención WhatsApp 📱</h2>
           <p className="body-md" style={{ color: 'var(--secondary)', marginTop: '0.25rem' }}>Centro de mensajes centralizado. Actualizado mágicamente en tiempo real.</p>
@@ -187,23 +190,30 @@ export default function WhatsApp() {
                 }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                  <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{chat.contact_name}</div>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                  <div style={{ fontWeight: chat.unread_count > 0 ? 800 : 600, color: 'var(--text-primary)' }}>{chat.contact_name}</div>
+                  <div style={{ fontSize: '0.75rem', color: chat.unread_count > 0 ? 'var(--primary)' : 'var(--text-secondary)' }}>
                     {new Date(chat.last_message_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
                   </div>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>+{chat.phone_number}</div>
-                  <span style={{ 
-                    fontSize: '0.6rem', 
-                    fontWeight: 800, 
-                    padding: '2px 6px', 
-                    borderRadius: '10px',
-                    backgroundColor: chat.is_bot_active ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)',
-                    color: chat.is_bot_active ? '#10b981' : '#ef4444'
-                  }}>
-                    {chat.is_bot_active ? 'BOT' : 'HUMANO'}
-                  </span>
+                  <div style={{ fontSize: '0.8rem', color: chat.unread_count > 0 ? 'var(--text-primary)' : 'var(--text-secondary)', fontWeight: chat.unread_count > 0 ? 600 : 400 }}>+{chat.phone_number}</div>
+                  <div style={{display: 'flex', gap: '6px', alignItems: 'center'}}>
+                    {chat.unread_count > 0 && (
+                      <span style={{ backgroundColor: 'var(--primary)', color: '#fff', fontSize: '0.65rem', fontWeight: 800, padding: '2px 8px', borderRadius: '12px' }}>
+                        {chat.unread_count}
+                      </span>
+                    )}
+                    <span style={{ 
+                      fontSize: '0.6rem', 
+                      fontWeight: 800, 
+                      padding: '2px 6px', 
+                      borderRadius: '10px',
+                      backgroundColor: chat.is_bot_active ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+                      color: chat.is_bot_active ? '#10b981' : '#ef4444'
+                    }}>
+                      {chat.is_bot_active ? 'BOT' : 'HUMANO'}
+                    </span>
+                  </div>
                 </div>
               </div>
             ))}
@@ -245,7 +255,7 @@ export default function WhatsApp() {
               </div>
               
               {/* Burbujas de mensajes */}
-              <div id="messages-container" style={{ flex: 1, overflowY: 'auto', padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '12px', maxHeight: 'calc(100vh - 250px)', backgroundColor: 'var(--surface-container-highest)' }}>
+              <div id="messages-container" style={{ flex: 1, overflowY: 'auto', padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '12px', minHeight: 0, backgroundColor: 'var(--surface-container-highest)' }}>
                 {messages.length === 0 ? (
                     <div style={{ textAlign: 'center', marginTop: '2rem', color: 'rgba(255,255,255,0.3)' }}>Cargando mensajes...</div>
                 ) : messages.map((msg, idx) => {
@@ -289,11 +299,11 @@ export default function WhatsApp() {
               {/* Input para responder */}
               <div style={{ padding: '1rem', backgroundColor: 'var(--surface-container)', borderTop: '1px solid var(--card-border)' }}>
                 <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                  <div style={{display: 'flex', flex: 1, backgroundColor: 'var(--surface-container-low)', borderRadius: '8px', border: '1px solid var(--card-border)'}}>
+                  <div style={{display: 'flex', flex: 1, backgroundColor: 'var(--surface-container-low)', borderRadius: '8px', border: '2px solid var(--outline)'}}>
                       <input 
                         type="text" 
                         placeholder="Escribe un mensaje al cliente..."
-                        style={{ flex: 1, backgroundColor: 'transparent', border: 'none', color: 'var(--on-surface)', padding: '12px 16px', outline: 'none' }}
+                        style={{ flex: 1, backgroundColor: 'transparent', border: 'none', color: 'var(--on-surface)', padding: '8px 12px', fontSize: '0.85rem', outline: 'none' }}
                         value={replyText}
                         onChange={(e) => setReplyText(e.target.value)}
                         onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}

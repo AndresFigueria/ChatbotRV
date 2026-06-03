@@ -1,9 +1,9 @@
 # Design System Specification: Operational Elegance
 
 ## 1. Overview & Creative North Star
-**Creative North Star: The Silent Maître d’**
+**Creative North Star: RobotinaCentral**
 
-In the chaotic environment of high-volume restaurant operations, this design system acts as the "Silent Maître d’"—sophisticated, invisible until needed, and impeccably organized. We are moving away from the "Dashboard-as-a-Grid" trope. Instead, we embrace **Layered Intentionality**. 
+In the chaotic environment of high-volume restaurant operations, this design system acts as the core of "RobotinaCentral"—sophisticated, invisible until needed, and impeccably organized. We are moving away from the "Dashboard-as-a-Grid" trope. Instead, we embrace **Layered Intentionality**. 
 
 By utilizing intentional asymmetry, overlapping surfaces, and extreme tonal depth, we create a tool that feels less like software and more like a premium physical workspace. We break the "template" look by prioritizing breathing room (whitespace) over information density, ensuring that the user’s focus is always on the most critical operational task.
 

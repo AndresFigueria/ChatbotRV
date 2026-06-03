@@ -1,5 +1,6 @@
 import { Routes, Route } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { supabase } from './supabaseClient';
 import Sidebar from './components/Sidebar';
 import Topbar from './components/Topbar';
 import Dashboard from './pages/Dashboard';
@@ -22,13 +23,26 @@ import NotificationToast from './components/NotificationToast';
 import Landing from './pages/Landing';
 import Terms from './pages/Terms';
 import Privacy from './pages/Privacy';
-
+import Agendar from './pages/Agendar';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
     const saved = localStorage.getItem('isAuthenticated');
     return saved === 'true';
   });
+
+  const [isReady, setIsReady] = useState(false);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      // Force refresh JWT session to ensure RLS app_metadata claims are up-to-date
+      supabase.auth.refreshSession().finally(() => {
+        setIsReady(true);
+      });
+    } else {
+      setIsReady(true);
+    }
+  }, [isAuthenticated]);
 
   const handleLogin = () => {
     localStorage.setItem('isAuthenticated', 'true');
@@ -78,6 +92,14 @@ function App() {
       </div>
     );
   };
+  if (!isReady) {
+    return (
+      <div style={{ display: 'flex', height: '100vh', width: '100vw', alignItems: 'center', justifyContent: 'center', backgroundColor: 'var(--background)' }}>
+        <div style={{ width: '40px', height: '40px', borderRadius: '50%', border: '3px solid rgba(255, 90, 31, 0.2)', borderTopColor: 'var(--primary)', animation: 'spin 1s linear infinite' }}></div>
+        <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
+      </div>
+    );
+  }
 
   return (
     <Routes>
@@ -87,6 +109,7 @@ function App() {
       <Route path="/onboarding" element={isAuthenticated ? <Onboarding onComplete={() => {}} /> : <Login onLogin={handleLogin} />} />
       <Route path="/terms" element={<Terms />} />
       <Route path="/privacy" element={<Privacy />} />
+      <Route path="/agendar" element={<Agendar />} />
       <Route path="/*" element={<MainLayout />} />
     </Routes>
   );
