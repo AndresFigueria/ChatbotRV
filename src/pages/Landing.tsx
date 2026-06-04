@@ -75,15 +75,15 @@ export default function Landing() {
       console.error('Error de red al guardar lead:', err);
     }
 
-    // Pasar al paso de agendamiento
-    setBookingStep(1);
+    // Cerrar modal
+    setIsBookingOpen(false);
+    
+    // Redirigir a la página de agendamiento
+    window.location.href = `/agendar?name=${encodeURIComponent(bookingName)}&phone=${encodeURIComponent(bookingPhone)}`;
   };
 
   const handleConfirmBooking = () => {
-    // Abrir Google Calendar en otra pestaña
-    window.open('https://calendar.app.google/bMz6yssC1LsmjMQHA', '_blank');
-    
-    // Cerrar modal y resetear estados
+    window.location.href = `/agendar?name=${encodeURIComponent(bookingName)}&phone=${encodeURIComponent(bookingPhone)}`;
     setIsBookingOpen(false);
     setBookingStep(0);
     setBookingName('');
