@@ -23,10 +23,10 @@ export default function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Search state
-  const [globalSearch, setGlobalSearch] = useState('');
-  const [searchResults, setSearchResults] = useState<{type: string, id: string, label: string, desc: string, path: string}[]>([]);
-  const [isSearching, setIsSearching] = useState(false);
+  // Search state (unused, commented out to pass build)
+  // const [globalSearch, setGlobalSearch] = useState('');
+  // const [searchResults, setSearchResults] = useState<{type: string, id: string, label: string, desc: string, path: string}[]>([]);
+  // const [isSearching, setIsSearching] = useState(false);
 
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const savedMode = localStorage.getItem('theme-mode');
@@ -127,7 +127,7 @@ export default function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
     setHasViewedNotifications(true);
   };
 
-  // Global Search Debounce
+  /* Global Search Debounce - Temporarily disabled to fix build
   useEffect(() => {
     const timer = setTimeout(async () => {
       if (globalSearch.trim().length < 2) {
@@ -159,6 +159,7 @@ export default function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
     
     return () => clearTimeout(timer);
   }, [globalSearch]);
+  */
 
   const toggleTheme = () => {
     setIsDarkMode(prev => !prev);
