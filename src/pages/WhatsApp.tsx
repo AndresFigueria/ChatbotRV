@@ -166,7 +166,7 @@ export default function WhatsApp() {
         </div>
       </header>
 
-      <div className="chat-layout" style={{ display: 'flex', flex: 1, gap: '1rem', minHeight: 0, marginTop: '1rem' }}>
+      <div className="chat-layout" style={{ display: 'flex', flex: 1, gap: '1.5rem', minHeight: 0, marginTop: '1rem', maxWidth: '1200px', margin: '1rem auto 0 auto', width: '100%' }}>
         {/* Panel Izquierdo: Lista de Chats */}
         <div className="chat-sidebar" style={{ minWidth: '300px', backgroundColor: 'var(--surface-container)', borderRadius: '12px', display: 'flex', flexDirection: 'column', border: '1px solid var(--card-border)', overflow: 'hidden' }}>
           <div style={{ padding: '1rem', borderBottom: '1px solid var(--border-color)', fontWeight: 600, display: 'flex', gap: '8px', alignItems:'center' }}>
@@ -263,18 +263,19 @@ export default function WhatsApp() {
                   return (
                     <div key={msg.id || idx} style={{
                       alignSelf: isInbound ? 'flex-start' : 'flex-end',
-                      width: 'max-content',
-                      maxWidth: '75%',
+                      width: 'fit-content',
+                      maxWidth: '55%',
                     }} className="chat-bubble-anim">
                       <div style={{
                           backgroundColor: isInbound ? '#005c4b' : 'var(--primary)', 
                           color: '#ffffff',
-                          padding: '12px 16px',
-                          borderRadius: '12px',
-                          borderTopLeftRadius: isInbound ? '0' : '12px',
-                          borderTopRightRadius: !isInbound ? '0' : '12px',
+                          padding: '14px 18px',
+                          borderRadius: '16px',
+                          borderTopLeftRadius: isInbound ? '0' : '16px',
+                          borderTopRightRadius: !isInbound ? '0' : '16px',
                           boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                          lineHeight: 1.4
+                          lineHeight: 1.5,
+                          fontSize: '0.95rem'
                       }}>
                         <div style={{wordBreak: 'break-word', whiteSpace: 'pre-wrap'}}>{renderFormattedMessage(msg.message_body)}</div>
                         <div style={{fontSize: '0.65rem', textAlign: 'right', marginTop: '6px', opacity: 0.6, letterSpacing: '0.5px', color: '#ffffff'}}>
