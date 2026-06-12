@@ -178,48 +178,7 @@ export default function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
           <span className="material-symbols-outlined">menu</span>
         </button>
         
-        <div className="relative desktop-search" style={{ flex: 1, maxWidth: '400px' }}>
-          <span className="material-symbols-outlined absolute" style={{ left: '0.75rem', top: '50%', transform: 'translateY(-50%)', fontSize: '1.25rem', color: 'var(--secondary)' }}>search</span>
-          <input 
-            type="text" 
-            placeholder="Busca pedidos, clientes..." 
-            className="input-base" 
-            style={{ width: '100%' }}
-            value={globalSearch}
-            onChange={(e) => setGlobalSearch(e.target.value)}
-          />
-
-          {/* Buscador Global Flotante */}
-          {globalSearch.trim().length >= 2 && (
-            <div className="card" style={{ position: 'absolute', top: '120%', left: 0, width: '100%', zIndex: 2000, padding: '0.5rem', maxHeight: '400px', overflowY: 'auto', backgroundColor: 'var(--surface-bright)', border: '1px solid var(--card-border)', boxShadow: '0 10px 30px rgba(0,0,0,0.4)' }}>
-              {isSearching ? (
-                <div style={{ padding: '1.5rem', textAlign: 'center', color: 'var(--secondary)', fontSize: '0.8rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
-                  <span className="material-symbols-outlined" style={{ animation: 'spin 2s linear infinite' }}>sync</span> Buscando en la red...
-                </div>
-              ) : searchResults.length === 0 ? (
-                <div style={{ padding: '1rem', textAlign: 'center', color: 'var(--secondary)', fontSize: '0.8rem' }}>Sin coincidencias para "{globalSearch}"</div>
-              ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                  {searchResults.map((res, i) => (
-                    <div 
-                      key={i} 
-                      onClick={() => { setGlobalSearch(''); navigate(res.path); }} 
-                      style={{ padding: '0.5rem 0.75rem', borderRadius: '6px', cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: '2px', transition: 'background 0.2s' }} 
-                      onMouseEnter={e => e.currentTarget.style.backgroundColor = 'var(--surface-container-high)'} 
-                      onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
-                    >
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ fontWeight: 600, fontSize: '0.85rem', color: 'var(--on-surface)' }}>{res.label}</span>
-                        <span style={{ fontSize: '0.6rem', padding: '2px 6px', borderRadius: '4px', backgroundColor: 'var(--primary-container)', color: 'var(--on-primary-container)', fontWeight: 700, textTransform: 'uppercase' }}>{res.type}</span>
-                      </div>
-                      <span style={{ fontSize: '0.7rem', color: 'var(--secondary)' }}>{res.desc}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-        </div>
+        <div style={{ flex: 1 }}></div>
       </div>
 
       <div className="flex items-center gap-4">

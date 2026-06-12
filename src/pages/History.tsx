@@ -13,10 +13,17 @@ const renderFormattedMessage = (text: string) => {
 };
 
 export default function History() {
-  const [activeTab, setActiveTab] = useState('Boletas Electrónicas');
+  const [activeTab, setActiveTab] = useState('Ventas Procesadas');
   const [searchTerm, setSearchTerm] = useState('');
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [currencySymbol, setCurrencySymbol] = useState('$');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 50;
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, activeTab]);
 
   // Mock de Cierres de Caja
   const dailyClosures = [
@@ -35,6 +42,13 @@ export default function History() {
   useEffect(() => {
     async function fetchHistoricalOrders() {
       setLoading(true);
+      
+      const { data: configData } = await supabase.from('business_config').select('currency').maybeSingle();
+      let symbol = '$';
+      if (configData?.currency === 'PEN') symbol = 'S/';
+      else if (configData?.currency === 'EUR') symbol = '€';
+      setCurrencySymbol(symbol);
+
       const { data, error } = await supabase
         .from('orders')
         .select(`
@@ -55,15 +69,15 @@ export default function History() {
   }, []);
 
   const filteredOrders = orders.filter(o => 
-    o.order_code.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    (o.customers && o.customers.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
-    o.status.toLowerCase().includes(searchTerm.toLowerCase())
+    (o.order_code?.toLowerCase() || '').includes(searchTerm.toLowerCase()) || 
+    (o.customers?.name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+    (o.status?.toLowerCase() || '').includes(searchTerm.toLowerCase())
   );
 
   const calculateTotals = () => {
     const total = orders.reduce((sum, o) => sum + Number(o.total_amount || 0), 0);
     const count = orders.length;
-    return { total: `$${total.toFixed(2)}`, count };
+    return { total: `${currencySymbol}${total.toFixed(2)}`, count };
   };
 
   const handleReprint = (code: string) => {
@@ -128,7 +142,7 @@ export default function History() {
 
       {/* Navegación por Pestañas */}
       <div className="flex gap-4" style={{ marginBottom: '1.5rem', borderBottom: 'var(--table-border)', paddingBottom: '0.5rem' }}>
-        {['Boletas Electrónicas', 'Cierres de Caja (Día)', 'Historial WhatsApp (AI)', 'Bitácora del Sistema (Logs)'].map(tab => (
+        {['Ventas Procesadas', 'Cierres de Caja (Día)', 'Historial WhatsApp (AI)', 'Bitácora del Sistema (Logs)'].map(tab => (
           <button 
             key={tab} 
             onClick={() => setActiveTab(tab)}
@@ -146,7 +160,7 @@ export default function History() {
       <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
         
         {/* TAB 1: BOLETAS */}
-        {activeTab === 'Boletas Electrónicas' && (
+        {activeTab === 'Ventas Procesadas' && (
           <>
             <div style={{ padding: '1rem 1.5rem', borderBottom: '1px solid var(--surface-container-highest)', display: 'flex', gap: '1rem', backgroundColor: 'var(--surface-container-low)' }}>
               <div className="relative" style={{ flex: 1, maxWidth: '400px' }}>
@@ -166,9 +180,10 @@ export default function History() {
               <table className="orders-table" style={{ margin: 0 }}>
                 <thead>
                   <tr style={{ backgroundColor: 'var(--surface-container-high)' }}>
-                    <th>Nro. Documento</th>
-                    <th>Fecha y Hora del Timbre</th>
-                    <th>Comprador (WhatsApp)</th>
+                    <th>ID de Venta</th>
+                    <th>Fecha y Hora</th>
+                    <th>Cliente</th>
+                    <th>Detalle de Compra</th>
                     <th>Monto Final</th>
                     <th>Estado de Venta</th>
                     <th style={{ textAlign: 'right' }}>Auditoría</th>
@@ -177,10 +192,10 @@ export default function History() {
                 <tbody>
                   {filteredOrders.length === 0 ? (
                     <tr>
-                      <td colSpan={6} style={{ textAlign: 'center', padding: '3rem 1rem', color: 'var(--secondary)' }}>No se encontraron boletas fiscales con ese número.</td>
+                      <td colSpan={7} style={{ textAlign: 'center', padding: '3rem 1rem', color: 'var(--secondary)' }}>No se encontraron boletas fiscales con ese número.</td>
                     </tr>
                   ) : (
-                    filteredOrders.map(o => (
+                    filteredOrders.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map(o => (
                       <tr key={o.id} style={{ borderBottom: '1px solid var(--surface-container-highest)' }}>
                         <td style={{ fontWeight: 700, color: 'var(--on-surface)', fontFamily: 'monospace' }}>
                           #{o.order_code}
@@ -194,8 +209,19 @@ export default function History() {
                             <span style={{ color: 'var(--secondary)', fontSize: '0.7rem' }}>{o.customers ? o.customers.phone_number : '--'}</span>
                           </div>
                         </td>
+                        <td style={{ minWidth: '150px' }}>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', fontSize: '0.75rem', color: 'var(--secondary)' }}>
+                            {(o.items || o.items_json || []).length === 0 && <span>-</span>}
+                            {(o.items || o.items_json || []).slice(0, 2).map((it: any, i: number) => (
+                              <span key={i} style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                <strong style={{ color: 'var(--primary)', marginRight: '4px' }}>{it.qty}x</strong>{it.name}
+                              </span>
+                            ))}
+                            {(o.items || o.items_json || []).length > 2 && <span style={{ fontStyle: 'italic', opacity: 0.6 }}>y {(o.items || o.items_json || []).length - 2} más...</span>}
+                          </div>
+                        </td>
                         <td style={{ fontWeight: 600, color: 'var(--primary)' }}>
-                          ${Number(o.total_amount).toFixed(2)}
+                          {currencySymbol}{Number(o.total_amount).toFixed(2)}
                         </td>
                         <td>
                           <span style={{ 
@@ -220,8 +246,95 @@ export default function History() {
                 </tbody>
               </table>
             </div>
+
+            {/* Pagination Controls */}
+            {filteredOrders.length > itemsPerPage && (
+              <div style={{ 
+                display: 'flex', 
+                justifyContent: 'space-between', 
+                alignItems: 'center', 
+                padding: '1rem 1.5rem', 
+                borderTop: '1px solid var(--surface-container-highest)',
+                backgroundColor: 'var(--surface-container-low)',
+                flexWrap: 'wrap',
+                gap: '1rem'
+              }}>
+                <p style={{ fontSize: '0.8rem', color: 'var(--secondary)', margin: 0 }}>
+                  Mostrando <strong style={{ color: 'var(--on-surface)' }}>{(currentPage - 1) * itemsPerPage + 1}</strong> a <strong style={{ color: 'var(--on-surface)' }}>{Math.min(currentPage * itemsPerPage, filteredOrders.length)}</strong> de <strong style={{ color: 'var(--on-surface)' }}>{filteredOrders.length}</strong> boletas
+                </p>
+                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                  <button 
+                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))} 
+                    disabled={currentPage === 1}
+                    className="btn-secondary"
+                    style={{ 
+                      padding: '0.4rem 0.8rem', 
+                      fontSize: '0.8rem', 
+                      borderRadius: '6px',
+                      opacity: currentPage === 1 ? 0.5 : 1,
+                      cursor: currentPage === 1 ? 'not-allowed' : 'pointer'
+                    }}
+                  >
+                    <span className="material-symbols-outlined" style={{ fontSize: '1rem' }}>chevron_left</span>
+                    Anterior
+                  </button>
+                  <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+                    {Array.from({ length: Math.ceil(filteredOrders.length / itemsPerPage) }).map((_, idx) => {
+                      const pageNum = idx + 1;
+                      const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
+                      
+                      // Show page number if it's first, last, or close to current page
+                      if (pageNum === 1 || pageNum === totalPages || Math.abs(pageNum - currentPage) <= 1) {
+                        return (
+                          <button
+                            key={pageNum}
+                            onClick={() => setCurrentPage(pageNum)}
+                            style={{
+                              width: '32px',
+                              height: '32px',
+                              borderRadius: '6px',
+                              border: pageNum === currentPage ? '1px solid var(--primary)' : '1px solid var(--card-border)',
+                              backgroundColor: pageNum === currentPage ? 'var(--primary)' : 'var(--surface-container-high)',
+                              color: pageNum === currentPage ? '#fff' : 'var(--on-surface)',
+                              fontSize: '0.8rem',
+                              fontWeight: 600,
+                              cursor: 'pointer'
+                            }}
+                          >
+                            {pageNum}
+                          </button>
+                        );
+                      }
+                      
+                      // Ellipses formatting
+                      if (pageNum === 2 || pageNum === totalPages - 1) {
+                        return <span key={pageNum} style={{ color: 'var(--secondary)', fontSize: '0.8rem', padding: '0 4px' }}>...</span>;
+                      }
+                      
+                      return null;
+                    })}
+                  </div>
+                  <button 
+                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, Math.ceil(filteredOrders.length / itemsPerPage)))} 
+                    disabled={currentPage === Math.ceil(filteredOrders.length / itemsPerPage)}
+                    className="btn-secondary"
+                    style={{ 
+                      padding: '0.4rem 0.8rem', 
+                      fontSize: '0.8rem', 
+                      borderRadius: '6px',
+                      opacity: currentPage === Math.ceil(filteredOrders.length / itemsPerPage) ? 0.5 : 1,
+                      cursor: currentPage === Math.ceil(filteredOrders.length / itemsPerPage) ? 'not-allowed' : 'pointer'
+                    }}
+                  >
+                    Siguiente
+                    <span className="material-symbols-outlined" style={{ fontSize: '1rem' }}>chevron_right</span>
+                  </button>
+                </div>
+              </div>
+            )}
           </>
         )}
+
 
         {/* TAB 2: CIERRES DE CAJA */}
         {activeTab === 'Cierres de Caja (Día)' && (
@@ -249,7 +362,7 @@ export default function History() {
                          {new Date(closure.date).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}
                        </td>
                        <td style={{ fontWeight: 800, color: 'var(--emerald-400)' }}>
-                         ${closure.totalSales.toFixed(2)}
+                         {currencySymbol}{closure.totalSales.toFixed(2)}
                        </td>
                        <td style={{ fontWeight: 600 }}>
                          {closure.totalBookings} Citas

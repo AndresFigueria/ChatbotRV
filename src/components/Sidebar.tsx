@@ -7,19 +7,19 @@ const navGroups = [
     group: 'Operaciones',
     items: [
       { path: '/', label: 'Monitor Principal', icon: 'grid_view' },
+      { path: '/whatsapp', label: 'Canal WhatsApp', icon: 'forum' },
+      { path: '/catalog', label: 'Productos y Servicios', icon: 'inventory_2' },
       { path: '/orders', label: 'Gestión de Ventas', icon: 'shopping_bag' },
       { path: '/bookings', label: 'Agenda de Citas', icon: 'calendar_month' },
-      { path: '/catalog', label: 'Catálogo y Servicios', icon: 'inventory_2' },
       { path: '/operations', label: 'Panel de Operaciones', icon: 'engineering' },
       { path: '/customers', label: 'Base de Clientes', icon: 'group' },
-      { path: '/whatsapp', label: 'Canal WhatsApp', icon: 'forum' },
       { path: '/notifications', label: 'Centro de Alertas', icon: 'notifications' },
       { path: '/analytics', label: 'Estadísticas IA', icon: 'psychology' },
       { path: '/history', label: 'Historial de Auditoría', icon: 'history' },
     ]
   },
   {
-    group: 'Automatización & Mensajería',
+    group: 'Automatización',
     items: [
       { path: '/marketing', label: 'Campañas IA', icon: 'campaign' },
     ]
@@ -37,6 +37,7 @@ export default function Sidebar({ isOpen, onClose }: { isOpen: boolean, onClose:
   const [userName] = useState('Senior Admin');
   const [isConnected, setIsConnected] = useState(true);
   const [totalUnread, setTotalUnread] = useState(0);
+  const [pendingOrders, setPendingOrders] = useState(0);
 
   const fetchUnreadCount = async () => {
     const { data } = await supabase
@@ -51,16 +52,39 @@ export default function Sidebar({ isOpen, onClose }: { isOpen: boolean, onClose:
     }
   };
 
+  const fetchPendingOrders = async () => {
+    let count = 0;
+    const { count: ordersCount, error: ordersError } = await supabase.from('orders').select('*', { count: 'exact', head: true }).eq('status', 'Pendiente');
+    if (!ordersError && ordersCount !== null) count += ordersCount;
+
+    const { count: leadsCount, error: leadsError } = await supabase.from('landing_leads').select('*', { count: 'exact', head: true });
+    if (!leadsError && leadsCount !== null) count += leadsCount;
+
+    setPendingOrders(count);
+  };
+
   useEffect(() => {
     fetchUnreadCount();
-    const channel = supabase.channel('sidebar_unread_chats')
+    fetchPendingOrders();
+
+    const channelWhatsapp = supabase.channel('sidebar_unread_chats')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'whatsapp_chats' }, () => {
         fetchUnreadCount();
       })
       .subscribe();
 
+    const channelOrders = supabase.channel('sidebar_orders')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, () => {
+        fetchPendingOrders();
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'landing_leads' }, () => {
+        fetchPendingOrders();
+      })
+      .subscribe();
+
     return () => {
-      supabase.removeChannel(channel);
+      supabase.removeChannel(channelWhatsapp);
+      supabase.removeChannel(channelOrders);
     };
   }, []);
 
@@ -149,6 +173,19 @@ export default function Sidebar({ isOpen, onClose }: { isOpen: boolean, onClose:
                       marginRight: '0.5rem',
                       animation: 'pulse 1.5s infinite'
                     }}></span>
+                  )}
+                  {item.path === '/orders' && pendingOrders > 0 && (
+                    <div style={{ display: 'flex', alignItems: 'center', marginLeft: 'auto', marginRight: '0.5rem', gap: '6px' }}>
+                      <span style={{ fontSize: '0.7rem', fontWeight: 800, color: '#C9A84C' }}>{pendingOrders}</span>
+                      <span className="unread-dot" style={{
+                        width: '8px',
+                        height: '8px',
+                        borderRadius: '50%',
+                        backgroundColor: '#C9A84C',
+                        boxShadow: '0 0 10px #C9A84C',
+                        animation: 'pulse 1.5s infinite'
+                      }}></span>
+                    </div>
                   )}
                 </NavLink>
               );

@@ -109,20 +109,34 @@ export default function Agendar() {
     const chosenDay = daysList[selectedDayIndex];
 
     try {
-      // 1. Guardar en Supabase (o hacer un upsert si el teléfono ya existe)
-      const { error } = await supabase.from('landing_leads').insert([{
-        name,
-        phone,
-        segment,
-        volume: 'WhatsApp Direct',
-        goal: goal || 'Automatizar restaurante',
-        email,
-        appointment_date: chosenDay.fullDate,
-        appointment_time: selectedTime
-      }]);
-
-      if (error) {
-        console.error('Error al guardar cita en Supabase:', error);
+      // 1. Buscar si el lead ya existe (creado por el paso previo en Landing.tsx)
+      const { data: existingLeads } = await supabase.from('landing_leads').select('id').eq('phone', phone);
+      
+      if (existingLeads && existingLeads.length > 0) {
+        // Actualizar el lead existente
+        const { error } = await supabase.from('landing_leads').update({
+          email,
+          appointment_date: chosenDay.fullDate,
+          appointment_time: selectedTime,
+          segment,
+          goal: goal || 'Automatizar restaurante'
+        }).eq('id', existingLeads[0].id);
+        
+        if (error) console.error('Error al actualizar lead en Supabase:', error);
+      } else {
+        // Insertar uno nuevo si no existe
+        const { error } = await supabase.from('landing_leads').insert([{
+          name,
+          phone,
+          segment,
+          volume: 'WhatsApp Direct',
+          goal: goal || 'Automatizar restaurante',
+          email,
+          appointment_date: chosenDay.fullDate,
+          appointment_time: selectedTime
+        }]);
+        
+        if (error) console.error('Error al guardar lead en Supabase:', error);
       }
 
       setLoading(false);

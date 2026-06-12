@@ -14,7 +14,8 @@ export default function Settings() {
     closingTime: '18:00',
     autoClose: true,
     autoConfirmBookings: false,
-    autoUpsell: true
+    autoUpsell: true,
+    currency: 'USD'
   });
 
   const [loading, setLoading] = useState(true);
@@ -22,10 +23,31 @@ export default function Settings() {
 
   useEffect(() => {
     async function fetchConfig() {
+      const { data: userData } = await supabase.auth.getUser();
+      let currentTenantId = null;
+
+      if (userData.user) {
+        const { data: tenantUser } = await supabase
+          .from('tenant_users')
+          .select('tenant_id')
+          .eq('user_id', userData.user.id)
+          .single();
+        
+        if (tenantUser) {
+          currentTenantId = tenantUser.tenant_id;
+        }
+      }
+
       const { data, error } = await supabase
         .from('business_config')
         .select('*')
-        .single();
+        .maybeSingle();
+
+      let tenantPrompt = '';
+      if (currentTenantId) {
+        const { data: tenantData } = await supabase.from('tenants').select('system_prompt').eq('id', currentTenantId).single();
+        if (tenantData) tenantPrompt = tenantData.system_prompt;
+      }
 
       if (!error && data) {
         setConfig({
@@ -33,15 +55,19 @@ export default function Settings() {
           businessPhone: data.business_phone || '+54 9 11 6599-4057',
           botIdentity: data.bot_identity || '',
           botTone: data.bot_tone || '',
-          botSystemContext: data.bot_system_context || '',
+          botSystemContext: tenantPrompt || data.bot_system_context || '',
           botWelcomeMsg: data.bot_welcome_msg || '¡Hola!',
           botOffHoursMsg: data.bot_off_hours_msg || 'Fuera de horario',
           openingTime: data.opening_time || '09:00',
           closingTime: data.closing_time || '18:00',
           autoClose: data.auto_close_day || true,
           autoConfirmBookings: data.auto_confirm_bookings || false,
-          autoUpsell: data.auto_upsell || true
+          autoUpsell: data.auto_upsell || true,
+          currency: data.currency || 'USD'
         });
+      } else if (!data && tenantPrompt) {
+        // Fallback si no hay business_config
+        setConfig(prev => ({ ...prev, botSystemContext: tenantPrompt }));
       }
       setLoading(false);
     }
@@ -52,12 +78,26 @@ export default function Settings() {
     e.preventDefault();
     setSavedStatus(false);
     
-    // Buscar si ya existe una configuración para hacer un upsert seguro sin violar RLS
+    // Buscar si ya existe una configuración para hacer un upsert seguro
     const { data: existingData } = await supabase.from('business_config').select('id').maybeSingle();
     
-    const { error } = await supabase
-      .from('business_config')
-      .upsert({
+    // Buscar el tenant_id del usuario actual para permisos RLS
+    const { data: userData } = await supabase.auth.getUser();
+    let currentTenantId = null;
+
+    if (userData.user) {
+      const { data: tenantUser } = await supabase
+        .from('tenant_users')
+        .select('tenant_id')
+        .eq('user_id', userData.user.id)
+        .single();
+      
+      if (tenantUser) {
+        currentTenantId = tenantUser.tenant_id;
+      }
+    }
+    
+    const payload: any = {
         id: existingData?.id || undefined,
         business_name: config.businessName,
         business_phone: config.businessPhone,
@@ -70,22 +110,40 @@ export default function Settings() {
         closing_time: config.closingTime,
         auto_close_day: config.autoClose,
         auto_confirm_bookings: config.autoConfirmBookings,
-        auto_upsell: config.autoUpsell
-      });
+        auto_upsell: config.autoUpsell,
+        currency: config.currency
+    };
 
-    if (!error) {
+    if (currentTenantId) {
+        payload.tenant_id = currentTenantId;
+    }
+    
+    const { error } = await supabase
+      .from('business_config')
+      .upsert(payload);
+
+    let tenantError = null;
+    if (currentTenantId) {
+      const { error: err } = await supabase
+        .from('tenants')
+        .update({ system_prompt: config.botSystemContext })
+        .eq('id', currentTenantId);
+      tenantError = err;
+    }
+
+    if (!error && !tenantError) {
       setSavedStatus(true);
       setTimeout(() => setSavedStatus(false), 3000);
     } else {
-      alert('Error al sincronizar con Supabase: ' + error.message);
+      alert('Error al sincronizar con Supabase: ' + (error?.message || tenantError?.message));
     }
   };
 
   if (loading) return <div className="p-8"><p className="body-md">Cargando cerebro de IA...</p></div>;
 
   return (
-    <div className="p-8">
-      <div className="flex justify-between items-center" style={{ marginBottom: '2.5rem' }}>
+    <div style={{ padding: '0 2rem 1.25rem' }}>
+      <div className="flex justify-between items-center" style={{ marginBottom: '1.5rem' }}>
         <div>
           <h2 className="display-md">Configuración de Inteligencia</h2>
           <p className="body-md" style={{ color: 'var(--secondary)', marginTop: '0.25rem' }}>
@@ -105,11 +163,19 @@ export default function Settings() {
                <h3 className="title-md" style={{ borderBottom: '1px solid var(--surface-container-highest)', paddingBottom: '0.5rem', marginBottom: '1.5rem', color: 'var(--on-surface)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                  <span className="material-symbols-outlined">business</span> Perfil Corporativo
                </h3>
-               <div className="flex gap-4 mb-4">
-                 <div style={{ flex: 1 }}>
-                   <label className="label-sm" style={{ display: 'block', marginBottom: '0.5rem' }}>Nombre del Negocio</label>
-                   <input required type="text" className="input-base" style={{ width: '100%' }} value={config.businessName} onChange={e => setConfig({...config, businessName: e.target.value})} />
-                 </div>
+                <div className="flex gap-4 mb-4">
+                  <div style={{ flex: 1.5 }}>
+                    <label className="label-sm" style={{ display: 'block', marginBottom: '0.5rem' }}>Nombre del Negocio</label>
+                    <input required type="text" className="input-base" style={{ width: '100%' }} value={config.businessName} onChange={e => setConfig({...config, businessName: e.target.value})} />
+                  </div>
+                  <div style={{ flex: 0.8 }}>
+                    <label className="label-sm" style={{ display: 'block', marginBottom: '0.5rem' }}>Moneda Base</label>
+                    <select className="input-base" style={{ width: '100%' }} value={config.currency} onChange={e => setConfig({...config, currency: e.target.value})}>
+                      <option value="USD">Dólares (USD)</option>
+                      <option value="PEN">Soles (PEN)</option>
+                      <option value="ARS">Pesos Argentinos (ARS)</option>
+                    </select>
+                  </div>
                  <div style={{ flex: 1 }}>
                    <label className="label-sm" style={{ display: 'block', marginBottom: '0.5rem' }}>WhatsApp Business</label>
                    <input 
@@ -186,7 +252,29 @@ export default function Settings() {
              </div>
            </form>
         </div>
-
+        
+        {/* Success Toast */}
+        <div style={{
+          position: 'fixed',
+          bottom: savedStatus ? '2rem' : '-5rem',
+          right: '2rem',
+          backgroundColor: 'var(--emerald-400)',
+          color: '#042f2e',
+          padding: '1rem 1.5rem',
+          borderRadius: '12px',
+          boxShadow: '0 8px 30px rgba(52, 211, 153, 0.4)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.75rem',
+          fontWeight: 800,
+          zIndex: 9999,
+          opacity: savedStatus ? 1 : 0,
+          transition: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+          pointerEvents: 'none'
+        }}>
+          <span className="material-symbols-outlined">cloud_done</span>
+          Sincronización con DB Exitosa
+        </div>
 
         {/* Status y Licencia */}
         <div className="flex flex-col gap-5">

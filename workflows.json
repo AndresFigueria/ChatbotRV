@@ -208,7 +208,7 @@
             "parameters": [
               {
                 "name": "Authorization",
-                "value": "Bearer EAAdRNS7bknMBRZAPLql3WC88kOZAoNZB96d5t2DdoOTAe040ZCPut8R3ZBWTHdcqAbi7aapNzZCcLzUXccJ2lZCUbu3IBtvsk0P292mzWmpnG72KgmDtQvqyU5dLfLk6e5WxKvDAL63DLwbICB8ijDq109MJkRZCVWfzJp1rPs8va1fZC2MyaOKsguJCZAymis4buKZC6li0OGooTZB0lUnGybcMt2HzQJ4Did7XTYroBR3erwxlj4ZByo7AR"
+                "value": "Bearer EAAdRNS7bknMBRomg1KXdRhrOfMg8i3QA1Y71Ocv8ZCHIiN9RujAorQGZAZB6T5TCcNg2bQx99qrLMlQWIlKInAimhZB7OQQOy6ngiQJBZA3ZBbZBcRchn66K4GRkDnnhGkazlwC3uPSqt0DQk6LkmrVJvmwvr3elV2XUAjhBWLkcwGLEfNkRi0MRBL7YQBOolFTugZDZD"
               },
               {
                 "name": "Content-Type",
@@ -228,7 +228,10 @@
         "position": [
           2048,
           224
-        ]
+        ],
+        "retryOnFail": true,
+        "maxTries": 3,
+        "waitBetweenTries": 2000
       },
       {
         "parameters": {
@@ -519,7 +522,7 @@
           "promptType": "define",
           "text": "==Cliente WhatsApp: {{$('Normalize WhatsApp Message').first().json.from}}\nNombre cliente: {{$('Normalize WhatsApp Message').first().json.customer_name || ''}}\nMensaje cliente: {{$('Normalize WhatsApp Message').first().json.text}}\n",
           "options": {
-            "systemMessage": "Eres Robotina, asistente de un restaurante. Responde siempre en español. Si el cliente confirma un pedido, usa la herramienta Crear Pedido con phone, customer_name, items y total.\n"
+            "systemMessage": "Eres Robotina, la asesora de ventas y experta en automatización de \"Robotina Central\". Tu objetivo principal y único es calificar a los dueños de negocios que nos contactan y lograr que agenden una demostración en vivo (Meet) de 15 a 20 minutos dirigiéndolos a nuestra página web oficial: https://robotinacentral.com/\n\nREGLAS ESTRICTAS DE COMPORTAMIENTO:\n1. Saludo Inicial e Identificación:\n   - Si conoces el nombre del cliente (disponible en 'Nombre cliente'), di: \"¡Hola, [Nombre]! Soy Robotina, asistente automatizado. 🤖\"\n   - Si el nombre del cliente no está disponible (está vacío o es genérico), di: \"¡Hola! Soy Robotina, asistente automatizado. 🤖 ¿Con quién tengo el gusto de hablar?\"\n2. Concisión: Sé concisa, amable y persuasiva. Tus mensajes deben ser cortos (máximo 2 a 3 oraciones cortas). Evita enviar bloques de texto largos.\n3. Rol de Ventas: NUNCA des asesoría técnica gratuita y extensa. Tú eres ventas, no soporte.\n4. Precios: Si el prospecto pregunta precios, dile que tenemos planes desde $49 USD/mes, pero que la mejor forma de cotizar es viendo cómo funciona en vivo, y redirígelo a la web para agendar la llamada.\n5. Tono: Usa un tono amigable, empático, seguro y con autoridad tecnológica. Usa emojis con moderación.\n6. Duración de la cita: Menciona que la demostración en vivo es una videollamada corta que dura entre 15 y 20 minutos.\n7. LIMITA EL CHATEO: Después de completar el perfilado del cliente, DEBES buscar el cierre pidiéndole amablemente que agende su cita en nuestra página web.\n\nEL EMBUDO DE CONVERSACIÓN (Debes obtener estos datos obligatoriamente antes de enviar el link de agenda):\n- Paso 1 (Apertura): Saluda usando la regla de saludo inicial (y pregunta por el nombre de su negocio/empresa si aún no lo conoces).\n- Paso 2 (Calificación y Agitación): Pregúntale cuántos mensajes reciben al día aproximadamente en su negocio y qué canales usan. Empatiza con el tiempo o ventas perdidas por no tener automatizaciones de Robotina.\n- Paso 3 (Solución): Explícale muy brevemente que Robotina automatiza reservas, pedidos y CRM 24/7.\n- Paso 4 (Cierre): Dile amablemente: \"Lo ideal es mostrarte exactamente cómo Robotina puede ahorrarte tiempo y recuperar ventas perdidas en tu negocio. Es una reunión rápida de 15 a 20 minutos y sin compromiso. Por favor, elige el horario que mejor te quede aquí: https://robotinacentral.com/ \".\n"
           }
         },
         "type": "@n8n/n8n-nodes-langchain.agent",
@@ -3054,7 +3057,10 @@
         "position": [
           816,
           -320
-        ]
+        ],
+        "retryOnFail": true,
+        "maxTries": 3,
+        "waitBetweenTries": 2000
       },
       {
         "parameters": {
@@ -3376,7 +3382,8 @@
                 "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpanpqY3BreXBzbWtoeXduZHVzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NDY3MTM4MywiZXhwIjoyMDkwMjQ3MzgzfQ.PyYU30n4yp2z_wtIJHnzunMtc_hX8rD7xWdPNxSYTHw"
               }
             ]
-          }
+          },
+          "name": "consultar_catalogo"
         },
         "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
         "typeVersion": 1,
@@ -3385,7 +3392,7 @@
           48
         ],
         "id": "24b74020-ea3b-4e07-a778-4eca90599585",
-        "name": "Consultar Catálogo"
+        "name": "consultar_catalogo"
       },
       {
         "parameters": {
@@ -3405,7 +3412,8 @@
                 "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpanpqY3BreXBzbWtoeXduZHVzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NDY3MTM4MywiZXhwIjoyMDkwMjQ3MzgzfQ.PyYU30n4yp2z_wtIJHnzunMtc_hX8rD7xWdPNxSYTHw"
               }
             ]
-          }
+          },
+          "name": "consultar_sucursales"
         },
         "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
         "typeVersion": 1,
@@ -3414,7 +3422,7 @@
           32
         ],
         "id": "daf28deb-54ad-4483-9efa-ae5bd034ed52",
-        "name": "Consultar Sucursales"
+        "name": "consultar_sucursales"
       },
       {
         "parameters": {
@@ -3448,7 +3456,8 @@
           },
           "sendBody": true,
           "specifyBody": "json",
-          "jsonBody": "{\n  \"p_customer_name\": \"={{ (() => { try { const parsed = JSON.parse($json.query); if (parsed && parsed.customer_name) return parsed.customer_name; } catch (e) {} return $('Normalize WhatsApp Message').first().json.customer_name || 'Cliente WhatsApp'; })() }}\",\n  \"p_phone\": \"={{ (() => { try { const parsed = JSON.parse($json.query); if (parsed && parsed.phone) return String(parsed.phone); } catch (e) {} return $('Normalize WhatsApp Message').first().json.from; })() }}\",\n  \"p_reservation_date\": \"={{ (() => { try { const parsed = JSON.parse($json.query); if (parsed && parsed.reservation_date) return parsed.reservation_date; } catch (e) {} return ''; })() }}\",\n  \"p_reservation_time\": \"={{ (() => { try { const parsed = JSON.parse($json.query); if (parsed && parsed.reservation_time) return parsed.reservation_time; } catch (e) {} return ''; })() }}\",\n  \"p_guest_count\": \"={{ (() => { try { const parsed = JSON.parse($json.query); if (parsed && parsed.guest_count) return Number(parsed.guest_count); } catch (e) {} return 1; })() }}\",\n  \"p_notes\": \"={{ (() => { try { const parsed = JSON.parse($json.query); if (parsed && parsed.notes) return parsed.notes; } catch (e) {} return ''; })() }}\",\n  \"p_tenant_id\": \"{{ $('HTTP Request').first().json.id }}\"\n}"
+          "jsonBody": "{\n  \"p_customer_name\": \"={{ (() => { try { const parsed = JSON.parse($json.query); if (parsed && parsed.customer_name) return parsed.customer_name; } catch (e) {} return $('Normalize WhatsApp Message').first().json.customer_name || 'Cliente WhatsApp'; })() }}\",\n  \"p_phone\": \"={{ (() => { try { const parsed = JSON.parse($json.query); if (parsed && parsed.phone) return String(parsed.phone); } catch (e) {} return $('Normalize WhatsApp Message').first().json.from; })() }}\",\n  \"p_reservation_date\": \"={{ (() => { try { const parsed = JSON.parse($json.query); if (parsed && parsed.reservation_date) return parsed.reservation_date; } catch (e) {} return ''; })() }}\",\n  \"p_reservation_time\": \"={{ (() => { try { const parsed = JSON.parse($json.query); if (parsed && parsed.reservation_time) return parsed.reservation_time; } catch (e) {} return ''; })() }}\",\n  \"p_guest_count\": \"={{ (() => { try { const parsed = JSON.parse($json.query); if (parsed && parsed.guest_count) return Number(parsed.guest_count); } catch (e) {} return 1; })() }}\",\n  \"p_notes\": \"={{ (() => { try { const parsed = JSON.parse($json.query); if (parsed && parsed.notes) return parsed.notes; } catch (e) {} return ''; })() }}\",\n  \"p_tenant_id\": \"{{ $('HTTP Request').first().json.id }}\"\n}",
+          "name": "registrar_reserva"
         },
         "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
         "typeVersion": 1,
@@ -3457,7 +3466,7 @@
           -96
         ],
         "id": "3ebbd38f-d5ae-4cf3-8edc-d17099f39e4a",
-        "name": "Registrar Cita o Reserva"
+        "name": "registrar_reserva"
       },
       {
         "parameters": {
@@ -3486,7 +3495,8 @@
           },
           "sendBody": true,
           "specifyBody": "json",
-          "jsonBody": "{\n  \"p_phone\": \"={{ (() => { try { const parsed = JSON.parse($json.query); if (parsed && parsed.phone) return String(parsed.phone); } catch (e) {} return $('Normalize WhatsApp Message').first().json.from; })() }}\",\n  \"p_customer_name\": \"={{ (() => { try { const parsed = JSON.parse($json.query); if (parsed && parsed.customer_name) return parsed.customer_name; } catch (e) {} return $('Normalize WhatsApp Message').first().json.customer_name || 'Cliente WhatsApp'; })() }}\",\n  \"p_items\": \"={{ (() => { try { const parsed = JSON.parse($json.query); if (parsed && parsed.items) return parsed.items; } catch (e) {} return []; })() }}\",\n  \"p_total\": \"={{ (() => { try { const parsed = JSON.parse($json.query); if (parsed && parsed.total) return Number(parsed.total); } catch (e) {} return 0; })() }}\",\n  \"p_source\": \"whatsapp\",\n  \"p_tenant_id\": \"{{ $('HTTP Request').first().json.id }}\"\n}"
+          "jsonBody": "{\n  \"p_phone\": \"={{ (() => { try { const parsed = JSON.parse($json.query); if (parsed && parsed.phone) return String(parsed.phone); } catch (e) {} return $('Normalize WhatsApp Message').first().json.from; })() }}\",\n  \"p_customer_name\": \"={{ (() => { try { const parsed = JSON.parse($json.query); if (parsed && parsed.customer_name) return parsed.customer_name; } catch (e) {} return $('Normalize WhatsApp Message').first().json.customer_name || 'Cliente WhatsApp'; })() }}\",\n  \"p_items\": \"={{ (() => { try { const parsed = JSON.parse($json.query); if (parsed && parsed.items) return parsed.items; } catch (e) {} return []; })() }}\",\n  \"p_total\": \"={{ (() => { try { const parsed = JSON.parse($json.query); if (parsed && parsed.total) return Number(parsed.total); } catch (e) {} return 0; })() }}\",\n  \"p_source\": \"whatsapp\",\n  \"p_tenant_id\": \"{{ $('HTTP Request').first().json.id }}\"\n}",
+          "name": "crear_pedido"
         },
         "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
         "typeVersion": 1,
@@ -3495,7 +3505,7 @@
           -96
         ],
         "id": "d963d612-6c40-4bdf-b883-cd403c93548f",
-        "name": "Crear Pedido"
+        "name": "crear_pedido"
       },
       {
         "parameters": {
@@ -3787,50 +3797,6 @@
           ]
         ]
       },
-      "Consultar Catálogo": {
-        "ai_tool": [
-          [
-            {
-              "node": "AI Agent",
-              "type": "ai_tool",
-              "index": 0
-            }
-          ]
-        ]
-      },
-      "Consultar Sucursales": {
-        "ai_tool": [
-          [
-            {
-              "node": "AI Agent",
-              "type": "ai_tool",
-              "index": 0
-            }
-          ]
-        ]
-      },
-      "Registrar Cita o Reserva": {
-        "ai_tool": [
-          [
-            {
-              "node": "AI Agent",
-              "type": "ai_tool",
-              "index": 0
-            }
-          ]
-        ]
-      },
-      "Crear Pedido": {
-        "ai_tool": [
-          [
-            {
-              "node": "AI Agent",
-              "type": "ai_tool",
-              "index": 0
-            }
-          ]
-        ]
-      },
       "AI Agent": {
         "main": [
           [
@@ -3860,6 +3826,50 @@
             {
               "node": "Normalize WhatsApp Message",
               "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "consultar_catalogo": {
+        "ai_tool": [
+          [
+            {
+              "node": "AI Agent",
+              "type": "ai_tool",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "consultar_sucursales": {
+        "ai_tool": [
+          [
+            {
+              "node": "AI Agent",
+              "type": "ai_tool",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "registrar_reserva": {
+        "ai_tool": [
+          [
+            {
+              "node": "AI Agent",
+              "type": "ai_tool",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "crear_pedido": {
+        "ai_tool": [
+          [
+            {
+              "node": "AI Agent",
+              "type": "ai_tool",
               "index": 0
             }
           ]

@@ -10,7 +10,7 @@
 }
 
 .sidebar-header {
-  margin-bottom: 2.5rem;
+  margin-bottom: 0.5rem; /* Reducido un 80% desde 2.5rem */
   padding: 0 1rem;
 }
 

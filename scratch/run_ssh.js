@@ -25,7 +25,7 @@ conn.on('ready', () => {
   console.error('SSH Connection Error:', err);
 }).connect({
   host: host,
-  port: 22,
+  port: 2244,
   username: user,
   password: password
 });

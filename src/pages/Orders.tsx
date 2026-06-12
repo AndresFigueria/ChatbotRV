@@ -6,7 +6,10 @@ export default function Orders() {
   const [loading, setLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState('Todos');
   const [botEfficiency, setBotEfficiency] = useState<number>(0);
-  const [orderToDelete, setOrderToDelete] = useState<string | null>(null);
+  const [orderToDelete, setOrderToDelete] = useState<any | null>(null);
+  const [skipDeleteConfirm, setSkipDeleteConfirm] = useState(() => {
+    return localStorage.getItem('skipDeleteConfirm') === 'true';
+  });
 
   const fetchBotEfficiency = async () => {
     const { data, error } = await supabase
@@ -22,31 +25,67 @@ export default function Orders() {
   };
 
   const fetchOrders = async () => {
-    const { data, error } = await supabase
+    // 1. Fetch Orders
+    const { data: ordersData, error: ordersError } = await supabase
       .from('orders')
       .select(`
         *,
         customer:customers (name, phone_number)
-      `)
-      .order('created_at', { ascending: false });
+      `);
 
-    if (error) {
-      console.error('Error fetching orders:', error);
-    } else if (data) {
-      const mapped = data.map((o: any) => ({
-        id: o.order_code || o.id.slice(0, 8).toUpperCase(), // Usar parte del UUID si no hay código
+    if (ordersError) console.error('Error fetching orders:', ordersError);
+
+    // 2. Fetch Leads (Citas Agendadas)
+    const { data: leadsData, error: leadsError } = await supabase
+      .from('landing_leads')
+      .select('*');
+
+    if (leadsError) console.error('Error fetching leads:', leadsError);
+
+    let combined: any[] = [];
+
+    if (ordersData) {
+      combined = [...combined, ...ordersData.map((o: any) => ({
+        id: o.order_code || o.id.slice(0, 8).toUpperCase(),
+        type: 'Pedido',
         customer: o.customer_name || o.customer?.name || 'Cliente WhatsApp',
         phone: o.phone || o.customer?.phone_number || '+0 000 0000',
-        items: o.items_count || (o.items ? o.items.length : 0),
+        email: o.email || '',
         itemsDetails: o.items || o.items_json || [],
         totalNum: Number(o.total || o.total_amount || 0),
         total: `$${Number(o.total || o.total_amount || 0).toFixed(2)}`,
         time: new Date(o.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        status: o.status,
-        statusClass: o.status === 'Pendiente' ? 'status-pending' : (o.status === 'Preparando' ? 'status-preparing' : (o.status === 'Listo' ? 'status-ready' : 'status-delivered'))
-      }));
-      setOrders(mapped);
+        dateObj: new Date(o.created_at),
+        status: o.status || 'Pendiente',
+        statusClass: o.status === 'Pendiente' ? 'status-pending' : (o.status === 'Preparando' ? 'status-preparing' : (o.status === 'Listo' ? 'status-ready' : 'status-delivered')),
+        isLead: false,
+        originalId: o.id
+      }))];
     }
+
+    if (leadsData) {
+      combined = [...combined, ...leadsData.map((l: any) => ({
+        id: `DEMO-${(l.id || '').toString().slice(0, 4).toUpperCase()}`,
+        type: 'Cita Agendada',
+        customer: l.name || 'Lead Demo',
+        phone: l.phone || '+0 000 0000',
+        email: l.email || '',
+        itemsDetails: [{ name: `Demo: ${l.appointment_date} a las ${l.appointment_time}`, qty: 1 }],
+        totalNum: 0,
+        total: 'Reunión',
+        time: new Date(l.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        dateObj: new Date(l.created_at),
+        status: 'Pendiente',
+        statusClass: 'status-pending',
+        isLead: true,
+        originalId: l.id
+      }))];
+    }
+
+    // Ordenar por fecha de creación (más recientes primero)
+    combined.sort((a, b) => b.dateObj.getTime() - a.dateObj.getTime());
+
+    setOrders(combined);
     setLoading(false);
   };
 
@@ -54,9 +93,16 @@ export default function Orders() {
     fetchOrders();
     fetchBotEfficiency();
 
-    const channel = supabase
+    const channelOrders = supabase
       .channel('public:orders')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, _payload => {
+        fetchOrders();
+      })
+      .subscribe();
+
+    const channelLeads = supabase
+      .channel('public:landing_leads')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'landing_leads' }, _payload => {
         fetchOrders();
       })
       .subscribe();
@@ -69,7 +115,8 @@ export default function Orders() {
       .subscribe();
 
     return () => {
-      supabase.removeChannel(channel);
+      supabase.removeChannel(channelOrders);
+      supabase.removeChannel(channelLeads);
       supabase.removeChannel(chatsChannel);
     };
   }, []);
@@ -86,16 +133,39 @@ export default function Orders() {
     await supabase.from('orders').update({ status: newStatus }).eq('order_code', orderCode);
   };
 
-  const handleDeleteOrder = (orderCode: string) => {
-    setOrderToDelete(orderCode);
+  const executeDelete = async (order: any) => {
+    // Actualización Optimista de la Interfaz (borrar al instante visualmente)
+    setOrders(prevOrders => prevOrders.filter(o => o.id !== order.id));
+    
+    console.log("Intentando eliminar:", order);
+    if (order.isLead) {
+      const { error } = await supabase.from('landing_leads').delete().eq('id', order.originalId);
+      if (error) {
+        console.error('Error al borrar lead:', error);
+        alert('Error al borrar la cita: ' + error.message);
+        fetchOrders(); // Revertir visualmente si hay error
+      }
+    } else {
+      const { error } = await supabase.from('orders').delete().eq('id', order.originalId);
+      if (error) {
+        console.error('Error al borrar order:', error);
+        alert('Error al borrar la orden: ' + error.message);
+        fetchOrders(); // Revertir visualmente si hay error
+      }
+    }
+  };
+
+  const handleDeleteOrder = async (order: any) => {
+    if (skipDeleteConfirm) {
+      await executeDelete(order);
+    } else {
+      setOrderToDelete(order);
+    }
   };
 
   const confirmDelete = async () => {
     if (!orderToDelete) return;
-    const { error } = await supabase.from('orders').delete().eq('order_code', orderToDelete);
-    if (error) {
-      console.error('Error deleting order:', error);
-    }
+    await executeDelete(orderToDelete);
     setOrderToDelete(null);
   };
 
@@ -128,41 +198,43 @@ export default function Orders() {
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.5rem', marginBottom: '3rem' }}>
-        <div style={{ padding: '1.5rem', borderRadius: '16px', background: 'var(--surface-container)', border: '1px solid var(--surface-container-highest)', boxShadow: 'var(--shadow-sm)' }}>
+        <div className="card" style={{ padding: '1.5rem', borderRadius: '16px', background: 'var(--surface-container)', border: 'var(--card-border)', boxShadow: 'var(--shadow-sm)' }}>
           <p style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--primary)', letterSpacing: '1px' }}>Tareas Activas</p>
           <h3 style={{ fontSize: '2.5rem', margin: '0.5rem 0', color: 'var(--on-surface)' }}>{activosCount.toString().padStart(2, '0')}</h3>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--tertiary)', fontSize: '0.8rem' }}>
             <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>trending_up</span> Operación fluida
           </div>
         </div>
-        <div style={{ padding: '1.5rem', borderRadius: '16px', background: 'var(--surface-container)', border: '1px solid var(--surface-container-highest)', boxShadow: 'var(--shadow-sm)' }}>
+        <div className="card" style={{ padding: '1.5rem', borderRadius: '16px', background: 'var(--surface-container)', border: 'var(--card-border)', boxShadow: 'var(--shadow-sm)' }}>
           <p style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--primary)', letterSpacing: '1px' }}>Volumen Diario</p>
           <h3 style={{ fontSize: '2.5rem', margin: '0.5rem 0', color: 'var(--on-surface)' }}>${totalIngresos.toFixed(2)}</h3>
           <p style={{ fontSize: '0.8rem', opacity: 0.5 }}>Ingresos proyectados hoy</p>
         </div>
-        <div style={{ padding: '1.5rem', borderRadius: '16px', background: 'var(--surface-container)', border: '1px solid var(--surface-container-highest)', boxShadow: 'var(--shadow-sm)' }}>
+        <div className="card" style={{ padding: '1.5rem', borderRadius: '16px', background: 'var(--surface-container)', border: 'var(--card-border)', boxShadow: 'var(--shadow-sm)' }}>
           <p style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--primary)', letterSpacing: '1px' }}>Eficiencia Bot</p>
           <h3 style={{ fontSize: '2.5rem', margin: '0.5rem 0', color: 'var(--on-surface)' }}>{botEfficiency.toFixed(1)}%</h3>
           <p style={{ fontSize: '0.8rem', opacity: 0.5 }}>Precisión en toma de pedidos</p>
         </div>
       </div>
 
-      {/* Filtros Estilo Apple */}
-      <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '2rem', overflowX: 'auto', paddingBottom: '0.5rem' }}>
-        {['Todos', 'Pendiente', 'Preparando', 'Listo', 'Despachado'].map(f => (
-          <button 
-            key={f} 
-            onClick={() => setActiveFilter(f)}
-            style={{ 
-              padding: '0.6rem 1.5rem', borderRadius: '30px', border: '1px solid rgba(255,255,255,0.1)', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer', transition: 'all 0.3s',
-              backgroundColor: activeFilter === f ? '#C9A84C' : 'rgba(255,255,255,0.05)',
-              color: activeFilter === f ? '#1A1A2E' : '#fff',
-              boxShadow: activeFilter === f ? '0 10px 20px rgba(201, 168, 76, 0.2)' : 'none'
-            }}
-          >
-            {f}
-          </button>
-        ))}
+      {/* Filtros Estilo Apple dentro de contenedor con borde negrita */}
+      <div className="card" style={{ padding: '1rem 1.5rem', marginBottom: '2rem', backgroundColor: 'var(--surface-container-low)', borderRadius: '12px', border: 'var(--card-border)' }}>
+        <div style={{ display: 'flex', gap: '0.75rem', overflowX: 'auto', paddingBottom: '0.2rem' }}>
+          {['Todos', 'Pendiente', 'Preparando', 'Listo', 'Despachado'].map(f => (
+            <button 
+              key={f} 
+              onClick={() => setActiveFilter(f)}
+              style={{ 
+                padding: '0.6rem 1.5rem', borderRadius: '30px', border: 'none', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer', transition: 'all 0.3s',
+                backgroundColor: activeFilter === f ? '#C9A84C' : 'var(--surface-container-high)',
+                color: activeFilter === f ? '#1A1A2E' : 'var(--on-surface)',
+                boxShadow: activeFilter === f ? '0 10px 20px rgba(201, 168, 76, 0.2)' : 'none'
+              }}
+            >
+              {f}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Grid de Pedidos Estilo Tarjetas Premium */}
@@ -179,18 +251,19 @@ export default function Orders() {
           return (
             <div 
               key={order.id} 
-              className="chat-bubble-anim"
+              className="card chat-bubble-anim"
               style={{ 
                 background: 'var(--surface-container-high)', 
                 borderRadius: '20px', 
-                border: '1px solid var(--surface-container-highest)', 
+                border: 'var(--card-border)', 
                 overflow: 'hidden',
                 boxShadow: isPending ? '0 0 30px rgba(var(--primary-rgb), 0.15)' : 'var(--shadow-md)',
-                position: 'relative'
+                position: 'relative',
+                padding: 0 // Anular padding por defecto de .card para tarjetas de pedido
               }}
             >
               {/* Header de la tarjeta */}
-              <div style={{ padding: '1.25rem', borderBottom: '1px solid var(--surface-container-highest)', display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
+              <div style={{ padding: '1.25rem', borderBottom: 'var(--table-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
                 <div>
                   <h4 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: 'var(--primary)' }}>{order.id}</h4>
                   <p style={{ margin: 0, fontSize: '0.7rem', color: 'var(--secondary)' }}>{order.time} • WhatsApp</p>
@@ -199,7 +272,7 @@ export default function Orders() {
                   padding: '4px 12px', borderRadius: '20px', fontSize: '0.65rem', fontWeight: 900, letterSpacing: '1px',
                   backgroundColor: isPending ? 'var(--primary-container)' : (isReady ? 'var(--tertiary-container)' : 'var(--surface-container-highest)'),
                   color: isPending ? 'var(--on-primary-container)' : (isReady ? 'var(--on-tertiary-container)' : 'var(--on-surface)'),
-                  border: '1px solid var(--surface-container-highest)',
+                  border: 'var(--table-border)',
                   boxShadow: isPending ? '0 0 10px rgba(var(--primary-rgb), 0.3)' : 'none'
                 }}>
                   {order.status.toUpperCase()}
@@ -214,11 +287,19 @@ export default function Orders() {
                   </div>
                   <div>
                     <p style={{ margin: 0, fontWeight: 700, fontSize: '0.9rem', color: 'var(--on-surface)' }}>{order.customer}</p>
-                    <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--secondary)' }}>+{order.phone}</p>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                      <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--secondary)' }}>{order.phone}</p>
+                      {order.email && (
+                        <>
+                          <span style={{ fontSize: '0.75rem', color: 'var(--surface-container-highest)' }}>•</span>
+                          <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--primary)', fontWeight: 600 }}>{order.email}</p>
+                        </>
+                      )}
+                    </div>
                   </div>
                 </div>
 
-                <div style={{ background: 'var(--surface-container-low)', padding: '1rem', borderRadius: '12px', marginBottom: '1.5rem', border: '1px solid var(--surface-container-highest)' }}>
+                <div style={{ background: 'var(--surface-container-low)', padding: '1rem', borderRadius: '12px', marginBottom: '1.5rem', border: 'var(--table-border)' }}>
                   <p style={{ fontSize: '0.65rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--secondary)', marginBottom: '0.75rem' }}>Detalle del Servicio / Venta</p>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                     {order.itemsDetails && order.itemsDetails.length > 0 ? (
@@ -243,11 +324,40 @@ export default function Orders() {
                     <span style={{ fontSize: '1.2rem', fontWeight: 900, color: 'var(--primary)' }}>{order.total}</span>
                   </div>
                   <button 
-                    onClick={() => handleDeleteOrder(order.id)}
-                    style={{ background: 'none', border: 'none', color: 'var(--error)', opacity: 0.8, cursor: 'pointer', transition: 'opacity 0.2s' }}
-                    onMouseEnter={(e) => e.currentTarget.style.opacity = '1'}
-                    onMouseLeave={(e) => e.currentTarget.style.opacity = '0.8'}
-                    title="Eliminar pedido"
+                    onClick={() => handleDeleteOrder(order)}
+                    style={{ 
+                      background: 'rgba(255, 82, 82, 0)', 
+                      border: 'none', 
+                      color: 'var(--error)', 
+                      opacity: 0.6, 
+                      cursor: 'pointer', 
+                      transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
+                      transform: 'scale(1)',
+                      padding: '6px',
+                      borderRadius: '8px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.opacity = '1';
+                      e.currentTarget.style.transform = 'scale(1.15)';
+                      e.currentTarget.style.background = 'rgba(255, 82, 82, 0.1)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.opacity = '0.6';
+                      e.currentTarget.style.transform = 'scale(1)';
+                      e.currentTarget.style.background = 'rgba(255, 82, 82, 0)';
+                    }}
+                    onMouseDown={(e) => {
+                      e.currentTarget.style.transform = 'scale(0.85)';
+                      e.currentTarget.style.background = 'rgba(255, 82, 82, 0.2)';
+                    }}
+                    onMouseUp={(e) => {
+                      e.currentTarget.style.transform = 'scale(1.15)';
+                      e.currentTarget.style.background = 'rgba(255, 82, 82, 0.1)';
+                    }}
+                    title="Eliminar registro"
                   >
                     <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>delete</span>
                   </button>
@@ -260,17 +370,17 @@ export default function Orders() {
                   onClick={() => handleStatusChange(order.id, order.status)}
                   style={{ 
                     width: '100%', padding: '1rem', border: 'none', cursor: 'pointer', fontWeight: 800, fontSize: '0.75rem', letterSpacing: '1px', textTransform: 'uppercase', transition: 'all 0.3s',
-                    backgroundColor: isPending ? 'rgba(201, 168, 76, 0.1)' : 'rgba(255, 255, 255, 0.05)',
-                    color: isPending ? '#C9A84C' : '#fff',
-                    borderTop: '1px solid var(--surface-container-highest)'
+                    backgroundColor: isPending ? 'rgba(201, 168, 76, 0.1)' : 'var(--surface-container-high)',
+                    color: isPending ? '#C9A84C' : 'var(--on-surface)',
+                    borderTop: 'var(--table-border)'
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = isPending ? '#C9A84C' : 'rgba(255,255,255,0.1)';
+                    e.currentTarget.style.backgroundColor = isPending ? '#C9A84C' : 'var(--surface-container-highest)';
                     if (isPending) e.currentTarget.style.color = '#1A1A2E';
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = isPending ? 'rgba(201, 168, 76, 0.1)' : 'rgba(255, 255, 255, 0.05)';
-                    e.currentTarget.style.color = isPending ? '#C9A84C' : '#fff';
+                    e.currentTarget.style.backgroundColor = isPending ? 'rgba(201, 168, 76, 0.1)' : 'var(--surface-container-high)';
+                    e.currentTarget.style.color = isPending ? '#C9A84C' : 'var(--on-surface)';
                   }}
                 >
                   {isPending ? 'Empezar Proceso' : (order.status === 'Preparando' ? 'Finalizar Tarea' : 'Archivar Registro')}
@@ -301,10 +411,23 @@ export default function Orders() {
             }}>
               <span className="material-symbols-outlined" style={{ fontSize: '32px' }}>delete_forever</span>
             </div>
-            <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1.25rem', fontWeight: 800, color: 'var(--on-surface)' }}>¿Eliminar Pedido?</h3>
-            <p style={{ margin: '0 0 2rem 0', fontSize: '0.9rem', color: 'var(--secondary)', lineHeight: '1.5' }}>
-              Estás a punto de borrar el pedido <strong style={{ color: 'var(--error)' }}>{orderToDelete}</strong>. Esta acción es irreversible.
+            <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1.25rem', fontWeight: 800, color: 'var(--on-surface)' }}>¿Eliminar Registro?</h3>
+            <p style={{ margin: '0 0 1.5rem 0', fontSize: '0.9rem', color: 'var(--secondary)', lineHeight: '1.5' }}>
+              Estás a punto de borrar de la base de datos el registro <strong style={{ color: 'var(--error)' }}>{orderToDelete?.id}</strong>. Esta acción es irreversible.
             </p>
+            <div style={{ marginBottom: '2rem', display: 'flex', alignItems: 'center', gap: '0.5rem', justifyContent: 'center' }}>
+              <input 
+                type="checkbox" 
+                id="skipConfirm" 
+                checked={skipDeleteConfirm}
+                onChange={(e) => {
+                  setSkipDeleteConfirm(e.target.checked);
+                  localStorage.setItem('skipDeleteConfirm', String(e.target.checked));
+                }}
+                style={{ accentColor: 'var(--error)', cursor: 'pointer', width: '16px', height: '16px' }}
+              />
+              <label htmlFor="skipConfirm" style={{ fontSize: '0.8rem', color: 'var(--secondary)', cursor: 'pointer' }}>No volver a preguntar</label>
+            </div>
             <div style={{ display: 'flex', gap: '1rem' }}>
               <button 
                 onClick={() => setOrderToDelete(null)}

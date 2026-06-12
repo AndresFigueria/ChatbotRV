@@ -158,12 +158,10 @@ export default function WhatsApp() {
   };
 
   return (
-    <div className="page-container" style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 1.5rem)', overflow: 'hidden', padding: '1rem 2rem 0 2rem', boxSizing: 'border-box' }}>
-      <header className="page-header" style={{ marginBottom: '0.5rem' }}>
-        <div>
-          <h2 className="display-md">Atención WhatsApp 📱</h2>
-          <p className="body-md" style={{ color: 'var(--secondary)', marginTop: '0.25rem' }}>Centro de mensajes centralizado. Actualizado mágicamente en tiempo real.</p>
-        </div>
+    <div className="page-container" style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 4rem)', overflow: 'hidden', padding: '0.25rem 2rem 1rem 2rem', boxSizing: 'border-box' }}>
+      <header className="page-header" style={{ marginBottom: '0.15rem', display: 'flex', alignItems: 'baseline', gap: '12px', justifyContent: 'flex-start' }}>
+        <h2 style={{ fontSize: '1.35rem', fontWeight: 800, margin: 0, fontFamily: 'var(--font-display)' }}>Atención WhatsApp 📱</h2>
+        <span style={{ color: 'var(--secondary)', fontSize: '0.8rem' }}>Centro de mensajes en tiempo real.</span>
       </header>
 
       <div className="chat-layout" style={{ display: 'flex', flex: 1, gap: '1.5rem', minHeight: 0, marginTop: '0.5rem', maxWidth: '1200px', margin: '0.5rem auto 0 auto', width: '100%' }}>
@@ -255,7 +253,7 @@ export default function WhatsApp() {
               </div>
               
               {/* Burbujas de mensajes */}
-              <div id="messages-container" style={{ flex: 1, overflowY: 'auto', padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '12px', minHeight: 0, backgroundColor: 'var(--surface-container-highest)' }}>
+              <div id="messages-container" style={{ flex: 1, overflowY: 'auto', padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '12px', minHeight: 0 }}>
                 {messages.length === 0 ? (
                     <div style={{ textAlign: 'center', marginTop: '2rem', color: 'rgba(255,255,255,0.3)' }}>Cargando mensajes...</div>
                 ) : messages.map((msg, idx) => {

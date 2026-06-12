@@ -9,7 +9,7 @@ async function run() {
   const { data, error } = await supabase
     .from('tenants')
     .update({
-      whatsapp_token: 'EAAdRNS7bknMBRkOysf0s4b0pS5HbrrMF5r8reghoBkZASgKVz1wm0gZAZBetPJOMrYHDVYa3gBlElbZAQjuJbY5gj9QuF4EOk6xAw7QPLCES5KEDeRS72uFh7SCnARShxocKbI3sNtAliGEsZAttGu8RwjWQhtFFkMDxzqDQ4GLZBhvVFcygF4I80L4ZAvYaoWy1QZDZD',
+      whatsapp_token: 'EAAdRNS7bknMBRomg1KXdRhrOfMg8i3QA1Y71Ocv8ZCHIiN9RujAorQGZAZB6T5TCcNg2bQx99qrLMlQWIlKInAimhZB7OQQOy6ngiQJBZA3ZBbZBcRchn66K4GRkDnnhGkazlwC3uPSqt0DQk6LkmrVJvmwvr3elV2XUAjhBWLkcwGLEfNkRi0MRBL7YQBOolFTugZDZD',
       waba_id: '1598375971257952'
     })
     .eq('id', '4c652a69-006f-4194-9436-fd281d55e644')

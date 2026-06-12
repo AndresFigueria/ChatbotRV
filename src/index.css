@@ -1191,3 +1191,26 @@ input[type=number] {
     font-size: 0.8rem;
   }
 }
+
+/* WhatsApp Doodle Chat Wallpaper */
+#messages-container {
+  background-color: #0b141a; /* Fallback WhatsApp Dark BG */
+  background-image: url('/modo-oscuro.jpg');
+  background-repeat: repeat;
+  background-size: 220px;
+}
+
+html.light-mode #messages-container {
+  background-color: #efeae2; /* Fallback WhatsApp Light BG */
+  background-image: url('/modo-claro.jpg');
+  background-repeat: repeat;
+  background-size: 200px;
+}
+
+#messages-container > * {
+  position: relative;
+  z-index: 1;
+}
+
+
+

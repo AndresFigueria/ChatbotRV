@@ -10,6 +10,7 @@ export default function Catalog() {
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [tenantId, setTenantId] = useState<string | null>(null);
+  const [currencySymbol, setCurrencySymbol] = useState('$');
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -45,6 +46,13 @@ export default function Catalog() {
       }
     }
 
+    // Traer config de la base para saber qué moneda usa el negocio
+    const { data: configData } = await supabase.from('business_config').select('currency').maybeSingle();
+    let symbol = '$';
+    if (configData?.currency === 'PEN') symbol = 'S/';
+    else if (configData?.currency === 'EUR') symbol = '€';
+    setCurrencySymbol(symbol);
+
     // 2. Traer el menú (RLS ya filtra automáticamente, pero guardamos el tenant_id para las inserciones)
     const { data, error } = await supabase
       .from('menu_items')
@@ -58,7 +66,7 @@ export default function Catalog() {
         id: item.item_code,
         name: item.name,
         category: item.category,
-        price: `$${Number(item.price).toFixed(2)}`,
+        price: `${symbol}${Number(item.price).toFixed(2)}`,
         rawPrice: item.price,
         cost: item.cost_price || 0,
         upsell: item.upsell_item_code || '',
@@ -93,12 +101,19 @@ export default function Catalog() {
     fetchMenu();
   }, [fetchMenu]);
 
-  const categories = ['Todos', 'Servicios', 'Consultas', 'Productos', 'Suscripciones', 'Otros'];
+  const categories = ['Todos', 'Servicios', 'Consultas', 'Productos', 'Suscripciones', 'Planes', 'Asesorías', 'Paquetes', 'Tratamientos', 'Mantenimiento', 'Menú/Carta', 'Bebidas', 'Postres', 'Otros'];
 
   const filteredMenu = menuItems.filter(m => {
     const searchLower = searchTerm.toLowerCase();
+    
+    // Normalizar keywords para asegurar que siempre sea un array
+    const keywordsArray = Array.isArray(m.keywords) 
+      ? m.keywords 
+      : (typeof m.keywords === 'string' ? m.keywords.split(',').map((k: string) => k.trim()) : []);
+      
     const matchesSearch = m.name.toLowerCase().includes(searchLower) || 
-                          m.keywords.some((k: string) => k.toLowerCase().includes(searchLower));
+                          keywordsArray.some((k: string) => k.toLowerCase().includes(searchLower));
+                          
     const matchesTab = activeCategory === 'Todos' || m.category === activeCategory;
     return matchesSearch && matchesTab;
   });
@@ -111,6 +126,38 @@ export default function Catalog() {
       stock_status: !currentAvailable ? 'Disponible' : 'Agotado'
     }).eq('item_code', id);
     if (!error) fetchMenu();
+  };
+
+  const [uploadingImage, setUploadingImage] = useState(false);
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    try {
+      if (!e.target.files || e.target.files.length === 0) return;
+      const file = e.target.files[0];
+      setUploadingImage(true);
+
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Math.random().toString(36).substring(2, 15)}_${Date.now()}.${fileExt}`;
+      const filePath = `items/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('catalog_images')
+        .upload(filePath, file);
+
+      if (uploadError) {
+        throw uploadError;
+      }
+
+      const { data } = supabase.storage
+        .from('catalog_images')
+        .getPublicUrl(filePath);
+
+      setFormData({ ...formData, img: data.publicUrl });
+    } catch (error: any) {
+      alert('Error subiendo imagen: ' + error.message + '\n\nNota: Asegúrate de crear un bucket llamado "catalog_images" en Supabase y configurarlo como Público.');
+    } finally {
+      setUploadingImage(false);
+    }
   };
 
   const openNewItem = () => {
@@ -172,9 +219,9 @@ export default function Catalog() {
   if (loading && menuItems.length === 0) return <div className="p-8 text-center text-secondary">Cargando Catálogo Maestro...</div>;
 
   return (
-    <div className="p-8">
+    <div style={{ padding: '0 2rem 2rem 2rem' }}>
       {/* Header Premium */}
-      <div className="flex justify-between items-end mb-8">
+      <div className="flex justify-between items-end mb-8" style={{ marginTop: 0 }}>
         <div>
           <h2 className="display-sm" style={{ fontWeight: 800 }}>Inventario & Inteligencia Comercial</h2>
           <p className="body-md" style={{ color: 'var(--secondary)' }}>Gestión de productos, márgenes de ganancia y reglas de upsell IA.</p>
@@ -227,7 +274,7 @@ export default function Catalog() {
              {menuItems.filter(m => m.keywords.length === 0).length}
           </h3>
           <p className="body-md" style={{ color: 'var(--secondary)', fontSize: '0.75rem', marginTop: '0.25rem' }}>
-             {menuItems.filter(m => m.keywords.length === 0).length > 0 ? 'Platos invisibles para el bot' : 'Catálogo 100% optimizado'}
+             {menuItems.filter(m => m.keywords.length === 0).length > 0 ? 'Ítems invisibles para el bot' : 'Catálogo 100% optimizado'}
           </p>
         </div>
 
@@ -255,7 +302,7 @@ export default function Catalog() {
       <div className="card" style={{ padding: '1rem 1.5rem', marginBottom: '2rem', backgroundColor: 'var(--surface-container-low)', borderRadius: '12px' }}>
          <div className="flex justify-between items-center flex-wrap gap-4">
             <div className="flex gap-2 flex-wrap">
-               {categories.map(cat => (
+               {['Todos', ...Array.from(new Set(menuItems.map(item => item.category)))].map(cat => (
                   <button key={cat} onClick={() => setActiveCategory(cat)} style={{ padding: '0.4rem 1rem', borderRadius: '8px', border: 'none', fontWeight: 600, fontSize: '0.75rem', cursor: 'pointer', transition: 'all 0.2s', backgroundColor: activeCategory === cat ? 'var(--primary)' : 'var(--surface-container-highest)', color: activeCategory === cat ? '#fff' : 'var(--on-surface)' }}>
                      {cat}
                   </button>
@@ -271,12 +318,13 @@ export default function Catalog() {
       {/* CATÁLOGO DE PRODUCTOS (PRO) */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '1rem' }}>
          {filteredMenu.map(item => {
-            const profit = item.rawPrice - item.cost;
-            const margin = item.rawPrice > 0 ? Math.round((profit / item.rawPrice) * 100) : 0;
+            const hasDiscount = item.cost > 0 && item.cost < item.rawPrice;
+            const discount = hasDiscount ? Math.round(((item.rawPrice - item.cost) / item.rawPrice) * 100) : 0;
             const upsellObj = menuItems.find(m => m.id === item.upsell);
+            const isMissingKeywords = !item.keywords || item.keywords.length === 0;
 
             return (
-               <div key={item.id} className="card" style={{ padding: '1rem', display: 'flex', gap: '1rem', alignItems: 'center', transition: 'all 0.2s', opacity: item.available ? 1 : 0.6, borderLeft: item.upsell ? '3px solid var(--tertiary)' : '1px solid var(--surface-container-highest)' }}>
+               <div key={item.id} className="card" style={{ padding: '1rem', display: 'flex', gap: '1rem', alignItems: 'center', transition: 'all 0.2s', opacity: item.available ? 1 : 0.6, borderLeft: item.upsell ? '3px solid var(--tertiary)' : '1px solid var(--surface-container-highest)', boxShadow: isMissingKeywords ? '0 0 0 2px #ff4d4f, 0 4px 12px rgba(255, 77, 79, 0.2)' : undefined }}>
                   <img src={item.img} alt={item.name} style={{ width: '80px', height: '80px', borderRadius: '8px', objectFit: 'cover' }} />
                   <div style={{ flex: 1 }}>
                      <div className="flex justify-between items-start">
@@ -285,9 +333,17 @@ export default function Catalog() {
                          <h4 style={{ fontWeight: 700, fontSize: '0.95rem', margin: '0.1rem 0 0.25rem 0', color: 'var(--on-surface)' }}>{item.name}</h4>
                        </div>
                        <div style={{ textAlign: 'right' }}>
-                          <span style={{ fontSize: '0.9rem', fontWeight: 800, display: 'block' }}>{item.price}</span>
-                          {/* Margen de ganancia */}
-                          <span style={{ fontSize: '0.65rem', fontWeight: 700, color: margin > 50 ? 'var(--emerald-400)' : 'var(--tertiary)' }}>{margin}% Mg.</span>
+                          {hasDiscount ? (
+                            <>
+                              <span style={{ fontSize: '0.7rem', fontWeight: 600, textDecoration: 'line-through', color: 'var(--secondary)' }}>{item.price}</span>
+                              <div className="flex items-center gap-2 mt-1">
+                                <span style={{ fontSize: '0.9rem', fontWeight: 900, display: 'block', color: 'var(--primary)' }}>{currencySymbol}{Number(item.cost).toFixed(2)}</span>
+                                <span style={{ fontSize: '0.65rem', fontWeight: 800, color: 'var(--emerald-400)' }}>{discount}% OFF</span>
+                              </div>
+                            </>
+                          ) : (
+                            <span style={{ fontSize: '0.9rem', fontWeight: 800, display: 'block' }}>{item.price}</span>
+                          )}
                        </div>
                      </div>
                      
@@ -337,7 +393,7 @@ export default function Catalog() {
             {/* Header */}
             <div style={{ padding: '1.5rem 1.75rem 1.25rem', borderBottom: '1px solid var(--surface-container-highest)', flexShrink: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
-                <h3 style={{ fontWeight: 900, fontSize: '1.2rem', margin: 0 }}>{formData.id ? 'Editar Producto IA' : 'Nuevo Producto IA'}</h3>
+                <h3 style={{ fontWeight: 900, fontSize: '1.2rem', margin: 0 }}>{formData.id ? 'Editar Ítem IA' : 'Nuevo Ítem IA'}</h3>
                 <p style={{ fontSize: '0.72rem', opacity: 0.45, margin: '3px 0 0' }}>Configura los parámetros del catálogo</p>
               </div>
               <button onClick={() => setIsModalOpen(false)} style={{ background: 'var(--surface-container-highest)', border: 'none', borderRadius: '50%', width: '34px', height: '34px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--on-surface)', flexShrink: 0 }}>
@@ -353,8 +409,8 @@ export default function Catalog() {
                 <p style={{ fontSize: '0.68rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1.5px', color: 'var(--primary)', margin: 0 }}>1 · Datos Básicos</p>
                 <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '0.75rem', width: '100%' }}>
                   <div className="flex flex-col gap-1">
-                    <label className="label-sm">Nombre del Producto *</label>
-                    <input required className="input-base" style={{ width: '100%', paddingLeft: '1rem' }} value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} placeholder="Ej: Hamburguesa Clásica" />
+                    <label className="label-sm">Nombre del Ítem / Servicio *</label>
+                    <input required className="input-base" style={{ width: '100%', paddingLeft: '1rem' }} value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} placeholder="Ej: Menú, Producto, Catálogo..." />
                   </div>
                   <div className="flex flex-col gap-1">
                     <label className="label-sm">Categoría *</label>
@@ -364,25 +420,26 @@ export default function Catalog() {
                   </div>
                 </div>
 
-                {/* 2. Finanzas */}
+                {/* 2. Estrategia de Precios */}
                 <div style={{ borderTop: '1px solid var(--surface-container-highest)', paddingTop: '1rem' }}>
-                  <p style={{ fontSize: '0.68rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1.5px', color: 'var(--primary)', margin: '0 0 0.75rem' }}>2 · Estructura Financiera</p>
+                  <p style={{ fontSize: '0.68rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1.5px', color: 'var(--primary)', margin: '0 0 0.75rem' }}>2 · Estrategia de Precios</p>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 0.7fr', gap: '0.75rem', width: '100%' }}>
                     <div className="flex flex-col gap-1">
-                      <label className="label-sm">Precio Venta ($) *</label>
-                      <input required type="number" step="0.01" className="input-base" style={{ width: '100%', paddingLeft: '1rem' }} value={formData.price} onChange={e => setFormData({...formData, price: e.target.value})} placeholder="0.00" />
+                      <label className="label-sm">Precio Normal ({currencySymbol}) *</label>
+                      <input required type="number" step="0.01" className="input-base" style={{ width: '100%', paddingLeft: '1rem' }} value={formData.price} onChange={e => setFormData({...formData, price: e.target.value})} placeholder="Ej: 2500" />
                     </div>
                     <div className="flex flex-col gap-1">
-                      <label className="label-sm">Costo Real ($)</label>
-                      <input type="number" step="0.01" className="input-base" style={{ width: '100%', paddingLeft: '1rem' }} placeholder="Ej: 3.50" value={formData.cost} onChange={e => setFormData({...formData, cost: e.target.value})} />
+                      <label className="label-sm">Precio Promocional ({currencySymbol})</label>
+                      <input type="number" step="0.01" className="input-base" style={{ width: '100%', paddingLeft: '1rem' }} placeholder="Ej: 2000" value={formData.cost} onChange={e => setFormData({...formData, cost: e.target.value})} />
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', backgroundColor: 'var(--surface-container)', borderRadius: '12px', padding: '0.4rem 0.5rem' }}>
-                      <span style={{ fontSize: '0.6rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px', color: 'var(--secondary)' }}>Margen</span>
+                      <span style={{ fontSize: '0.55rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px', color: 'var(--secondary)' }}>Descuento</span>
                       <span style={{ fontWeight: 900, color: 'var(--primary)', fontSize: '1.5rem', lineHeight: 1.1 }}>
-                        {Number(formData.price) > 0 ? Math.round(((Number(formData.price) - Number(formData.cost)) / Number(formData.price)) * 100) : 0}%
+                        {Number(formData.price) > 0 && Number(formData.cost) > 0 && Number(formData.cost) < Number(formData.price) ? Math.round(((Number(formData.price) - Number(formData.cost)) / Number(formData.price)) * 100) : 0}%
                       </span>
                     </div>
                   </div>
+                  <p style={{ fontSize: '0.65rem', color: 'var(--secondary)', marginTop: '0.5rem', marginBottom: 0 }}>La IA usará el Precio Promocional como táctica para cerrar ventas si el cliente duda.</p>
                 </div>
 
                 {/* 3. Reglas IA */}
@@ -402,24 +459,54 @@ export default function Catalog() {
 
                   <div className="flex flex-col gap-1" style={{ marginBottom: '0.75rem', width: '100%' }}>
                     <label className="label-sm">Keywords (bot)</label>
-                    <input className="input-base" style={{ width: '100%', paddingLeft: '1rem' }} placeholder="carne, doble, hamburguesa..." value={formData.keywords} onChange={e => setFormData({...formData, keywords: e.target.value})} />
+                    <input className="input-base" style={{ width: '100%', paddingLeft: '1rem' }} placeholder="Ej: blanqueamiento, urgencia, instalación..." value={formData.keywords} onChange={e => setFormData({...formData, keywords: e.target.value})} />
                   </div>
 
                   <label style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer', padding: '0.75rem 1rem', backgroundColor: 'var(--surface-container)', borderRadius: '12px', width: '100%' }}>
                     <input type="checkbox" checked={formData.modifiers} onChange={e => setFormData({...formData, modifiers: e.target.checked})} style={{ width: '16px', height: '16px', accentColor: 'var(--primary)', flexShrink: 0 }} />
                     <div>
                       <p style={{ margin: 0, fontSize: '0.85rem', fontWeight: 700 }}>Acepta Extras / Cambios</p>
-                      <p style={{ margin: 0, fontSize: '0.7rem', opacity: 0.5 }}>El bot permitirá modificaciones al pedido</p>
+                      <p style={{ margin: 0, fontSize: '0.7rem', opacity: 0.5 }}>El bot permitirá opciones o servicios adicionales</p>
                     </div>
                   </label>
                 </div>
 
-                {/* Imagen */}
-                <div style={{ borderTop: '1px solid var(--surface-container-highest)', paddingTop: '1rem' }}>
-                  <div className="flex flex-col gap-1" style={{ width: '100%' }}>
-                    <label className="label-sm">URL Imagen (cuadrada recomendada)</label>
-                    <input className="input-base" style={{ width: '100%', paddingLeft: '1rem' }} value={formData.img} onChange={e => setFormData({...formData, img: e.target.value})} placeholder="https://..." />
+                {/* Imagen y Previsualización */}
+                <div style={{ borderTop: '1px solid var(--surface-container-highest)', paddingTop: '1rem', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', width: '100%' }}>
+                  
+                  {/* Controles de Imagen */}
+                  <div className="flex flex-col gap-1">
+                    <label className="label-sm">Imagen del Ítem (cuadrada)</label>
+                    <div style={{ marginTop: '0.5rem' }}>
+                        <input 
+                          type="file" 
+                          accept="image/*"
+                          onChange={handleImageUpload}
+                          style={{ display: 'none' }}
+                          id="image-upload"
+                        />
+                        <label htmlFor="image-upload" className="btn-secondary" style={{ display: 'inline-flex', cursor: 'pointer', fontSize: '0.8rem', padding: '0.4rem 0.8rem', alignItems: 'center', gap: '0.4rem', margin: 0, width: '100%', justifyContent: 'center' }}>
+                            <span className="material-symbols-outlined" style={{ fontSize: '1.2rem' }}>{uploadingImage ? 'hourglass_empty' : 'upload_file'}</span>
+                            {uploadingImage ? 'Subiendo...' : 'Subir Imagen desde PC'}
+                        </label>
+                        <p style={{ margin: '0.75rem 0 0.25rem', fontSize: '0.65rem', color: 'var(--secondary)' }}>O pega la URL directamente:</p>
+                        <input className="input-base" style={{ width: '100%', paddingLeft: '1rem' }} value={formData.img} onChange={e => setFormData({...formData, img: e.target.value})} placeholder="https://..." />
+                    </div>
                   </div>
+
+                  {/* Tarjeta de Previsualización en Vivo */}
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                     <label className="label-sm" style={{ color: 'var(--primary)' }}>Previsualización en Vivo</label>
+                     <div className="card" style={{ padding: '0.75rem', display: 'flex', gap: '0.75rem', alignItems: 'center', marginTop: '0.5rem', backgroundColor: 'var(--surface-container)' }}>
+                        <img src={formData.img || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=150'} alt="Preview" style={{ width: '56px', height: '56px', borderRadius: '8px', objectFit: 'cover' }} />
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                           <span style={{ fontSize: '0.55rem', fontWeight: 800, color: 'var(--primary)', textTransform: 'uppercase', display: 'block' }}>{formData.category || 'Categoría'}</span>
+                           <h4 style={{ fontWeight: 700, fontSize: '0.8rem', margin: '0 0 0.2rem 0', color: 'var(--on-surface)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{formData.name || 'Nombre del Ítem'}</h4>
+                           <span style={{ fontSize: '0.8rem', fontWeight: 800, display: 'block' }}>{currencySymbol}{Number(formData.price || 0).toFixed(2)}</span>
+                        </div>
+                     </div>
+                  </div>
+
                 </div>
 
               </form>
@@ -430,7 +517,7 @@ export default function Catalog() {
               <button type="button" onClick={() => setIsModalOpen(false)} className="btn-secondary" style={{ flex: 1 }}>Cancelar</button>
               <button form="product-form" type="submit" className="btn-primary" style={{ flex: 2, fontWeight: 800 }}>
                 <span className="material-symbols-outlined" style={{ fontSize: '17px' }}>check_circle</span>
-                Guardar Producto
+                Guardar Ítem
               </button>
             </div>
           </div>
