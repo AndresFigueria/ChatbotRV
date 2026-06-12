@@ -220,8 +220,8 @@ export default function WhatsApp() {
           </div>
         </div>
 
-        {/* Panel Derecho: Ventana del Chat Activo (Contraste Máximo) */}
-        <div style={{ flex: 1, backgroundColor: 'var(--surface-container-highest)', borderRadius: '12px', display: 'flex', flexDirection: 'column', border: '1px solid var(--card-border)', overflow: 'hidden' }}>
+        {/* Panel Derecho: Ventana del Chat Activo (Formato Teléfono) */}
+        <div style={{ width: '100%', maxWidth: '480px', margin: '0 auto', backgroundColor: 'var(--surface-container-highest)', borderRadius: '24px', display: 'flex', flexDirection: 'column', border: '1px solid var(--card-border)', overflow: 'hidden', boxShadow: '0 10px 40px rgba(0,0,0,0.2)' }}>
           {activeChatId ? (
             <>
               {/* Header del chat */}
