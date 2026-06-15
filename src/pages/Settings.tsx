@@ -295,7 +295,7 @@ export default function Settings() {
               <button 
                 type="button"
                 onClick={() => {
-                  window.open('https://robotinacentral.com/#contacto', '_blank');
+                  window.open('/home#contacto', '_blank');
                 }}
                 className="btn-secondary" 
                 style={{ width: '100%', fontSize: '0.75rem', padding: '0.5rem' }}

@@ -104,6 +104,7 @@ function App() {
   return (
     <Routes>
       <Route path="/" element={isAuthenticated ? <MainLayout /> : <Landing />} />
+      <Route path="/home" element={<Landing />} />
       <Route path="/login" element={<Login onLogin={handleLogin} />} />
       <Route path="/register" element={<Register />} />
       <Route path="/onboarding" element={isAuthenticated ? <Onboarding onComplete={() => {}} /> : <Login onLogin={handleLogin} />} />
