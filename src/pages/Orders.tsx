@@ -156,6 +156,30 @@ export default function Orders() {
     window.dispatchEvent(new Event('ordersUpdated'));
   };
 
+  const handleReturnToPending = async (orderCode: string, isLead: boolean, originalId: string) => {
+    const newStatus = 'Pendiente';
+    
+    // Optimistic UI update
+    setOrders(prevOrders => prevOrders.map(o => {
+      if (o.id === orderCode) {
+        return {
+          ...o,
+          status: newStatus,
+          statusClass: 'status-pending'
+        };
+      }
+      return o;
+    }));
+
+    if (isLead) {
+      await supabase.from('landing_leads').update({ status: newStatus }).eq('id', originalId);
+    } else {
+      await supabase.from('orders').update({ status: newStatus }).eq('order_code', orderCode);
+    }
+    window.dispatchEvent(new Event('ordersUpdated'));
+  };
+
+
   const executeDelete = async (order: any) => {
     // Actualización Optimista de la Interfaz (borrar al instante visualmente)
     setOrders(prevOrders => prevOrders.filter(o => o.id !== order.id));
@@ -468,28 +492,48 @@ export default function Orders() {
                 </div>
               </div>
 
-              {/* Botón de acción principal (Full Width) */}
-              {order.status !== 'Despachado' && (
-                <button 
-                  onClick={() => handleStatusChange(order.id, order.status, order.isLead, order.originalId)}
-                  style={{ 
-                    width: '100%', padding: '0.75rem', border: 'none', cursor: 'pointer', fontWeight: 800, fontSize: '0.7rem', letterSpacing: '1px', textTransform: 'uppercase', transition: 'all 0.3s',
-                    backgroundColor: isPending ? 'rgba(201, 168, 76, 0.1)' : 'var(--surface-container-high)',
-                    color: isPending ? '#C9A84C' : 'var(--on-surface)',
-                    borderTop: 'var(--table-border)'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = isPending ? '#C9A84C' : 'var(--surface-container-highest)';
-                    if (isPending) e.currentTarget.style.color = '#1A1A2E';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = isPending ? 'rgba(201, 168, 76, 0.1)' : 'var(--surface-container-high)';
-                    e.currentTarget.style.color = isPending ? '#C9A84C' : 'var(--on-surface)';
-                  }}
-                >
-                  {isPending ? 'Pasar a Preparando' : (order.status === 'Preparando' ? 'Pasar a Listo' : 'Pasar a Despachado')}
-                </button>
-              )}
+              {/* Botones de acción principales */}
+              <div style={{ display: 'flex', width: '100%', borderTop: 'var(--table-border)' }}>
+                {!isPending && (
+                  <button
+                    onClick={() => handleReturnToPending(order.id, order.isLead, order.originalId)}
+                    style={{
+                      flex: 1, padding: '0.75rem', border: 'none', cursor: 'pointer', fontWeight: 800, fontSize: '0.7rem', letterSpacing: '1px', textTransform: 'uppercase', transition: 'all 0.3s',
+                      backgroundColor: 'rgba(239, 68, 68, 0.05)',
+                      color: '#ef4444',
+                      borderRight: 'var(--table-border)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.15)'}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.05)'}
+                    title="Devolver a Pendiente"
+                  >
+                    <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>undo</span>
+                  </button>
+                )}
+                {order.status !== 'Despachado' && (
+                  <button 
+                    onClick={() => handleStatusChange(order.id, order.status, order.isLead, order.originalId)}
+                    style={{ 
+                      flex: 4, padding: '0.75rem', border: 'none', cursor: 'pointer', fontWeight: 800, fontSize: '0.7rem', letterSpacing: '1px', textTransform: 'uppercase', transition: 'all 0.3s',
+                      backgroundColor: isPending ? 'rgba(201, 168, 76, 0.1)' : 'var(--surface-container-high)',
+                      color: isPending ? '#C9A84C' : 'var(--on-surface)',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = isPending ? '#C9A84C' : 'var(--surface-container-highest)';
+                      if (isPending) e.currentTarget.style.color = '#1A1A2E';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = isPending ? 'rgba(201, 168, 76, 0.1)' : 'var(--surface-container-high)';
+                      e.currentTarget.style.color = isPending ? '#C9A84C' : 'var(--on-surface)';
+                    }}
+                  >
+                    {isPending ? 'Pasar a Preparando' : (order.status === 'Preparando' ? 'Pasar a Listo' : 'Pasar a Despachado')}
+                  </button>
+                )}
+              </div>
             </div>
           );
         })}
