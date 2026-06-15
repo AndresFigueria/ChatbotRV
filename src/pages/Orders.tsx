@@ -75,8 +75,8 @@ export default function Orders() {
         total: 'Reunión',
         time: new Date(l.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         dateObj: new Date(l.created_at),
-        status: 'Pendiente',
-        statusClass: 'status-pending',
+        status: l.status || 'Pendiente',
+        statusClass: (l.status || 'Pendiente') === 'Pendiente' ? 'status-pending' : ((l.status || 'Pendiente') === 'Preparando' ? 'status-preparing' : ((l.status || 'Pendiente') === 'Listo' ? 'status-ready' : 'status-delivered')),
         isLead: true,
         originalId: l.id,
         appointmentDateRaw: l.appointment_date,
@@ -125,14 +125,18 @@ export default function Orders() {
 
 
 
-  const handleStatusChange = async (orderCode: string, currentStatus: string) => {
+  const handleStatusChange = async (orderCode: string, currentStatus: string, isLead: boolean, originalId: string) => {
     let newStatus = '';
     if (currentStatus === 'Pendiente') newStatus = 'Preparando';
     else if (currentStatus === 'Preparando') newStatus = 'Listo';
     else if (currentStatus === 'Listo') newStatus = 'Despachado';
     else return;
 
-    await supabase.from('orders').update({ status: newStatus }).eq('order_code', orderCode);
+    if (isLead) {
+      await supabase.from('landing_leads').update({ status: newStatus }).eq('id', originalId);
+    } else {
+      await supabase.from('orders').update({ status: newStatus }).eq('order_code', orderCode);
+    }
     window.dispatchEvent(new Event('ordersUpdated'));
   };
 
@@ -411,7 +415,7 @@ export default function Orders() {
               {/* Botón de acción principal (Full Width) */}
               {order.status !== 'Despachado' && (
                 <button 
-                  onClick={() => handleStatusChange(order.id, order.status)}
+                  onClick={() => handleStatusChange(order.id, order.status, order.isLead, order.originalId)}
                   style={{ 
                     width: '100%', padding: '1rem', border: 'none', cursor: 'pointer', fontWeight: 800, fontSize: '0.75rem', letterSpacing: '1px', textTransform: 'uppercase', transition: 'all 0.3s',
                     backgroundColor: isPending ? 'rgba(201, 168, 76, 0.1)' : 'var(--surface-container-high)',
