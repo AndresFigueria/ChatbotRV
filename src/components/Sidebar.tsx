@@ -1,4 +1,4 @@
-import { NavLink } from 'react-router-dom';
+import { NavLink, useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
 
@@ -33,6 +33,7 @@ const navGroups = [
 ];
 
 export default function Sidebar({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) {
+  const location = useLocation();
   const [panelName, setPanelName] = useState('Robotina Central');
   const [userName] = useState('Senior Admin');
   const [isConnected, setIsConnected] = useState(true);
@@ -67,6 +68,17 @@ export default function Sidebar({ isOpen, onClose }: { isOpen: boolean, onClose:
     fetchUnreadCount();
     fetchPendingOrders();
 
+    const handleUnreadUpdate = () => {
+      fetchUnreadCount();
+    };
+
+    const handleOrdersUpdate = () => {
+      fetchPendingOrders();
+    };
+
+    window.addEventListener('unreadUpdated', handleUnreadUpdate);
+    window.addEventListener('ordersUpdated', handleOrdersUpdate);
+
     const channelWhatsapp = supabase.channel('sidebar_unread_chats')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'whatsapp_chats' }, () => {
         fetchUnreadCount();
@@ -83,20 +95,35 @@ export default function Sidebar({ isOpen, onClose }: { isOpen: boolean, onClose:
       .subscribe();
 
     return () => {
+      window.removeEventListener('unreadUpdated', handleUnreadUpdate);
+      window.removeEventListener('ordersUpdated', handleOrdersUpdate);
       supabase.removeChannel(channelWhatsapp);
       supabase.removeChannel(channelOrders);
     };
   }, []);
 
   useEffect(() => {
-    const loadSettings = () => {
-      const saved = localStorage.getItem('rest-settings');
-      if (saved) {
-        setPanelName(JSON.parse(saved).restName || 'Robotina Central');
+    const fetchBusinessName = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('business_config')
+          .select('business_name')
+          .maybeSingle();
+        if (!error && data?.business_name) {
+          setPanelName(data.business_name);
+        } else {
+          const saved = localStorage.getItem('rest-settings');
+          if (saved) {
+            setPanelName(JSON.parse(saved).restName || 'Robotina Central');
+          }
+        }
+      } catch (err) {
+        console.error("Failed to load business name:", err);
       }
     };
-    loadSettings();
-    window.addEventListener('settingsUpdated', loadSettings);
+
+    fetchBusinessName();
+    window.addEventListener('settingsUpdated', fetchBusinessName);
     
     // Test initial connection and monitor WebSocket realtime health
     const checkConnection = async () => {
@@ -116,7 +143,7 @@ export default function Sidebar({ isOpen, onClose }: { isOpen: boolean, onClose:
     });
 
     return () => {
-      window.removeEventListener('settingsUpdated', loadSettings);
+      window.removeEventListener('settingsUpdated', fetchBusinessName);
       supabase.removeChannel(channel);
     };
   }, []);
@@ -125,8 +152,22 @@ export default function Sidebar({ isOpen, onClose }: { isOpen: boolean, onClose:
     <aside className={`sidebar ${isOpen ? 'mobile-visible' : 'mobile-hidden'}`}>
       <div className="sidebar-header">
         <div className="flex items-center gap-3">
-          <div className="brand-icon">
-            <span className="material-symbols-outlined" style={{ fontSize: '1.5rem', color: '#fff' }}>terminal</span>
+          <div style={{ width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <svg viewBox="0 0 48 48" className="robot-logo" style={{ width: '40px', height: '40px' }}>
+              {/* Antenna */}
+              <line x1="24" y1="14" x2="24" y2="8" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" />
+              <circle cx="24" cy="5" r="3" fill="currentColor" />
+              {/* Ears */}
+              <path d="M 10 21 A 4 4 0 0 0 6 25 L 6 27 A 4 4 0 0 0 10 31" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" />
+              <path d="M 38 21 A 4 4 0 0 1 42 25 L 42 27 A 4 4 0 0 1 38 31" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" />
+              {/* Head */}
+              <rect x="10" y="14" width="28" height="24" rx="6" fill="none" stroke="currentColor" strokeWidth="3.5" />
+              {/* Eyes */}
+              <circle cx="18" cy="24" r="2.5" fill="currentColor" />
+              <circle cx="30" cy="24" r="2.5" fill="currentColor" />
+              {/* Smile */}
+              <path d="M 18 30 Q 24 34 30 30" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+            </svg>
           </div>
           <div>
             <h1 className="sidebar-brand">{panelName}</h1>
@@ -162,19 +203,20 @@ export default function Sidebar({ isOpen, onClose }: { isOpen: boolean, onClose:
                 >
                   <span className="material-symbols-outlined">{item.icon}</span>
                   <span className="nav-label">{item.label}</span>
-                  {item.path === '/whatsapp' && totalUnread > 0 && (
-                    <span className="unread-dot" style={{
-                      width: '8px',
-                      height: '8px',
-                      borderRadius: '50%',
-                      backgroundColor: 'var(--emerald-400)',
-                      boxShadow: '0 0 10px var(--emerald-400)',
-                      marginLeft: 'auto',
-                      marginRight: '0.5rem',
-                      animation: 'pulse 1.5s infinite'
-                    }}></span>
+                  {item.path === '/whatsapp' && totalUnread > 0 && location.pathname !== '/whatsapp' && (
+                    <div style={{ display: 'flex', alignItems: 'center', marginLeft: 'auto', marginRight: '0.5rem', gap: '6px' }}>
+                      <span style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--emerald-400)' }}>{totalUnread}</span>
+                      <span className="unread-dot" style={{
+                        width: '8px',
+                        height: '8px',
+                        borderRadius: '50%',
+                        backgroundColor: 'var(--emerald-400)',
+                        boxShadow: '0 0 10px var(--emerald-400)',
+                        animation: 'pulse 1.5s infinite'
+                      }}></span>
+                    </div>
                   )}
-                  {item.path === '/orders' && pendingOrders > 0 && (
+                  {item.path === '/orders' && pendingOrders > 0 && location.pathname !== '/orders' && (
                     <div style={{ display: 'flex', alignItems: 'center', marginLeft: 'auto', marginRight: '0.5rem', gap: '6px' }}>
                       <span style={{ fontSize: '0.7rem', fontWeight: 800, color: '#C9A84C' }}>{pendingOrders}</span>
                       <span className="unread-dot" style={{

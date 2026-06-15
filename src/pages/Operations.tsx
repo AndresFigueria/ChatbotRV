@@ -86,7 +86,7 @@ export default function Operations() {
       
       <div className="flex justify-between items-center" style={{ marginBottom: '2rem', borderBottom: '2px solid var(--surface-container-highest)', paddingBottom: '1rem' }}>
         <div>
-          <h1 style={{ fontSize: '2.5rem', fontWeight: 900, color: 'var(--on-surface)', margin: 0, letterSpacing: '-1px' }}>CENTRO DE OPERACIONES</h1>
+          <h2 className="page-title" style={{ color: 'var(--on-surface)' }}>CENTRO DE OPERACIONES</h2>
           <p style={{ fontSize: '1.2rem', color: 'var(--secondary)', margin: 0 }}>Flujo de trabajo unificado (Ventas + Citas)</p>
         </div>
         <div className="flex gap-4 items-center">

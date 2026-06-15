@@ -63,7 +63,7 @@ export default function Notifications() {
   return (
     <div className="p-8 h-full flex flex-col">
       <header style={{ marginBottom: '2rem' }}>
-        <h2 className="display-md">Centro de Notificaciones 🔔</h2>
+        <h2 className="page-title">Centro de Notificaciones 🔔</h2>
         <p className="body-md" style={{ color: 'var(--secondary)' }}>Eventos que requieren tu atención en Robotina Central.</p>
       </header>
 

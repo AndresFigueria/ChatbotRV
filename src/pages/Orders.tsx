@@ -131,6 +131,7 @@ export default function Orders() {
     else return;
 
     await supabase.from('orders').update({ status: newStatus }).eq('order_code', orderCode);
+    window.dispatchEvent(new Event('ordersUpdated'));
   };
 
   const executeDelete = async (order: any) => {
@@ -144,6 +145,8 @@ export default function Orders() {
         console.error('Error al borrar lead:', error);
         alert('Error al borrar la cita: ' + error.message);
         fetchOrders(); // Revertir visualmente si hay error
+      } else {
+        window.dispatchEvent(new Event('ordersUpdated'));
       }
     } else {
       const { error } = await supabase.from('orders').delete().eq('id', order.originalId);
@@ -151,6 +154,8 @@ export default function Orders() {
         console.error('Error al borrar order:', error);
         alert('Error al borrar la orden: ' + error.message);
         fetchOrders(); // Revertir visualmente si hay error
+      } else {
+        window.dispatchEvent(new Event('ordersUpdated'));
       }
     }
   };
@@ -189,7 +194,7 @@ export default function Orders() {
     }}>
       <div className="page-header" style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
-          <h2 className="display-sm" style={{ fontWeight: 900, letterSpacing: '-1px', color: 'var(--primary)' }}>Gestión de Ventas y Servicios</h2>
+          <h2 className="page-title" style={{ color: 'var(--primary)' }}>Gestión de Ventas y Servicios</h2>
           <p className="body-md" style={{ opacity: 0.7, marginTop: '0.25rem', color: 'var(--secondary)' }}>
             Control logístico y comercial de alta precisión • <span style={{ color: 'var(--tertiary)', fontWeight: 600 }}>En Vivo</span>
           </p>

@@ -84,7 +84,7 @@ export default function Bookings() {
     <div className="p-8">
       <header className="page-header mb-8">
         <div>
-          <h2 className="display-sm" style={{ fontWeight: 800 }}>Gestión de Citas y Agenda</h2>
+          <h2 className="page-title">Gestión de Citas y Agenda</h2>
           <p className="body-md" style={{ color: 'var(--secondary)' }}>Automatización de reservas para servicios profesionales.</p>
         </div>
         <div className="flex gap-3">

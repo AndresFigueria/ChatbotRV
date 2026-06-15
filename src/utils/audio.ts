@@ -1,9 +1,51 @@
+let sharedCtx: AudioContext | null = null;
+
+const getAudioContext = (): AudioContext | null => {
+  if (typeof window === 'undefined') return null;
+  if (!sharedCtx) {
+    const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+    if (AudioContextClass) {
+      sharedCtx = new AudioContextClass();
+    }
+  }
+  return sharedCtx;
+};
+
+// Auto-unlock AudioContext on first user interaction
+if (typeof window !== 'undefined') {
+  const unlock = () => {
+    const ctx = getAudioContext();
+    if (ctx && ctx.state === 'suspended') {
+      ctx.resume().then(() => {
+        // Remove listeners once successfully unlocked
+        document.removeEventListener('click', unlock);
+        document.removeEventListener('keydown', unlock);
+        document.removeEventListener('touchstart', unlock);
+      }).catch((err) => {
+        console.error("Failed to resume AudioContext during unlock:", err);
+      });
+    } else if (ctx && ctx.state === 'running') {
+      // Already running, clean up listeners
+      document.removeEventListener('click', unlock);
+      document.removeEventListener('keydown', unlock);
+      document.removeEventListener('touchstart', unlock);
+    }
+  };
+  document.addEventListener('click', unlock);
+  document.addEventListener('keydown', unlock);
+  document.addEventListener('touchstart', unlock);
+}
+
 export const playNotificationSound = () => {
   try {
-    const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
-    if (!AudioContext) return;
+    const ctx = getAudioContext();
+    if (!ctx) return;
     
-    const ctx = new AudioContext();
+    // Proactively try to resume if suspended (e.g. if the user interacted but it didn't unlock)
+    if (ctx.state === 'suspended') {
+      ctx.resume().catch(() => {});
+    }
+
     const osc = ctx.createOscillator();
     const gainNode = ctx.createGain();
 

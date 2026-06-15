@@ -73,7 +73,7 @@ export default function Marketing() {
     <div className="p-8 relative">
       <div className="flex justify-between items-center" style={{ marginBottom: '2.5rem' }}>
         <div>
-          <h2 className="display-md">Generador de Marketing (WhatsApp)</h2>
+          <h2 className="page-title">Generador de Marketing (WhatsApp)</h2>
           <p className="body-md" style={{ color: 'var(--secondary)', marginTop: '0.25rem' }}>
             Aumenta tus ventas impactando directamente al teléfono de tus clientes mediante la IA.
           </p>

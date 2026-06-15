@@ -119,7 +119,7 @@ export default function BotStatus() {
     <div className="p-8 h-full flex flex-col">
       <div className="flex justify-between items-center" style={{ marginBottom: '1.5rem' }}>
         <div>
-          <h2 className="display-md">Auditoría del Agente IA 🤖</h2>
+          <h2 className="page-title">Auditoría del Agente IA 🤖</h2>
           <p className="body-md" style={{ color: 'var(--secondary)', marginTop: '0.25rem' }}>
             Monitor real de Robotina Central. Toma el control si el cliente necesita un humano.
           </p>

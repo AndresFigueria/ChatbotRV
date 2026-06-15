@@ -86,7 +86,7 @@ export default function Analytics() {
     <div className="p-8">
       <div className="page-header">
         <div>
-          <h2 className="display-sm" style={{ fontWeight: 800 }}>Business Intelligence</h2>
+          <h2 className="page-title">Business Intelligence</h2>
           <p className="body-md" style={{ color: 'var(--secondary)', marginTop: '0.25rem' }}>
             Análisis de datos cruzados entre pedidos, clientes y automatizaciones.
           </p>

@@ -103,7 +103,7 @@ export default function History() {
     <div className="p-8 relative">
       <div className="flex justify-between items-center" style={{ marginBottom: '2.5rem' }}>
         <div>
-          <h2 className="display-md">Archivo y Contabilidad</h2>
+          <h2 className="page-title">Archivo y Contabilidad</h2>
           <p className="body-md" style={{ color: 'var(--secondary)', marginTop: '0.25rem' }}>
             Registro exacto e inmutable de boletas emitidas, cierres de día y eventos logísticos.
           </p>

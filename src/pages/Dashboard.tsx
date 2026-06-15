@@ -62,7 +62,7 @@ export default function Dashboard() {
     <div style={{ padding: '0.5rem 2.5rem' }}>
       <header className="page-header mb-4">
         <div>
-          <h2 className="display-md">Robotina Business Control 🤖</h2>
+          <h2 className="page-title">Robotina Business Control 🤖</h2>
           <p className="body-md" style={{ color: 'var(--secondary)' }}>Panel de control operativo y estratégico.</p>
         </div>
       </header>
@@ -87,9 +87,9 @@ export default function Dashboard() {
       </div>
 
       <div className="dashboard-grid-main">
-        <div className="card" style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column' }}>
-          <h3 className="title-md mb-3">Ingresos (Últimos 7 Días)</h3>
-          <div style={{ width: '100%', flex: 1, minHeight: '180px' }}>
+        <div className="card" style={{ padding: '1rem', display: 'flex', flexDirection: 'column', height: '260px' }}>
+          <h3 className="title-md mb-2">Ingresos (Últimos 7 Días)</h3>
+          <div style={{ width: '100%', height: '180px' }}>
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={chartData7D} margin={{ top: 10, right: 0, left: -20, bottom: 0 }}>
                 <defs>
@@ -108,9 +108,9 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <div className="card">
-          <h3 className="title-md mb-6">Bitácora Operativa IA</h3>
-          <div className="activity-feed">
+        <div className="card" style={{ padding: '1rem', display: 'flex', flexDirection: 'column', height: '260px' }}>
+          <h3 className="title-md mb-3">Bitácora Operativa IA</h3>
+          <div className="activity-feed" style={{ flex: 1, overflowY: 'auto', paddingRight: '4px' }}>
             {recentEvents.map(event => (
               <div key={event.id} className="activity-feed-item">
                 <div className={`activity-icon ${event.cl}`} style={{ width: '32px', height: '32px' }}>

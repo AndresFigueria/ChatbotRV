@@ -76,6 +76,7 @@ export default function WhatsApp() {
           .from('whatsapp_chats')
           .update({ unread_count: 0 })
           .eq('id', activeChatId);
+        window.dispatchEvent(new Event('unreadUpdated'));
       };
       clearUnread();
 
@@ -160,7 +161,7 @@ export default function WhatsApp() {
   return (
     <div className="page-container" style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 4rem)', overflow: 'hidden', padding: '0.25rem 2rem 1rem 2rem', boxSizing: 'border-box' }}>
       <header className="page-header" style={{ marginBottom: '0.15rem', display: 'flex', alignItems: 'baseline', gap: '12px', justifyContent: 'flex-start' }}>
-        <h2 style={{ fontSize: '1.35rem', fontWeight: 800, margin: 0, fontFamily: 'var(--font-display)' }}>Atención WhatsApp 📱</h2>
+        <h2 className="page-title">Atención WhatsApp 📱</h2>
         <span style={{ color: 'var(--secondary)', fontSize: '0.8rem' }}>Centro de mensajes en tiempo real.</span>
       </header>
 

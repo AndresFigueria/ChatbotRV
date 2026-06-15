@@ -223,7 +223,7 @@ export default function Catalog() {
       {/* Header Premium */}
       <div className="flex justify-between items-end mb-8" style={{ marginTop: 0 }}>
         <div>
-          <h2 className="display-sm" style={{ fontWeight: 800 }}>Inventario & Inteligencia Comercial</h2>
+          <h2 className="page-title">Inventario & Inteligencia Comercial</h2>
           <p className="body-md" style={{ color: 'var(--secondary)' }}>Gestión de productos, márgenes de ganancia y reglas de upsell IA.</p>
         </div>
         <div className="flex gap-3">

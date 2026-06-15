@@ -65,7 +65,7 @@ export default function Customers() {
     <div className="p-8">
       <div className="page-header" style={{ marginBottom: '1.5rem' }}>
         <div>
-          <h2 className="display-md">Base de Clientes 👥</h2>
+          <h2 className="page-title">Base de Clientes 👥</h2>
           <p className="body-md" style={{ color: 'var(--secondary)' }}>CRM Inteligente alimentado por WhatsApp y Landing Page.</p>
         </div>
         <div className="flex gap-4">

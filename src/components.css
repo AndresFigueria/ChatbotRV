@@ -99,6 +99,29 @@
   border-bottom: 1px solid rgba(221, 230, 242, 0.1);
 }
 
+.activity-feed {
+  max-height: 290px;
+  overflow-y: auto;
+  padding-right: 0.5rem;
+}
+
+.activity-feed::-webkit-scrollbar {
+  width: 4px;
+}
+
+.activity-feed::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.activity-feed::-webkit-scrollbar-thumb {
+  background: var(--surface-container-highest);
+  border-radius: 4px;
+}
+
+.activity-feed::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 90, 31, 0.4);
+}
+
 .activity-feed-item {
   display: flex;
   gap: 1rem;
