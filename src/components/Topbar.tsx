@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { supabase } from '../supabaseClient';
 import { useNavigate } from 'react-router-dom';
 
-export default function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
+export default function Topbar() {
   const navigate = useNavigate();
   const [pendingOrders, setPendingOrders] = useState<any[]>([]);
   const [unreadChats, setUnreadChats] = useState<any[]>([]);
@@ -175,10 +175,6 @@ export default function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
   return (
     <header className="topbar">
       <div className="flex items-center gap-3" style={{ flex: 1 }}>
-        <button className="mobile-menu-btn icon-btn" onClick={onMenuClick}>
-          <span className="material-symbols-outlined">menu</span>
-        </button>
-        
         <div style={{ flex: 1 }}></div>
       </div>
 

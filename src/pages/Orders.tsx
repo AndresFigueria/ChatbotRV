@@ -78,7 +78,9 @@ export default function Orders() {
         status: 'Pendiente',
         statusClass: 'status-pending',
         isLead: true,
-        originalId: l.id
+        originalId: l.id,
+        appointmentDateRaw: l.appointment_date,
+        appointmentTimeRaw: l.appointment_time
       }))];
     }
 
@@ -160,8 +162,45 @@ export default function Orders() {
     }
   };
 
+  const parseSpanishDate = (dateStr: string) => {
+    if (!dateStr) return null;
+    const parts = dateStr.toLowerCase().split(' de ');
+    if (parts.length < 3) return null;
+    const day = parseInt(parts[0], 10);
+    const monthName = parts[1].trim();
+    const year = parseInt(parts[2], 10);
+    
+    const months: { [key: string]: number } = {
+      enero: 0, febrero: 1, marzo: 2, abril: 3, mayo: 4, junio: 5,
+      julio: 6, agosto: 7, septiembre: 8, octubre: 9, noviembre: 10, diciembre: 11
+    };
+    
+    const month = months[monthName];
+    if (month === undefined) return null;
+    
+    return new Date(year, month, day);
+  };
+
+  const isUpcoming = (order: any) => {
+    if (!order) return false;
+    if (order.isLead && order.appointmentDateRaw) {
+      const appDate = parseSpanishDate(order.appointmentDateRaw);
+      if (appDate) {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        appDate.setHours(0, 0, 0, 0);
+        return appDate.getTime() >= today.getTime();
+      }
+    }
+    if (!order.isLead) {
+      return order.status !== 'Despachado';
+    }
+    return false;
+  };
+
   const handleDeleteOrder = async (order: any) => {
-    if (skipDeleteConfirm) {
+    const upcoming = isUpcoming(order);
+    if (skipDeleteConfirm && !upcoming) {
       await executeDelete(order);
     } else {
       setOrderToDelete(order);
@@ -202,23 +241,23 @@ export default function Orders() {
 
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.5rem', marginBottom: '3rem' }}>
-        <div className="card" style={{ padding: '1.5rem', borderRadius: '16px', background: 'var(--surface-container)', border: 'var(--card-border)', boxShadow: 'var(--shadow-sm)' }}>
-          <p style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--primary)', letterSpacing: '1px' }}>Tareas Activas</p>
-          <h3 style={{ fontSize: '2.5rem', margin: '0.5rem 0', color: 'var(--on-surface)' }}>{activosCount.toString().padStart(2, '0')}</h3>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--tertiary)', fontSize: '0.8rem' }}>
-            <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>trending_up</span> Operación fluida
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
+        <div className="card" style={{ padding: '1rem 1.25rem', borderRadius: '12px', background: 'var(--surface-container)', border: 'var(--card-border)', boxShadow: 'var(--shadow-sm)' }}>
+          <p style={{ fontSize: '0.65rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--primary)', letterSpacing: '1px' }}>Tareas Activas</p>
+          <h3 style={{ fontSize: '1.75rem', margin: '0.25rem 0', color: 'var(--on-surface)', fontWeight: 800 }}>{activosCount.toString().padStart(2, '0')}</h3>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'var(--tertiary)', fontSize: '0.7rem' }}>
+            <span className="material-symbols-outlined" style={{ fontSize: '12px' }}>trending_up</span> Operación fluida
           </div>
         </div>
-        <div className="card" style={{ padding: '1.5rem', borderRadius: '16px', background: 'var(--surface-container)', border: 'var(--card-border)', boxShadow: 'var(--shadow-sm)' }}>
-          <p style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--primary)', letterSpacing: '1px' }}>Volumen Diario</p>
-          <h3 style={{ fontSize: '2.5rem', margin: '0.5rem 0', color: 'var(--on-surface)' }}>${totalIngresos.toFixed(2)}</h3>
-          <p style={{ fontSize: '0.8rem', opacity: 0.5 }}>Ingresos proyectados hoy</p>
+        <div className="card" style={{ padding: '1rem 1.25rem', borderRadius: '12px', background: 'var(--surface-container)', border: 'var(--card-border)', boxShadow: 'var(--shadow-sm)' }}>
+          <p style={{ fontSize: '0.65rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--primary)', letterSpacing: '1px' }}>Volumen Diario</p>
+          <h3 style={{ fontSize: '1.75rem', margin: '0.25rem 0', color: 'var(--on-surface)', fontWeight: 800 }}>${totalIngresos.toFixed(2)}</h3>
+          <p style={{ fontSize: '0.7rem', opacity: 0.5, margin: 0 }}>Ingresos proyectados hoy</p>
         </div>
-        <div className="card" style={{ padding: '1.5rem', borderRadius: '16px', background: 'var(--surface-container)', border: 'var(--card-border)', boxShadow: 'var(--shadow-sm)' }}>
-          <p style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--primary)', letterSpacing: '1px' }}>Eficiencia Bot</p>
-          <h3 style={{ fontSize: '2.5rem', margin: '0.5rem 0', color: 'var(--on-surface)' }}>{botEfficiency.toFixed(1)}%</h3>
-          <p style={{ fontSize: '0.8rem', opacity: 0.5 }}>Precisión en toma de pedidos</p>
+        <div className="card" style={{ padding: '1rem 1.25rem', borderRadius: '12px', background: 'var(--surface-container)', border: 'var(--card-border)', boxShadow: 'var(--shadow-sm)' }}>
+          <p style={{ fontSize: '0.65rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--primary)', letterSpacing: '1px' }}>Eficiencia Bot</p>
+          <h3 style={{ fontSize: '1.75rem', margin: '0.25rem 0', color: 'var(--on-surface)', fontWeight: 800 }}>{botEfficiency.toFixed(1)}%</h3>
+          <p style={{ fontSize: '0.7rem', opacity: 0.5, margin: 0 }}>Precisión en toma de pedidos</p>
         </div>
       </div>
 
@@ -420,19 +459,45 @@ export default function Orders() {
             <p style={{ margin: '0 0 1.5rem 0', fontSize: '0.9rem', color: 'var(--secondary)', lineHeight: '1.5' }}>
               Estás a punto de borrar de la base de datos el registro <strong style={{ color: 'var(--error)' }}>{orderToDelete?.id}</strong>. Esta acción es irreversible.
             </p>
-            <div style={{ marginBottom: '2rem', display: 'flex', alignItems: 'center', gap: '0.5rem', justifyContent: 'center' }}>
-              <input 
-                type="checkbox" 
-                id="skipConfirm" 
-                checked={skipDeleteConfirm}
-                onChange={(e) => {
-                  setSkipDeleteConfirm(e.target.checked);
-                  localStorage.setItem('skipDeleteConfirm', String(e.target.checked));
-                }}
-                style={{ accentColor: 'var(--error)', cursor: 'pointer', width: '16px', height: '16px' }}
-              />
-              <label htmlFor="skipConfirm" style={{ fontSize: '0.8rem', color: 'var(--secondary)', cursor: 'pointer' }}>No volver a preguntar</label>
-            </div>
+            {isUpcoming(orderToDelete) && (
+              <div style={{
+                backgroundColor: 'rgba(255, 152, 0, 0.1)',
+                border: '1px solid rgba(255, 152, 0, 0.3)',
+                borderRadius: '12px',
+                padding: '0.75rem',
+                marginBottom: '1.5rem',
+                fontSize: '0.8rem',
+                color: '#ff9800',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                textAlign: 'left'
+              }}>
+                <span className="material-symbols-outlined" style={{ fontSize: '20px', color: '#ff9800' }}>warning</span>
+                <span>
+                  <strong>¡Atención!</strong> Este es un servicio o entrega programada para hoy o el futuro.
+                </span>
+              </div>
+            )}
+            {!isUpcoming(orderToDelete) ? (
+              <div style={{ marginBottom: '2rem', display: 'flex', alignItems: 'center', gap: '0.5rem', justifyContent: 'center' }}>
+                <input 
+                  type="checkbox" 
+                  id="skipConfirm" 
+                  checked={skipDeleteConfirm}
+                  onChange={(e) => {
+                    setSkipDeleteConfirm(e.target.checked);
+                    localStorage.setItem('skipDeleteConfirm', String(e.target.checked));
+                  }}
+                  style={{ accentColor: 'var(--error)', cursor: 'pointer', width: '16px', height: '16px' }}
+                />
+                <label htmlFor="skipConfirm" style={{ fontSize: '0.8rem', color: 'var(--secondary)', cursor: 'pointer' }}>No volver a preguntar</label>
+              </div>
+            ) : (
+              <div style={{ marginBottom: '1.5rem', fontSize: '0.75rem', color: 'var(--secondary)' }}>
+                * Por seguridad, se requiere confirmación manual para registros activos o futuros.
+              </div>
+            )}
             <div style={{ display: 'flex', gap: '1rem' }}>
               <button 
                 onClick={() => setOrderToDelete(null)}

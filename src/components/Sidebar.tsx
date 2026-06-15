@@ -35,10 +35,31 @@ const navGroups = [
 export default function Sidebar({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) {
   const location = useLocation();
   const [panelName, setPanelName] = useState('Robotina Central');
-  const [userName] = useState('Senior Admin');
+  const [userEmail, setUserEmail] = useState('');
+  const [userInitials, setUserInitials] = useState('AD');
   const [isConnected, setIsConnected] = useState(true);
   const [totalUnread, setTotalUnread] = useState(0);
   const [pendingOrders, setPendingOrders] = useState(0);
+
+  // Fetch real logged-in user
+  useEffect(() => {
+    const getUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user?.email) {
+        setUserEmail(user.email);
+        // Build initials from email prefix
+        const prefix = user.email.split('@')[0];
+        const parts = prefix.split(/[._-]/);
+        if (parts.length >= 2) {
+          setUserInitials((parts[0][0] + parts[1][0]).toUpperCase());
+        } else {
+          setUserInitials(prefix.slice(0, 2).toUpperCase());
+        }
+      }
+    };
+    getUser();
+  }, []);
+
 
   const fetchUnreadCount = async () => {
     const { data } = await supabase
@@ -238,10 +259,9 @@ export default function Sidebar({ isOpen, onClose }: { isOpen: boolean, onClose:
 
       <div className="sidebar-footer">
         <div className="admin-profile">
-          <div className="avatar">AD</div>
+          <div className="avatar">{userInitials}</div>
           <div className="admin-info">
-            <span className="admin-name">{userName}</span>
-            <span className="admin-role">Root Access</span>
+            <span className="admin-name">{userEmail || 'Administrador'}</span>
           </div>
           <span className="material-symbols-outlined" style={{ fontSize: '1.2rem', color: 'var(--secondary)' }}>verified_user</span>
         </div>

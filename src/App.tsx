@@ -55,7 +55,7 @@ function App() {
   // };
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
+  // const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
   const closeSidebar = () => setIsSidebarOpen(false);
 
   // Componente interno para el layout principal
@@ -71,7 +71,7 @@ function App() {
         />
         <Sidebar isOpen={isSidebarOpen} onClose={closeSidebar} />
         <div className="main-canvas">
-          <Topbar onMenuClick={toggleSidebar} />
+          <Topbar />
           <Routes>
             <Route path="/" element={<Dashboard />} />
             <Route path="/orders" element={<Orders />} />

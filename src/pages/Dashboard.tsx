@@ -87,9 +87,9 @@ export default function Dashboard() {
       </div>
 
       <div className="dashboard-grid-main">
-        <div className="card" style={{ padding: '1rem', display: 'flex', flexDirection: 'column', height: '260px' }}>
+        <div className="card" style={{ padding: '1rem', display: 'flex', flexDirection: 'column', height: '360px' }}>
           <h3 className="title-md mb-2">Ingresos (Últimos 7 Días)</h3>
-          <div style={{ width: '100%', height: '180px' }}>
+          <div style={{ width: '100%', height: '280px' }}>
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={chartData7D} margin={{ top: 10, right: 0, left: -20, bottom: 0 }}>
                 <defs>
@@ -108,7 +108,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <div className="card" style={{ padding: '1rem', display: 'flex', flexDirection: 'column', height: '260px' }}>
+        <div className="card" style={{ padding: '1rem', display: 'flex', flexDirection: 'column', height: '360px' }}>
           <h3 className="title-md mb-3">Bitácora Operativa IA</h3>
           <div className="activity-feed" style={{ flex: 1, overflowY: 'auto', paddingRight: '4px' }}>
             {recentEvents.map(event => (
