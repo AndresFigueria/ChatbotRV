@@ -295,7 +295,7 @@ export default function Settings() {
               <button 
                 type="button"
                 onClick={() => {
-                  window.open('https://api.whatsapp.com/send?phone=5491165994057&text=Hola,%20quiero%20gestionar%20la%20facturacion%20de%20mi%20cuenta', '_blank');
+                  window.open('https://robotinacentral.com/#contacto', '_blank');
                 }}
                 className="btn-secondary" 
                 style={{ width: '100%', fontSize: '0.75rem', padding: '0.5rem' }}

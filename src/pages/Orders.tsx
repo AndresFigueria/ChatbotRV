@@ -59,7 +59,9 @@ export default function Orders() {
         status: o.status || 'Pendiente',
         statusClass: o.status === 'Pendiente' ? 'status-pending' : (o.status === 'Preparando' ? 'status-preparing' : (o.status === 'Listo' ? 'status-ready' : 'status-delivered')),
         isLead: false,
-        originalId: o.id
+        originalId: o.id,
+        segment: '',
+        volume: ''
       }))];
     }
 
@@ -80,7 +82,9 @@ export default function Orders() {
         isLead: true,
         originalId: l.id,
         appointmentDateRaw: l.appointment_date,
-        appointmentTimeRaw: l.appointment_time
+        appointmentTimeRaw: l.appointment_time,
+        segment: l.segment || '',
+        volume: l.volume || ''
       }))];
     }
 
@@ -132,6 +136,18 @@ export default function Orders() {
     else if (currentStatus === 'Listo') newStatus = 'Despachado';
     else return;
 
+    // Optimistic UI update para que cambie de inmediato
+    setOrders(prevOrders => prevOrders.map(o => {
+      if (o.id === orderCode) {
+        return {
+          ...o,
+          status: newStatus,
+          statusClass: newStatus === 'Pendiente' ? 'status-pending' : (newStatus === 'Preparando' ? 'status-preparing' : (newStatus === 'Listo' ? 'status-ready' : 'status-delivered'))
+        };
+      }
+      return o;
+    }));
+
     if (isLead) {
       await supabase.from('landing_leads').update({ status: newStatus }).eq('id', originalId);
     } else {
@@ -164,6 +180,30 @@ export default function Orders() {
         window.dispatchEvent(new Event('ordersUpdated'));
       }
     }
+  };
+
+  const getCountryCode = (phone: string) => {
+    if (!phone) return 'unknown';
+    const cleanPhone = phone.replace(/\D/g, '');
+    
+    if (cleanPhone.startsWith('54')) return 'ar';
+    if (cleanPhone.startsWith('51')) return 'pe';
+    if (cleanPhone.startsWith('52')) return 'mx';
+    if (cleanPhone.startsWith('56')) return 'cl';
+    if (cleanPhone.startsWith('57')) return 'co';
+    if (cleanPhone.startsWith('58')) return 've';
+    if (cleanPhone.startsWith('591')) return 'bo';
+    if (cleanPhone.startsWith('593')) return 'ec';
+    if (cleanPhone.startsWith('595')) return 'py';
+    if (cleanPhone.startsWith('598')) return 'uy';
+    if (cleanPhone.startsWith('34') && cleanPhone.length >= 11) return 'es';
+    if (cleanPhone.startsWith('1') && cleanPhone.length >= 11) return 'us';
+    
+    // Si el número tiene 10 dígitos y no coincidió con prefijos internacionales, 
+    // asumimos que es un número local de Argentina (ej. 351... de Córdoba o 11... de BBAA)
+    if (cleanPhone.length === 10) return 'ar';
+
+    return 'unknown';
   };
 
   const parseSpanishDate = (dateStr: string) => {
@@ -233,7 +273,8 @@ export default function Orders() {
       backgroundColor: 'var(--surface-container-low)', 
       minHeight: '100vh', 
       color: 'var(--on-surface)',
-      transition: 'all 0.3s ease'
+      transition: 'all 0.3s ease',
+      paddingBottom: '10rem'
     }}>
       <div className="page-header" style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
@@ -311,13 +352,13 @@ export default function Orders() {
               }}
             >
               {/* Header de la tarjeta */}
-              <div style={{ padding: '1.25rem', borderBottom: 'var(--table-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
+              <div style={{ padding: '0.75rem 1rem', borderBottom: 'var(--table-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
                 <div>
-                  <h4 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: 'var(--primary)' }}>{order.id}</h4>
-                  <p style={{ margin: 0, fontSize: '0.7rem', color: 'var(--secondary)' }}>{order.time} • WhatsApp</p>
+                  <h4 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 800, color: 'var(--primary)' }}>{order.id}</h4>
+                  <p style={{ margin: 0, fontSize: '0.65rem', color: 'var(--secondary)' }}>{order.time} • WhatsApp</p>
                 </div>
                 <div style={{ 
-                  padding: '4px 12px', borderRadius: '20px', fontSize: '0.65rem', fontWeight: 900, letterSpacing: '1px',
+                  padding: '3px 10px', borderRadius: '20px', fontSize: '0.6rem', fontWeight: 900, letterSpacing: '1px',
                   backgroundColor: isPending ? 'var(--primary-container)' : (isReady ? 'var(--tertiary-container)' : 'var(--surface-container-highest)'),
                   color: isPending ? 'var(--on-primary-container)' : (isReady ? 'var(--on-tertiary-container)' : 'var(--on-surface)'),
                   border: 'var(--table-border)',
@@ -328,28 +369,33 @@ export default function Orders() {
               </div>
 
               {/* Contenido: Cliente e Items */}
-              <div style={{ padding: '1.25rem' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '1.5rem' }}>
-                  <div style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: 'var(--surface-container)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <span className="material-symbols-outlined" style={{ color: 'var(--primary)' }}>person</span>
+              <div style={{ padding: '0.75rem 1rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '0.75rem' }}>
+                  <div style={{ width: '36px', height: '36px', borderRadius: '50%', backgroundColor: 'var(--surface-container)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <span className="material-symbols-outlined" style={{ color: 'var(--primary)', fontSize: '18px' }}>person</span>
                   </div>
                   <div>
-                    <p style={{ margin: 0, fontWeight: 700, fontSize: '0.9rem', color: 'var(--on-surface)' }}>{order.customer}</p>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                      <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--secondary)' }}>{order.phone}</p>
+                    <p style={{ margin: 0, fontWeight: 700, fontSize: '0.85rem', color: 'var(--on-surface)' }}>{order.customer}</p>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                      {getCountryCode(order.phone) !== 'unknown' ? (
+                        <img src={`https://flagcdn.com/w20/${getCountryCode(order.phone)}.png`} alt="flag" style={{ width: '16px', borderRadius: '2px' }} />
+                      ) : (
+                        <span style={{ fontSize: '12px' }}>🌍</span>
+                      )}
+                      <p style={{ margin: 0, fontSize: '0.7rem', color: 'var(--secondary)' }}>{order.phone}</p>
                       {order.email && (
                         <>
-                          <span style={{ fontSize: '0.75rem', color: 'var(--surface-container-highest)' }}>•</span>
-                          <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--primary)', fontWeight: 600 }}>{order.email}</p>
+                          <span style={{ fontSize: '0.7rem', color: 'var(--surface-container-highest)' }}>•</span>
+                          <p style={{ margin: 0, fontSize: '0.7rem', color: 'var(--primary)', fontWeight: 600 }}>{order.email}</p>
                         </>
                       )}
                     </div>
                   </div>
                 </div>
 
-                <div style={{ background: 'var(--surface-container-low)', padding: '1rem', borderRadius: '12px', marginBottom: '1.5rem', border: 'var(--table-border)' }}>
-                  <p style={{ fontSize: '0.65rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--secondary)', marginBottom: '0.75rem' }}>Detalle del Servicio / Venta</p>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <div style={{ background: 'var(--surface-container-low)', padding: '0.6rem', borderRadius: '10px', marginBottom: '0.75rem', border: 'var(--table-border)' }}>
+                  <p style={{ fontSize: '0.6rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--secondary)', marginBottom: '0.4rem' }}>Detalle del Servicio / Venta</p>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '65px', overflowY: 'auto', paddingRight: '4px' }} className="custom-scrollbar">
                     {order.itemsDetails && order.itemsDetails.length > 0 ? (
                       order.itemsDetails.map((item: any, idx: number) => (
                         <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', color: 'var(--on-surface)' }}>
@@ -362,6 +408,16 @@ export default function Orders() {
                       ))
                     ) : (
                       <p style={{ fontSize: '0.8rem', opacity: 0.3 }}>Sin detalle del pedido</p>
+                    )}
+                    {order.segment && (
+                      <div style={{ fontSize: '0.7rem', color: 'var(--on-surface)', borderTop: '1px dashed var(--surface-container-highest)', paddingTop: '4px' }}>
+                        <span style={{ color: 'var(--secondary)', fontWeight: 600 }}>A QUÉ SE DEDICA:</span> {order.segment}
+                      </div>
+                    )}
+                    {order.volume && (
+                      <div style={{ fontSize: '0.7rem', color: 'var(--on-surface)', borderTop: '1px dashed var(--surface-container-highest)', paddingTop: '4px' }}>
+                        <span style={{ color: 'var(--secondary)', fontWeight: 600 }}>VOLUMEN MSJ:</span> {order.volume}
+                      </div>
                     )}
                   </div>
                 </div>
@@ -417,7 +473,7 @@ export default function Orders() {
                 <button 
                   onClick={() => handleStatusChange(order.id, order.status, order.isLead, order.originalId)}
                   style={{ 
-                    width: '100%', padding: '1rem', border: 'none', cursor: 'pointer', fontWeight: 800, fontSize: '0.75rem', letterSpacing: '1px', textTransform: 'uppercase', transition: 'all 0.3s',
+                    width: '100%', padding: '0.75rem', border: 'none', cursor: 'pointer', fontWeight: 800, fontSize: '0.7rem', letterSpacing: '1px', textTransform: 'uppercase', transition: 'all 0.3s',
                     backgroundColor: isPending ? 'rgba(201, 168, 76, 0.1)' : 'var(--surface-container-high)',
                     color: isPending ? '#C9A84C' : 'var(--on-surface)',
                     borderTop: 'var(--table-border)'
@@ -431,7 +487,7 @@ export default function Orders() {
                     e.currentTarget.style.color = isPending ? '#C9A84C' : 'var(--on-surface)';
                   }}
                 >
-                  {isPending ? 'Empezar Proceso' : (order.status === 'Preparando' ? 'Finalizar Tarea' : 'Archivar Registro')}
+                  {isPending ? 'Pasar a Preparando' : (order.status === 'Preparando' ? 'Pasar a Listo' : 'Pasar a Despachado')}
                 </button>
               )}
             </div>

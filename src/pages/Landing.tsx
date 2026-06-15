@@ -17,6 +17,7 @@ export default function Landing() {
   const [bookingGoal, setBookingGoal] = useState('');
   const [bookingStep, setBookingStep] = useState(0); // 0 = Questionnaire, 1 = Show Calendar / Confirm
 
+
   // Contact Form State
   const [contactName, setContactName] = useState('');
   const [contactEmail, setContactEmail] = useState('');
@@ -35,6 +36,17 @@ export default function Landing() {
     mercadoPagoUrl?: string;
   } | null>(null);
 
+  useEffect(() => {
+    if (isBookingOpen || isPaymentOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'auto';
+    }
+    return () => {
+      document.body.style.overflow = 'auto';
+    };
+  }, [isBookingOpen, isPaymentOpen]);
+
   const DEMO_WHATSAPP_NUMBER = '5491165994057'; // Número de WhatsApp real
   const BUSINESS_EMAIL = 'soporte@robotinacentral.com';
   const LEGAL_RUC = '15607181699';
@@ -42,7 +54,7 @@ export default function Landing() {
 
   const handleBookingSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!bookingName || !bookingPhone || !bookingSegment || !bookingVolume || !bookingGoal) {
+    if (!bookingName || !bookingPhone || !bookingSegment || !bookingVolume) {
       alert('Por favor completa todos los campos.');
       return;
     }
@@ -252,6 +264,9 @@ export default function Landing() {
               </a>
               <a href="#pricing" style={{ color: 'var(--secondary)', textDecoration: 'none', fontSize: '0.85rem', fontWeight: 500 }}>
                 Planes
+              </a>
+              <a href="#contacto" style={{ color: 'var(--secondary)', textDecoration: 'none', fontSize: '0.85rem', fontWeight: 500 }}>
+                Contacto
               </a>
             </div>
 
@@ -2504,22 +2519,26 @@ export default function Landing() {
 
       {/* BOOKING MODAL */}
       {isBookingOpen && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: 'rgba(5, 5, 8, 0.85)',
-          backdropFilter: 'blur(12px)',
-          WebkitBackdropFilter: 'blur(12px)',
-          zIndex: 9999,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: '1rem'
-        }}>
-          <div className="glass-card" style={{
+        <div 
+          onClick={() => setIsBookingOpen(false)}
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(5, 5, 8, 0.85)',
+            backdropFilter: 'blur(12px)',
+            WebkitBackdropFilter: 'blur(12px)',
+            zIndex: 9999,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '1rem'
+          }}>
+          <div 
+            onClick={(e) => e.stopPropagation()}
+            className="glass-card" style={{
             maxWidth: '520px',
             width: '100%',
             padding: 'var(--glass-card-padding)',
@@ -2633,8 +2652,10 @@ export default function Landing() {
                   </div>
 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-                    <label style={{ color: '#fff', fontSize: '0.8rem', fontWeight: 600 }}>¿Cuál es tu Giro o Sector de Negocio?</label>
-                    <select
+                    <label style={{ color: '#fff', fontSize: '0.8rem', fontWeight: 600 }}>¿A qué te dedicas?</label>
+                    <input
+                      type="text"
+                      placeholder="Ej: Venta de perfumes, Restaurante, Abogado..."
                       value={bookingSegment}
                       onChange={(e) => setBookingSegment(e.target.value)}
                       required
@@ -2648,21 +2669,10 @@ export default function Landing() {
                         outline: 'none',
                         transition: 'border-color 0.3s',
                         width: '100%',
-                        cursor: 'pointer'
                       }}
                       onFocus={(e) => e.target.style.borderColor = 'var(--emerald-400)'}
                       onBlur={(e) => e.target.style.borderColor = 'rgba(255, 255, 255, 0.08)'}
-                    >
-                      <option value="" disabled style={{ backgroundColor: '#0f1016', color: 'rgba(255,255,255,0.4)' }}>Selecciona una opción...</option>
-                      <option value="Farmacia" style={{ backgroundColor: '#0f1016', color: '#fff' }}>Farmacia / Boticas</option>
-                      <option value="E-commerce" style={{ backgroundColor: '#0f1016', color: '#fff' }}>E-commerce / Tienda Online</option>
-                      <option value="Restaurante" style={{ backgroundColor: '#0f1016', color: '#fff' }}>Restaurante / Venta de comida</option>
-                      <option value="Inmobiliaria" style={{ backgroundColor: '#0f1016', color: '#fff' }}>Inmobiliaria / Bienes raíces</option>
-                      <option value="Academias" style={{ backgroundColor: '#0f1016', color: '#fff' }}>Academias / Escolar / Educativo</option>
-                      <option value="Clínica Médica" style={{ backgroundColor: '#0f1016', color: '#fff' }}>Clínica Médica / Dental / Estética</option>
-                      <option value="Servicios Profesionales" style={{ backgroundColor: '#0f1016', color: '#fff' }}>Servicios Profesionales (Consultoría, Legal, etc.)</option>
-                      <option value="Otro sector" style={{ backgroundColor: '#0f1016', color: '#fff' }}>Otro sector de negocio</option>
-                    </select>
+                    />
                   </div>
 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
@@ -2694,34 +2704,7 @@ export default function Landing() {
                     </select>
                   </div>
 
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-                    <label style={{ color: '#fff', fontSize: '0.8rem', fontWeight: 600 }}>¿Qué te gustaría automatizar principalmente?</label>
-                    <select
-                      value={bookingGoal}
-                      onChange={(e) => setBookingGoal(e.target.value)}
-                      required
-                      style={{
-                        backgroundColor: '#0c0d14',
-                        border: '1px solid rgba(255, 255, 255, 0.08)',
-                        borderRadius: '12px',
-                        padding: '0.75rem 1rem',
-                        color: '#fff',
-                        fontSize: '0.9rem',
-                        outline: 'none',
-                        transition: 'border-color 0.3s',
-                        width: '100%',
-                        cursor: 'pointer'
-                      }}
-                      onFocus={(e) => e.target.style.borderColor = 'var(--emerald-400)'}
-                      onBlur={(e) => e.target.style.borderColor = 'rgba(255, 255, 255, 0.08)'}
-                    >
-                      <option value="" disabled style={{ backgroundColor: '#0f1016', color: 'rgba(255,255,255,0.4)' }}>Selecciona una opción...</option>
-                      <option value="Responder preguntas frecuentes y derivar" style={{ backgroundColor: '#0f1016', color: '#fff' }}>Responder preguntas frecuentes y derivar</option>
-                      <option value="Enviar catálogo interactivo y tomar pedidos" style={{ backgroundColor: '#0f1016', color: '#fff' }}>Enviar catálogo interactivo y tomar pedidos</option>
-                      <option value="Agendar citas, turnos o reservas automáticamente" style={{ backgroundColor: '#0f1016', color: '#fff' }}>Agendar citas, turnos o reservas automáticamente</option>
-                      <option value="Todo lo anterior en automático" style={{ backgroundColor: '#0f1016', color: '#fff' }}>Todo lo anterior en automático</option>
-                    </select>
-                  </div>
+
 
                   <button type="submit" className="btn-primary" style={{
                     border: 'none',
