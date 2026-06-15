@@ -47,6 +47,19 @@ export default function Landing() {
     };
   }, [isBookingOpen, isPaymentOpen]);
 
+  useEffect(() => {
+    // Scroll to hash on initial load if present (e.g., /home#contacto)
+    if (window.location.hash) {
+      setTimeout(() => {
+        const id = window.location.hash.substring(1);
+        const element = document.getElementById(id);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 150); // slight delay to ensure DOM is fully painted
+    }
+  }, []);
+
   const DEMO_WHATSAPP_NUMBER = '5491165994057'; // Número de WhatsApp real
   const BUSINESS_EMAIL = 'soporte@robotinacentral.com';
   const LEGAL_RUC = '15607181699';
