@@ -26,14 +26,17 @@ export default function Agendar() {
   // Configuración del Bot
   const DEMO_WHATSAPP_NUMBER = '5491165994057'; // Número de WhatsApp de RobotinaCentral
 
-  // Horarios disponibles fijos (puedes cambiarlos en el futuro)
+  // Horarios de atención: 8:00 AM a 12:00 PM, cada 30 minutos
   const timeSlots = [
+    { time: '08:00 AM', label: 'Mañana' },
+    { time: '08:30 AM', label: 'Mañana' },
+    { time: '09:00 AM', label: 'Mañana' },
+    { time: '09:30 AM', label: 'Mañana' },
     { time: '10:00 AM', label: 'Mañana' },
+    { time: '10:30 AM', label: 'Mañana' },
+    { time: '11:00 AM', label: 'Mañana' },
     { time: '11:30 AM', label: 'Mañana' },
-    { time: '02:00 PM', label: 'Tarde' },
-    { time: '03:30 PM', label: 'Tarde' },
-    { time: '05:00 PM', label: 'Tarde' },
-    { time: '06:30 PM', label: 'Tarde' }
+    { time: '12:00 PM', label: 'Mediodía' },
   ];
 
   // Calcular los próximos 7 días hábiles (excluyendo domingos)
