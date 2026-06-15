@@ -16,21 +16,50 @@ export default function Marketing() {
   const [history, setHistory] = useState<any[]>([]);
 
   useEffect(() => {
-    async function loadCustomers() {
-      const { data } = await supabase.from('customers').select('status, whatsapp_opt_in');
-      if (data) setCustomers(data);
+    async function loadData() {
+      // Load customers
+      const { data: cData } = await supabase.from('customers').select('*');
+      if (cData) setCustomers(cData);
+
+      // Load real history
+      const { data: hData } = await supabase.from('marketing_campaigns').select('*').order('created_at', { ascending: false });
+      if (hData) {
+        setHistory(hData.map(h => ({
+          id: h.id,
+          name: h.name,
+          date: new Date(h.created_at).toLocaleDateString(),
+          audience: h.audience_segment,
+          sent: h.sent_count,
+          converted: h.converted_count,
+          revenue: `$${h.revenue_generated}`,
+          status: h.status
+        })));
+      }
     }
-    loadCustomers();
+    loadData();
   }, []);
 
-  // Calcular la audiencia objetivo que SÍ quiere recibir mensajes (opt-in)
-  const targetCustomers = customers.filter(c => 
-    c.whatsapp_opt_in !== false && (audience === 'Todos' ? true : c.status === audience)
-  );
+  // Calcular la audiencia objetivo con reglas de segmentación avanzadas
+  const targetCustomers = customers.filter(c => {
+    if (c.whatsapp_opt_in === false) return false;
+    
+    if (audience === 'Todos') return true;
+    if (audience === 'VIP') return c.status === 'VIP';
+    if (audience === 'Nuevo') return c.status === 'Nuevo';
+    if (audience === 'Frecuente') return c.orders_count >= 5;
+    if (audience === 'Inactivo') {
+      if (!c.last_order) return false;
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      return new Date(c.last_order) < thirtyDaysAgo;
+    }
+    
+    return c.status === audience;
+  });
   
   const audienceCount = targetCustomers.length;
 
-  const handleLaunch = (e: React.FormEvent) => {
+  const handleLaunch = async (e: React.FormEvent) => {
     e.preventDefault();
     if (audienceCount === 0) {
       alert('Tu audiencia actual es 0. Selecciona otro segmento que tenga clientes.');
@@ -41,32 +70,81 @@ export default function Marketing() {
     setProgress(0);
     setSuccess(false);
 
-    // Simular envío de mensajes en lote
-    const interval = setInterval(() => {
-      setProgress(p => {
-        if (p >= 100) {
-          clearInterval(interval);
-          setTimeout(() => {
-            setIsDeploying(false);
-            setSuccess(true);
-            setHistory([{
-              id: Date.now(),
-              name: campaignName,
-              date: 'Buscando ROI...',
-              audience: audience,
-              sent: audienceCount,
-              converted: 0,
-              revenue: '$0.00',
-              status: 'En Vivo'
-            }, ...history]);
-            // Ocultar modal de éxito en 4s
-            setTimeout(() => setSuccess(false), 4000);
-          }, 500);
-          return 100;
-        }
-        return p + 5;
-      });
-    }, 150);
+    try {
+      // 1. Guardar la campaña en Supabase
+      const { data: campaign, error } = await supabase.from('marketing_campaigns').insert([{
+        name: campaignName,
+        audience_segment: audience,
+        sent_count: audienceCount,
+        converted_count: 0,
+        revenue_generated: 0.00,
+        status: 'En Vivo'
+      }]).select().single();
+
+      if (error) throw error;
+
+      // Animación de carga simulando la conexión con la API
+      const interval = setInterval(() => {
+        setProgress(p => {
+          if (p >= 90) return 90; // Wait at 90% until the webhook actually finishes
+          return p + 10;
+        });
+      }, 200);
+
+      // 2. Disparar el Webhook hacia n8n o Meta API
+      const webhookUrl = 'https://hook.us1.make.com/placeholder-marketing-webhook'; // Reemplazar con URL real
+      
+      const payload = {
+        campaign_id: campaign.id,
+        campaign_name: campaignName,
+        audience: audience,
+        message_template: message,
+        image_url: imgUrl,
+        customers: targetCustomers.map(c => ({
+          phone: c.phone,
+          name: c.name,
+          favorite_item: c.favorite_dish || 'nuestro servicio',
+          ltv: c.ltv
+        }))
+      };
+
+      try {
+        await fetch(webhookUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+      } catch (err) {
+        console.warn("Webhook no disponible, pero la campaña se registró.", err);
+        // We catch and ignore fetch error since it's a placeholder URL for now.
+      }
+
+      clearInterval(interval);
+      setProgress(100);
+
+      setTimeout(() => {
+        setIsDeploying(false);
+        setSuccess(true);
+        
+        // Update local history array
+        setHistory([{
+          id: campaign.id,
+          name: campaign.name,
+          date: new Date(campaign.created_at).toLocaleDateString(),
+          audience: campaign.audience_segment,
+          sent: campaign.sent_count,
+          converted: 0,
+          revenue: '$0.00',
+          status: 'En Vivo'
+        }, ...history]);
+
+        setTimeout(() => setSuccess(false), 4000);
+      }, 500);
+
+    } catch (err: any) {
+      setIsDeploying(false);
+      alert('Error al lanzar la campaña: ' + err.message);
+    }
   };
 
   return (
@@ -97,12 +175,13 @@ export default function Marketing() {
 
              <div>
                <label className="label-sm" style={{ display: 'block', marginBottom: '0.5rem' }}>Segmento Objetivo (CRM de Supabase)</label>
-               <select className="input-base" style={{ width: '100%', paddingLeft: '1rem', appearance: 'none', backgroundColor: 'var(--surface-container-low)' }} value={audience} onChange={e => setAudience(e.target.value)}>
-                 <option value="Todos">Toda mi base de datos (Global Broadcast)</option>
-                 <option value="VIP">Solo VIPs (Recompensas de Lealtad)</option>
-                 <option value="En Riesgo">Clientes "En Riesgo" (Estrategia de Recuperación)</option>
-                 <option value="Nuevo">Nuevos Clientes (Estrategia de Bienvenida)</option>
-               </select>
+                <select className="input-base" style={{ width: '100%', paddingLeft: '1rem', appearance: 'none', backgroundColor: 'var(--surface-container-low)' }} value={audience} onChange={e => setAudience(e.target.value)}>
+                  <option value="Todos">Toda mi base de datos (Global Broadcast)</option>
+                  <option value="Frecuente">Clientes Frecuentes (Más de 5 órdenes)</option>
+                  <option value="Inactivo">Clientes Inactivos (+30 días sin compra)</option>
+                  <option value="VIP">Solo VIPs (Recompensas de Lealtad)</option>
+                  <option value="Nuevo">Nuevos Clientes (Estrategia de Bienvenida)</option>
+                </select>
                <p style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--emerald-400)', marginTop: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
                  <span className="material-symbols-outlined" style={{ fontSize: '1rem' }}>group_add</span>
                  Audiencia Válida Calculada: {audienceCount} usuarios
