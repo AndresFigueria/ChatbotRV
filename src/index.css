@@ -381,7 +381,7 @@ button {
 .gap-4 { gap: 1rem; }
 .gap-6 { gap: 1.5rem; }
 .gap-8 { gap: 2rem; }
-.p-8 { padding: 2rem; }
+.p-8 { padding: 0.5rem 1.5rem; }
 .w-full { width: 100%; }
 
 /* Cards & Lists */
@@ -690,7 +690,7 @@ html.light-mode {
   }
 
   .p-8 {
-    padding: 1rem;
+    padding: 0.5rem 1rem;
   }
 
   .metrics-grid {

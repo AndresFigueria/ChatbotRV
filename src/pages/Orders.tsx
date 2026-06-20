@@ -344,8 +344,7 @@ export default function Orders() {
       minHeight: '100vh', 
       color: 'var(--on-surface)',
       transition: 'all 0.3s ease',
-      paddingBottom: '10rem',
-      paddingTop: '0.5rem'
+      paddingBottom: '10rem'
     }}>
       <header className="page-header">
         <div>
