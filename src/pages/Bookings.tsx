@@ -385,7 +385,7 @@ export default function Bookings() {
           </div>
           
           {/* Calendar Grid */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '0.5rem', autoRows: '80px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '0.5rem', gridAutoRows: '80px' }}>
             {blanks.map(b => <div key={`blank-${b}`} style={{ backgroundColor: 'transparent', borderRadius: '12px' }} />)}
             
             {days.map(day => {
