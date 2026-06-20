@@ -94,7 +94,7 @@ export default function Customers() {
 
   return (
     <div className="p-8">
-      <div className="page-header" style={{ marginBottom: '1.5rem' }}>
+      <header className="page-header">
         <div>
           <h2 className="page-title">Base de Clientes 👥</h2>
           <p className="body-md" style={{ color: 'var(--secondary)' }}>Gestiona y segmenta todos tus contactos en un solo lugar.</p>
@@ -113,7 +113,7 @@ export default function Customers() {
           </div>
           <button className="btn-primary">Exportar CSV</button>
         </div>
-      </div>
+      </header>
 
       {/* Tabs de Filtro */}
       <div className="flex gap-4 mb-6" style={{ borderBottom: '1px solid var(--surface-container-highest)', paddingBottom: '1rem' }}>

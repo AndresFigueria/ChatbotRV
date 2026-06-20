@@ -97,7 +97,7 @@ export default function Analytics() {
 
   return (
     <div className="p-8">
-      <div className="page-header">
+      <header className="page-header">
         <div>
           <h2 className="page-title">Business Intelligence</h2>
           <p className="body-md" style={{ color: 'var(--secondary)', marginTop: '0.25rem' }}>
@@ -110,7 +110,7 @@ export default function Analytics() {
             Generar Reporte PDF
           </button>
         </div>
-      </div>
+      </header>
 
       <div className="metrics-grid" style={{ marginBottom: '2.5rem' }}>
         <div className="card">

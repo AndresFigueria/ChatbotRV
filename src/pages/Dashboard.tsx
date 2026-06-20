@@ -172,7 +172,7 @@ export default function Dashboard() {
 
   return (
     <div style={{ padding: '0.5rem 1.5rem' }}>
-      <header className="page-header mb-4" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+      <header className="page-header">
         <div>
           <h2 className="page-title">Robotina Business Control 🤖</h2>
           <p className="body-md" style={{ color: 'var(--secondary)' }}>Panel de control operativo.</p>

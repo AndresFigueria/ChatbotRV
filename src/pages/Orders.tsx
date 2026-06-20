@@ -347,7 +347,7 @@ export default function Orders() {
       paddingBottom: '10rem',
       paddingTop: '0.5rem'
     }}>
-      <div className="page-header" style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <header className="page-header">
         <div>
           <h2 className="page-title" style={{ color: 'var(--primary)' }}>Gestión de Ventas y Servicios</h2>
           <p className="body-md" style={{ opacity: 0.7, marginTop: '0.25rem', color: 'var(--secondary)' }}>
@@ -355,7 +355,7 @@ export default function Orders() {
           </p>
         </div>
 
-      </div>
+      </header>
 
       <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
         <div className="card" style={{ width: '200px', padding: '0.75rem 1rem', borderRadius: '12px', background: 'var(--surface-container)', border: 'var(--card-border)', boxShadow: 'var(--shadow-sm)' }}>

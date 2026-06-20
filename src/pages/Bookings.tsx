@@ -259,7 +259,7 @@ export default function Bookings() {
 
   return (
     <div className="p-8" style={{ position: 'relative' }}>
-      <header className="page-header mb-8" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+      <header className="page-header">
         <div>
           <h2 className="page-title">Gestión de Citas y Agenda</h2>
           <p className="body-md" style={{ color: 'var(--secondary)' }}>Control y seguimiento de todas las citas agendadas por la IA y manualmente.</p>

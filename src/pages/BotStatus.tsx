@@ -117,14 +117,14 @@ export default function BotStatus() {
 
   return (
     <div className="p-8 h-full flex flex-col">
-      <div className="flex justify-between items-center" style={{ marginBottom: '1.5rem' }}>
+      <header className="page-header">
         <div>
           <h2 className="page-title">Auditoría del Agente IA 🤖</h2>
           <p className="body-md" style={{ color: 'var(--secondary)', marginTop: '0.25rem' }}>
             Monitor real de Robotina Central. Toma el control si el cliente necesita un humano.
           </p>
         </div>
-      </div>
+      </header>
 
       <div style={{ display: 'flex', gap: '1.5rem', height: 'calc(100vh - 200px)', minHeight: '600px' }}>
         <div className="card" style={{ width: '300px', display: 'flex', flexDirection: 'column', padding: 0, overflow: 'hidden' }}>
