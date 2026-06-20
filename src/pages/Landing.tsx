@@ -91,7 +91,8 @@ export default function Landing() {
         phone: bookingPhone,
         segment: bookingSegment,
         volume: bookingVolume,
-        goal: bookingGoal
+        goal: bookingGoal,
+        tenant_id: '4c652a69-006f-4194-9436-fd281d55e644'
       }]);
       if (error) {
         console.error('Error al guardar lead en Supabase:', error);

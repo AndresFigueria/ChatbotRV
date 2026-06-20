@@ -6,12 +6,12 @@
   height: 100vh;
   position: sticky;
   top: 0;
-  padding: 1.5rem 1rem;
+  padding: 1.5rem 0.25rem;
 }
 
 .sidebar-header {
   margin-bottom: 0.5rem; /* Reducido un 80% desde 2.5rem */
-  padding: 0 1rem;
+  padding: 0 0.25rem;
 }
 
 .sidebar-brand {
@@ -33,7 +33,7 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 0.5rem 1rem;
+  padding: 0.5rem 0.5rem;
   font-size: 0.875rem;
   font-weight: 500;
   color: var(--secondary);
@@ -55,7 +55,7 @@
 
 .sidebar-footer {
   margin-top: auto;
-  padding: 0 1rem;
+  padding: 0 0.5rem;
 }
 
 .sidebar-footer .btn-primary {

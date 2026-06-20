@@ -11,7 +11,7 @@ const navGroups = [
       { path: '/catalog', label: 'Productos y Servicios', icon: 'inventory_2' },
       { path: '/orders', label: 'Gestión de Ventas', icon: 'shopping_bag' },
       { path: '/bookings', label: 'Agenda de Citas', icon: 'calendar_month' },
-      { path: '/operations', label: 'Panel de Operaciones', icon: 'engineering' },
+
       { path: '/customers', label: 'Base de Clientes', icon: 'group' },
       { path: '/notifications', label: 'Centro de Alertas', icon: 'notifications' },
       { path: '/analytics', label: 'Estadísticas IA', icon: 'psychology' },
@@ -76,11 +76,22 @@ export default function Sidebar({ isOpen, onClose }: { isOpen: boolean, onClose:
 
   const fetchPendingOrders = async () => {
     let count = 0;
+    
+    // 1. Pedidos pendientes
     const { count: ordersCount, error: ordersError } = await supabase.from('orders').select('*', { count: 'exact', head: true }).eq('status', 'Pendiente');
     if (!ordersError && ordersCount !== null) count += ordersCount;
 
-    const { count: leadsCount, error: leadsError } = await supabase.from('landing_leads').select('*', { count: 'exact', head: true });
-    if (!leadsError && leadsCount !== null) count += leadsCount;
+    // 2. Leads (Reuniones) pendientes (solo los que tienen fecha)
+    const { data: leadsData } = await supabase.from('landing_leads').select('status').not('appointment_date', 'is', null);
+    if (leadsData) {
+      count += leadsData.filter(l => !l.status || l.status === 'Pendiente').length;
+    }
+
+    // 3. Reservaciones pendientes
+    const { data: resData } = await supabase.from('reservations').select('status');
+    if (resData) {
+      count += resData.filter(r => !r.status || r.status === 'Pendiente').length;
+    }
 
     setPendingOrders(count);
   };

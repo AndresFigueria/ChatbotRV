@@ -159,17 +159,19 @@ export default function WhatsApp() {
   };
 
   return (
-    <div className="page-container" style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 4rem)', overflow: 'hidden', padding: '0.25rem 2rem 1rem 2rem', boxSizing: 'border-box' }}>
-      <header className="page-header" style={{ marginBottom: '0.15rem', display: 'flex', alignItems: 'baseline', gap: '12px', justifyContent: 'flex-start' }}>
-        <h2 className="page-title">Atención WhatsApp 📱</h2>
-        <span style={{ color: 'var(--secondary)', fontSize: '0.8rem' }}>Centro de mensajes en tiempo real.</span>
+    <div className="page-container" style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 4.5rem)', overflow: 'hidden', padding: '0.5rem 1.5rem', boxSizing: 'border-box' }}>
+      <header style={{ marginBottom: '1rem' }}>
+        <h2 className="page-title" style={{ margin: 0 }}>Atención WhatsApp 📱</h2>
       </header>
 
-      <div className="chat-layout" style={{ display: 'flex', flex: 1, gap: '1.5rem', minHeight: 0, marginTop: '0.5rem', maxWidth: '1200px', margin: '0.5rem auto 0 auto', width: '100%' }}>
-        {/* Panel Izquierdo: Lista de Chats */}
-        <div className="chat-sidebar" style={{ minWidth: '300px', backgroundColor: 'var(--surface-container)', borderRadius: '12px', display: 'flex', flexDirection: 'column', border: '1px solid var(--card-border)', overflow: 'hidden' }}>
-          <div style={{ padding: '1rem', borderBottom: '1px solid var(--border-color)', fontWeight: 600, display: 'flex', gap: '8px', alignItems:'center' }}>
-            <span className="material-symbols-outlined" style={{color: '#10b981'}}>chat</span>
+      <div className="chat-layout" style={{ display: 'flex', flex: 1, gap: '1.5rem', minHeight: 0, width: '100%' }}>
+        
+        {/* Columna Izquierda: Lista de Chats */}
+        <div style={{ display: 'flex', flexDirection: 'column', width: '380px', minWidth: '380px' }}>
+          
+          <div className="chat-sidebar" style={{ flex: 1, backgroundColor: 'var(--surface-container)', borderRadius: '12px', display: 'flex', flexDirection: 'column', border: '2px solid var(--outline-variant)', overflow: 'hidden' }}>
+          <div style={{ padding: '1rem', borderBottom: '1px solid var(--surface-container-highest)', backgroundColor: '#10b981', color: '#ffffff', fontWeight: 600, display: 'flex', gap: '8px', alignItems:'center' }}>
+            <span className="material-symbols-outlined" style={{color: '#ffffff'}}>chat</span>
             Bandeja de Entrada
           </div>
           <div style={{ flex: 1, overflowY: 'auto' }}>
@@ -181,7 +183,7 @@ export default function WhatsApp() {
                 onClick={() => setActiveChatId(chat.id)}
                 style={{ 
                   padding: '1rem', 
-                  borderBottom: '1px solid rgba(255,255,255,0.05)', 
+                  borderBottom: '1px solid var(--surface-container-highest)', 
                   cursor: 'pointer',
                   backgroundColor: activeChatId === chat.id ? 'rgba(74, 158, 255, 0.1)' : 'transparent',
                   borderLeft: activeChatId === chat.id ? '3px solid var(--primary-color)' : '3px solid transparent',
@@ -218,9 +220,10 @@ export default function WhatsApp() {
             ))}
           </div>
         </div>
+        </div>
 
-        {/* Panel Derecho: Ventana del Chat Activo (Formato Teléfono) */}
-        <div style={{ width: '100%', maxWidth: '480px', margin: '0 auto', backgroundColor: 'var(--surface-container-highest)', borderRadius: '24px', display: 'flex', flexDirection: 'column', border: '1px solid var(--card-border)', overflow: 'hidden', boxShadow: '0 10px 40px rgba(0,0,0,0.2)' }}>
+        {/* Panel Derecho: Ventana del Chat Activo */}
+        <div style={{ flex: 1, backgroundColor: 'var(--surface-container-low)', borderRadius: '12px', display: 'flex', flexDirection: 'column', border: '1px solid var(--outline-variant)', overflow: 'hidden', boxShadow: '0 4px 20px rgba(0,0,0,0.05)' }}>
           {activeChatId ? (
             <>
               {/* Header del chat */}
@@ -263,7 +266,7 @@ export default function WhatsApp() {
                     <div key={msg.id || idx} style={{
                       alignSelf: isInbound ? 'flex-start' : 'flex-end',
                       width: 'fit-content',
-                      maxWidth: '55%',
+                      maxWidth: '85%',
                     }} className="chat-bubble-anim">
                       <div style={{
                           backgroundColor: isInbound ? '#005c4b' : 'var(--primary)', 
@@ -299,14 +302,19 @@ export default function WhatsApp() {
               {/* Input para responder */}
               <div style={{ padding: '1rem', backgroundColor: 'var(--surface-container)', borderTop: '1px solid var(--card-border)' }}>
                 <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                  <div style={{display: 'flex', flex: 1, backgroundColor: 'var(--surface-container-low)', borderRadius: '8px', border: '2px solid var(--outline)'}}>
-                      <input 
-                        type="text" 
+                  <div className="chat-input-container" style={{display: 'flex', flex: 1, backgroundColor: 'var(--surface-container-low)', borderRadius: '8px', border: '2px solid var(--outline)'}}>
+                      <textarea 
                         placeholder="Escribe un mensaje al cliente..."
-                        style={{ flex: 1, backgroundColor: 'transparent', border: 'none', color: 'var(--on-surface)', padding: '8px 12px', fontSize: '0.85rem', outline: 'none' }}
+                        rows={2}
+                        style={{ flex: 1, backgroundColor: 'transparent', border: 'none', color: 'var(--on-surface)', padding: '12px', fontSize: '0.85rem', outline: 'none', resize: 'none', fontFamily: 'inherit', scrollbarWidth: 'none' }}
                         value={replyText}
                         onChange={(e) => setReplyText(e.target.value)}
-                        onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' && !e.shiftKey) {
+                            e.preventDefault();
+                            handleSendMessage();
+                          }
+                        }}
                       />
                   </div>
                   <button className="btn-primary" onClick={handleSendMessage} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '44px', width: '44px', borderRadius: '50%', padding: 0 }}>
@@ -316,12 +324,12 @@ export default function WhatsApp() {
               </div>
             </>
           ) : (
-            <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-secondary)' }}>
-              <div style={{ textAlign: 'center' }}>
+            <div id="messages-container" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-secondary)' }}>
+              <div style={{ textAlign: 'center', position: 'relative', zIndex: 10, padding: '2rem', backgroundColor: 'var(--surface-container-low)', borderRadius: '24px', border: '2px solid var(--primary)', boxShadow: '0 0 20px rgba(255, 90, 31, 0.2)' }}>
                 <div style={{ width: '80px', height: '80px', borderRadius: '50%', backgroundColor: 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem' }}>
                     <span className="material-symbols-outlined" style={{ fontSize: '2.5rem', opacity: 0.5 }}>forum</span>
                 </div>
-                <h3>Central de WhatsApp</h3>
+                <h3>Central de <span style={{ color: '#25D366' }}>WhatsApp</span></h3>
                 <p style={{ marginTop: '0.5rem', opacity: 0.6 }}>Selecciona un chat en la bandeja izquierda<br/>para empezar a responder.</p>
               </div>
             </div>

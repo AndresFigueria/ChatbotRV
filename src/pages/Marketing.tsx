@@ -11,6 +11,9 @@ export default function Marketing() {
   const [isDeploying, setIsDeploying] = useState(false);
   const [progress, setProgress] = useState(0);
   const [success, setSuccess] = useState(false);
+  
+  // Right side tabs
+  const [rightTab, setRightTab] = useState<'audiencia' | 'grupos'>('audiencia');
 
   // Historial real de métricas de marketing (Vacío al inicio)
   const [history, setHistory] = useState<any[]>([]);
@@ -147,6 +150,34 @@ export default function Marketing() {
     }
   };
 
+  // === LÓGICA DE DISTRIBUCIÓN DE AUDIENCIAS ===
+  const totalOptIn = customers.filter(c => c.whatsapp_opt_in !== false).length;
+  
+  const getSegmentCount = (seg: string) => {
+    return customers.filter(c => {
+      if (c.whatsapp_opt_in === false) return false;
+      if (seg === 'Todos') return true;
+      if (seg === 'VIP') return c.status === 'VIP';
+      if (seg === 'Nuevo') return c.status === 'Nuevo';
+      if (seg === 'Frecuente') return c.orders_count >= 5;
+      if (seg === 'Inactivo') {
+        if (!c.last_order) return false;
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+        return new Date(c.last_order) < thirtyDaysAgo;
+      }
+      return false;
+    }).length;
+  };
+
+  const audienceSegments = [
+    { id: 'VIP', label: 'Clientes VIP', icon: 'diamond', color: 'var(--tertiary)', count: getSegmentCount('VIP') },
+    { id: 'Frecuente', label: 'Frecuentes', icon: 'workspace_premium', color: 'var(--primary)', count: getSegmentCount('Frecuente') },
+    { id: 'Nuevo', label: 'Nuevos', icon: 'fiber_new', color: 'var(--emerald-400)', count: getSegmentCount('Nuevo') },
+    { id: 'Inactivo', label: 'Inactivos', icon: 'snooze', color: 'var(--error)', count: getSegmentCount('Inactivo') },
+    { id: 'Todos', label: 'Base Completa', icon: 'public', color: 'var(--on-surface)', count: getSegmentCount('Todos') },
+  ];
+
   return (
     <div className="p-8 relative">
       <div className="flex justify-between items-center" style={{ marginBottom: '2.5rem' }}>
@@ -158,7 +189,7 @@ export default function Marketing() {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 5fr) minmax(0, 4fr)', gap: '2rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 5fr) minmax(0, 4fr)', gap: '2rem', alignItems: 'start' }}>
         
         {/* Lado Izquierdo: Formulario de Creación */}
         <div className="card" style={{ padding: '2rem' }}>
@@ -240,32 +271,108 @@ export default function Marketing() {
             </div>
           </div>
 
-          {/* Estado de Desempeño */}
-          <div className="card" style={{ flex: 1 }}>
-            <h3 className="title-md" style={{ borderBottom: '1px solid var(--surface-container-highest)', paddingBottom: '0.5rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-               <span className="material-symbols-outlined" style={{ color: 'var(--tertiary)' }}>query_stats</span>
-               Desempeño e Historial
-            </h3>
-            
-            <div className="flex flex-col gap-3">
-              {history.map(h => (
-                <div key={h.id} style={{ padding: '1rem', backgroundColor: 'var(--surface-container-low)', borderRadius: '0.5rem', borderLeft: h.status === 'En Vivo' ? '4px solid var(--emerald-400)' : '4px solid var(--surface-container-highest)' }}>
-                  <div className="flex justify-between items-start" style={{ marginBottom: '0.5rem' }}>
-                    <p style={{ fontWeight: 600, color: 'var(--on-surface)', fontSize: '0.85rem' }}>{h.name}</p>
-                    <span style={{ fontSize: '0.6rem', backgroundColor: h.status === 'En Vivo' ? 'rgba(52, 211, 153, 0.2)' : 'var(--surface-container-highest)', color: h.status === 'En Vivo' ? 'var(--emerald-400)' : 'var(--secondary)', padding: '2px 6px', borderRadius: '4px', fontWeight: 700 }}>{h.status}</span>
-                  </div>
-                  <div className="flex justify-between items-center" style={{ fontSize: '0.75rem', color: 'var(--secondary)' }}>
-                    <span>Segmento: <strong>{h.audience}</strong> ({h.sent} envíos)</span>
-                    <span style={{ color: 'var(--primary)', fontWeight: 600 }}>Tasa de Venta: {((h.converted / (h.sent || 1)) * 100).toFixed(1)}%</span>
-                  </div>
-                  <div className="flex justify-between items-center" style={{ marginTop: '0.5rem', borderTop: '1px solid var(--surface-container)', paddingTop: '0.5rem', fontSize: '0.8rem' }}>
-                    <span style={{ color: 'var(--secondary)' }}>{h.date}</span>
-                    <strong style={{ color: 'var(--on-surface)', fontSize: '0.9rem' }}>Retorno: {h.revenue}</strong>
-                  </div>
-                </div>
-              ))}
+          {/* Dashboard de Distribución de Audiencias */}
+          <div className="card" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+            <div style={{ borderBottom: '1px solid var(--surface-container-highest)', marginBottom: '1.2rem', display: 'flex', gap: '1.5rem' }}>
+              <button 
+                onClick={(e) => { e.preventDefault(); setRightTab('audiencia'); }}
+                style={{ 
+                  padding: '0.5rem 0', 
+                  backgroundColor: 'transparent',
+                  border: 'none',
+                  borderBottom: rightTab === 'audiencia' ? '2px solid var(--primary)' : '2px solid transparent',
+                  color: rightTab === 'audiencia' ? 'var(--primary)' : 'var(--secondary)',
+                  fontWeight: rightTab === 'audiencia' ? 700 : 500,
+                  display: 'flex', alignItems: 'center', gap: '0.5rem',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s'
+                }}>
+                <span className="material-symbols-outlined" style={{ fontSize: '1.1rem' }}>pie_chart</span>
+                Audiencia
+              </button>
+              <button 
+                onClick={(e) => { e.preventDefault(); setRightTab('grupos'); }}
+                style={{ 
+                  padding: '0.5rem 0', 
+                  backgroundColor: 'transparent',
+                  border: 'none',
+                  borderBottom: rightTab === 'grupos' ? '2px solid var(--primary)' : '2px solid transparent',
+                  color: rightTab === 'grupos' ? 'var(--primary)' : 'var(--secondary)',
+                  fontWeight: rightTab === 'grupos' ? 700 : 500,
+                  display: 'flex', alignItems: 'center', gap: '0.5rem',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s'
+                }}>
+                <span className="material-symbols-outlined" style={{ fontSize: '1.1rem' }}>groups</span>
+                Grupos
+              </button>
             </div>
+            
+            {rightTab === 'audiencia' ? (
+              <>
+                <p style={{ fontSize: '0.8rem', color: 'var(--secondary)', marginBottom: '1.5rem' }}>
+                  Selecciona un segmento abajo para autocompletar la campaña y apuntar a los clientes correctos.
+                </p>
+                
+                <div className="flex flex-col gap-3">
+                  {audienceSegments.map(seg => {
+                    const percentage = totalOptIn > 0 ? Math.round((seg.count / totalOptIn) * 100) : 0;
+                    const isSelected = audience === seg.id;
+                    
+                    return (
+                      <button 
+                        key={seg.id}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setAudience(seg.id);
+                        }}
+                        style={{ 
+                          padding: '1rem', 
+                          backgroundColor: isSelected ? 'var(--surface-container-high)' : 'var(--surface-container-low)', 
+                          borderRadius: '0.5rem', 
+                          border: isSelected ? `2px solid ${seg.color}` : '2px solid transparent',
+                          borderLeft: !isSelected ? `4px solid ${seg.color}` : `2px solid ${seg.color}`,
+                          textAlign: 'left',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s',
+                          boxShadow: isSelected ? `0 4px 12px ${seg.color}20` : 'none'
+                        }}
+                        onMouseEnter={(e) => {
+                          if (!isSelected) e.currentTarget.style.backgroundColor = 'var(--surface-container)';
+                        }}
+                        onMouseLeave={(e) => {
+                          if (!isSelected) e.currentTarget.style.backgroundColor = 'var(--surface-container-low)';
+                        }}
+                      >
+                        <div className="flex justify-between items-center" style={{ marginBottom: '0.5rem' }}>
+                          <div className="flex items-center gap-2">
+                            <span className="material-symbols-outlined" style={{ color: seg.color, fontSize: '1.2rem' }}>{seg.icon}</span>
+                            <p style={{ fontWeight: 600, color: 'var(--on-surface)', fontSize: '0.9rem', margin: 0 }}>{seg.label}</p>
+                          </div>
+                          <span style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--on-surface)' }}>{seg.count}</span>
+                        </div>
+                        
+                        {/* Progress Bar */}
+                        <div style={{ width: '100%', height: '6px', backgroundColor: 'var(--surface-container-highest)', borderRadius: '3px', overflow: 'hidden' }}>
+                          <div style={{ width: `${percentage}%`, height: '100%', backgroundColor: seg.color, borderRadius: '3px' }}></div>
+                        </div>
+                        <p style={{ fontSize: '0.65rem', color: 'var(--secondary)', marginTop: '0.4rem', textAlign: 'right', margin: 0 }}>
+                          {percentage}% del total
+                        </p>
+                      </button>
+                    );
+                  })}
+                </div>
+              </>
+            ) : (
+              <div style={{ padding: '2rem', textAlign: 'center', backgroundColor: 'var(--surface-container-low)', borderRadius: '0.5rem', border: '1px dashed var(--surface-container-highest)', marginTop: '1rem' }}>
+                <span className="material-symbols-outlined" style={{ fontSize: '2.5rem', color: 'var(--secondary)', marginBottom: '1rem' }}>group_add</span>
+                <p style={{ fontWeight: 600, color: 'var(--on-surface)', marginBottom: '0.5rem' }}>Grupos de WhatsApp</p>
+                <p style={{ color: 'var(--secondary)', fontSize: '0.85rem', margin: 0, lineHeight: 1.5 }}>Pronto podrás enviar mensajes masivos directamente a los Grupos de WhatsApp en los que Robotina sea administradora.</p>
+              </div>
+            )}
           </div>
+
 
         </div>
       </div>

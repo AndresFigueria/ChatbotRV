@@ -15,67 +15,62 @@ export default function Agendar() {
 
   // Estados
   const [email, setEmail] = useState(emailParam);
-  const [selectedDayIndex, setSelectedDayIndex] = useState(0);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedTime, setSelectedTime] = useState('');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
-  const [daysList, setDaysList] = useState<{ dayName: string; dayNum: string; fullDate: string }[]>([]);
   const [busySlots, setBusySlots] = useState<string[]>([]);
   const [checkingAvailability, setCheckingAvailability] = useState(false);
+
+  // Calendario
+  const [currentMonth, setCurrentMonth] = useState(new Date());
 
   // Configuración del Bot
   const DEMO_WHATSAPP_NUMBER = '5491165994057'; // Número de WhatsApp de RobotinaCentral
 
-  // Horarios de atención: 8:00 AM a 12:00 PM, cada 30 minutos
+  // Horarios de atención: Mañana y Tarde
   const timeSlots = [
-    { time: '08:00 AM', label: 'Mañana' },
-    { time: '08:30 AM', label: 'Mañana' },
-    { time: '09:00 AM', label: 'Mañana' },
-    { time: '09:30 AM', label: 'Mañana' },
-    { time: '10:00 AM', label: 'Mañana' },
-    { time: '10:30 AM', label: 'Mañana' },
-    { time: '11:00 AM', label: 'Mañana' },
-    { time: '11:30 AM', label: 'Mañana' },
-    { time: '12:00 PM', label: 'Mediodía' },
+    { time: '08:00 AM', period: 'Mañana' },
+    { time: '08:30 AM', period: 'Mañana' },
+    { time: '09:00 AM', period: 'Mañana' },
+    { time: '09:30 AM', period: 'Mañana' },
+    { time: '10:00 AM', period: 'Mañana' },
+    { time: '10:30 AM', period: 'Mañana' },
+    { time: '11:00 AM', period: 'Mañana' },
+    { time: '11:30 AM', period: 'Mañana' },
+    { time: '12:00 PM', period: 'Tarde' },
+    { time: '01:00 PM', period: 'Tarde' },
+    { time: '02:00 PM', period: 'Tarde' },
+    { time: '03:00 PM', period: 'Tarde' },
+    { time: '04:00 PM', period: 'Tarde' },
+    { time: '05:00 PM', period: 'Tarde' },
   ];
 
-  // Calcular los próximos 7 días hábiles (excluyendo domingos)
-  useEffect(() => {
-    const list = [];
-    let current = new Date();
-    
-    // Empezar desde mañana
-    current.setDate(current.getDate() + 1);
+  // Helper para formato de fecha
+  const getFullDateString = (date: Date) => {
+    return date.toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' });
+  };
 
-    const locale = 'es-ES';
-    while (list.length < 7) {
-      // Excluir domingos (0 = Domingo)
-      if (current.getDay() !== 0) {
-        const dayName = current.toLocaleDateString(locale, { weekday: 'short' }).replace('.', '');
-        const dayNum = current.getDate().toString();
-        const fullDate = current.toLocaleDateString(locale, { day: 'numeric', month: 'long', year: 'numeric' });
-        
-        list.push({
-          dayName: dayName.charAt(0).toUpperCase() + dayName.slice(1),
-          dayNum,
-          fullDate
-        });
-      }
+  // Set selected date initially to tomorrow (or next available business day)
+  useEffect(() => {
+    let current = new Date();
+    current.setDate(current.getDate() + 1);
+    while (current.getDay() === 0) { // Skip Sundays
       current.setDate(current.getDate() + 1);
     }
-    setDaysList(list);
+    setSelectedDate(current);
   }, []);
 
   // Consultar disponibilidad real del calendario
   useEffect(() => {
-    if (daysList.length === 0) return;
-    const chosenDay = daysList[selectedDayIndex];
+    if (!selectedDate) return;
 
     const checkAvailability = async () => {
       setCheckingAvailability(true);
+      setSelectedTime(''); // Reset time when date changes
       try {
-        // Hacemos el fetch a la URL del webhook de n8n (puedes cambiarla por tu URL de producción)
-        const response = await fetch(`https://andrestate47.hooks.n8n.cloud/webhook/availability?date=${encodeURIComponent(chosenDay.fullDate)}`);
+        const dateStr = getFullDateString(selectedDate);
+        const response = await fetch(`https://andrestate47.hooks.n8n.cloud/webhook/availability?date=${encodeURIComponent(dateStr)}`);
         if (response.ok) {
           const data = await response.json();
           if (data && Array.isArray(data.busySlots)) {
@@ -87,7 +82,6 @@ export default function Agendar() {
           setBusySlots([]);
         }
       } catch (err) {
-        // Fallback silencioso si no hay conexión
         setBusySlots([]);
       } finally {
         setCheckingAvailability(false);
@@ -95,7 +89,7 @@ export default function Agendar() {
     };
 
     checkAvailability();
-  }, [selectedDayIndex, daysList]);
+  }, [selectedDate]);
 
   const handleConfirm = async () => {
     if (!email) {
@@ -106,20 +100,18 @@ export default function Agendar() {
       alert('Por favor, selecciona una hora para la reunión.');
       return;
     }
+    if (!selectedDate) return;
 
     setLoading(true);
-
-    const chosenDay = daysList[selectedDayIndex];
+    const chosenDayStr = getFullDateString(selectedDate);
 
     try {
-      // 1. Buscar si el lead ya existe (creado por el paso previo en Landing.tsx)
       const { data: existingLeads } = await supabase.from('landing_leads').select('id').eq('phone', phone);
       
       if (existingLeads && existingLeads.length > 0) {
-        // Actualizar el lead existente
         const { error } = await supabase.from('landing_leads').update({
           email,
-          appointment_date: chosenDay.fullDate,
+          appointment_date: chosenDayStr,
           appointment_time: selectedTime,
           segment,
           goal: goal || 'Automatizar restaurante'
@@ -127,7 +119,6 @@ export default function Agendar() {
         
         if (error) console.error('Error al actualizar lead en Supabase:', error);
       } else {
-        // Insertar uno nuevo si no existe
         const { error } = await supabase.from('landing_leads').insert([{
           name,
           phone,
@@ -135,8 +126,9 @@ export default function Agendar() {
           volume: 'WhatsApp Direct',
           goal: goal || 'Automatizar restaurante',
           email,
-          appointment_date: chosenDay.fullDate,
-          appointment_time: selectedTime
+          appointment_date: chosenDayStr,
+          appointment_time: selectedTime,
+          tenant_id: '4c652a69-006f-4194-9436-fd281d55e644'
         }]);
         
         if (error) console.error('Error al guardar lead en Supabase:', error);
@@ -145,7 +137,6 @@ export default function Agendar() {
       setLoading(false);
       setSuccess(true);
 
-      // 2. Disparar Confeti de alta intensidad
       confetti({
         particleCount: 150,
         spread: 90,
@@ -153,7 +144,6 @@ export default function Agendar() {
         colors: ['#adc6ff', '#00C2FF', '#004395', '#ffffff']
       });
 
-      // Ráfaga secundaria
       setTimeout(() => {
         confetti({
           particleCount: 85,
@@ -162,9 +152,8 @@ export default function Agendar() {
         });
       }, 250);
 
-      // 3. Redirección automática a WhatsApp a los 2 segundos
       setTimeout(() => {
-        const baseMessage = `¡Listo Robotina! Acabo de agendar mi demo de RobotinaCentral para el *${chosenDay.fullDate}* a las *${selectedTime}*. Mi email es *${email}*. ¿Cuáles son los pasos a seguir?`;
+        const baseMessage = `¡Listo Robotina! Acabo de agendar mi demo de RobotinaCentral para el *${chosenDayStr}* a las *${selectedTime}*. Mi email es *${email}*. ¿Cuáles son los pasos a seguir?`;
         const encodedText = encodeURIComponent(baseMessage);
         const whatsappUrl = `https://wa.me/${DEMO_WHATSAPP_NUMBER}?text=${encodedText}`;
         window.open(whatsappUrl, '_self');
@@ -174,6 +163,31 @@ export default function Agendar() {
       console.error('Error general al confirmar agendamiento:', err);
       setLoading(false);
     }
+  };
+
+  // Helper for Calendar Days
+  const getDaysInMonth = (year: number, month: number) => {
+    return new Date(year, month + 1, 0).getDate();
+  };
+  const getFirstDayOfMonth = (year: number, month: number) => {
+    const day = new Date(year, month, 1).getDay();
+    return day === 0 ? 6 : day - 1; // Monday = 0
+  };
+
+  const daysInMonth = getDaysInMonth(currentMonth.getFullYear(), currentMonth.getMonth());
+  const firstDay = getFirstDayOfMonth(currentMonth.getFullYear(), currentMonth.getMonth());
+  const blanks = Array.from({ length: firstDay }, (_, i) => i);
+  const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
+
+  const prevMonth = () => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1));
+  const nextMonth = () => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1));
+
+  const isDayDisabled = (day: number) => {
+    const dateToCheck = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    // Disable past days and Sundays (0)
+    return dateToCheck < today || dateToCheck.getDay() === 0;
   };
 
   return (
@@ -187,227 +201,282 @@ export default function Agendar() {
       fontFamily: 'Inter, sans-serif',
       alignItems: 'center',
       justifyContent: 'center',
-      padding: '1.5rem',
+      padding: '2rem',
       boxSizing: 'border-box'
     }}>
       <div style={{
         width: '100%',
-        maxWidth: '480px',
+        maxWidth: '420px',
         background: 'rgba(20, 26, 32, 0.65)',
         backdropFilter: 'blur(16px)',
         border: '1px solid rgba(173, 198, 255, 0.15)',
-        borderRadius: '16px',
-        padding: '2.5rem 2rem',
-        boxShadow: '0 20px 40px rgba(0, 0, 0, 0.4)',
-        boxSizing: 'border-box',
-        textAlign: 'center'
+        borderRadius: '24px',
+        boxShadow: '0 24px 50px rgba(0, 0, 0, 0.5)',
+        overflow: 'hidden',
+        display: 'flex',
+        flexDirection: 'column'
       }}>
+        
         {success ? (
-          <div style={{ animation: 'fadeIn 0.5s ease-out' }}>
+          <div style={{ padding: '4rem', textAlign: 'center', width: '100%', animation: 'fadeIn 0.5s ease-out' }}>
             <div style={{
-              width: '72px',
-              height: '72px',
+              width: '80px',
+              height: '80px',
               borderRadius: '50%',
               backgroundColor: 'rgba(0, 194, 255, 0.1)',
               border: '2px solid #00C2FF',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              margin: '0 auto 1.5rem auto'
+              margin: '0 auto 2rem auto'
             }}>
-              <span className="material-symbols-outlined" style={{ fontSize: '36px', color: '#00C2FF' }}>done</span>
+              <span className="material-symbols-outlined" style={{ fontSize: '40px', color: '#00C2FF' }}>done</span>
             </div>
-            <h2 style={{ fontSize: '1.8rem', fontWeight: 800, color: '#adc6ff', margin: '0 0 0.5rem 0', letterSpacing: '-0.03em' }}>
+            <h2 style={{ fontSize: '2.5rem', fontWeight: 800, color: '#adc6ff', margin: '0 0 1rem 0', letterSpacing: '-0.03em' }}>
               ¡Demo Reservada!
             </h2>
-            <p style={{ color: '#9d9da4', fontSize: '0.95rem', lineHeight: '1.5', margin: '0 0 2rem 0' }}>
-              Tu cita para el <strong>{daysList[selectedDayIndex]?.fullDate}</strong> a las <strong>{selectedTime}</strong> ha sido agendada con éxito.
+            <p style={{ color: '#9d9da4', fontSize: '1.1rem', lineHeight: '1.5', margin: '0 0 2rem 0' }}>
+              Tu cita para el <strong>{selectedDate && getFullDateString(selectedDate)}</strong> a las <strong>{selectedTime}</strong> ha sido agendada con éxito.
             </p>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', color: '#00C2FF', fontWeight: 600, fontSize: '0.9rem' }}>
-              <div style={{ width: '16px', height: '16px', borderRadius: '50%', border: '2px solid rgba(0, 194, 255, 0.2)', borderTopColor: '#00C2FF', animation: 'spin 1s linear infinite' }}></div>
+            <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', color: '#00C2FF', fontWeight: 600, fontSize: '1rem', padding: '1rem 2rem', backgroundColor: 'rgba(0, 194, 255, 0.1)', borderRadius: '50px' }}>
+              <div style={{ width: '18px', height: '18px', borderRadius: '50%', border: '2px solid rgba(0, 194, 255, 0.2)', borderTopColor: '#00C2FF', animation: 'spin 1s linear infinite' }}></div>
               Abriendo WhatsApp para confirmar...
             </div>
           </div>
         ) : (
-          <div>
-            <div style={{ textAlign: 'left', marginBottom: '2rem' }}>
-              <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#00C2FF', letterSpacing: '0.15em', textTransform: 'uppercase' }}>
-                Agendamiento Demo 1-a-1
+          <>
+            {/* LEFT COLUMN: Info & Calendar */}
+            <div style={{ 
+              flex: 'none', 
+              padding: '2rem 2rem 1.5rem 2rem', 
+              borderBottom: '1px solid rgba(173, 198, 255, 0.1)',
+              backgroundColor: 'rgba(0,0,0,0.2)'
+            }}>
+              <span style={{ fontSize: '0.85rem', fontWeight: 800, color: '#00C2FF', letterSpacing: '0.15em', textTransform: 'uppercase' }}>
+                Agendamiento 1-a-1
               </span>
-              <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: '#ffffff', margin: '0.25rem 0 0.5rem 0', letterSpacing: '-0.02em' }}>
+              <h1 style={{ fontSize: '2rem', fontWeight: 800, color: '#ffffff', margin: '0.5rem 0 1rem 0', letterSpacing: '-0.03em' }}>
                 Hola, {name || 'Emprendedor'} 👋
               </h1>
-              <p style={{ color: '#9d9da4', fontSize: '0.9rem', lineHeight: '1.5', margin: 0 }}>
-                Ya tenemos tu información lista. Selecciona la fecha y hora ideal para vernos por videollamada.
+              <p style={{ color: '#9d9da4', fontSize: '0.95rem', lineHeight: '1.6', margin: '0 0 2rem 0' }}>
+                Selecciona la fecha y hora ideal para nuestra videollamada. Evaluaremos cómo Robotina puede automatizar tu negocio.
               </p>
-            </div>
 
-            {/* Formulario de Email */}
-            <div style={{ textAlign: 'left', marginBottom: '1.75rem' }}>
-              <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#9d9da4', marginBottom: '0.5rem', display: 'block' }}>
-                Tu Correo Electrónico
-              </label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="ejemplo@restaurante.com"
-                style={{
-                  width: '100%',
-                  backgroundColor: '#0f1418',
-                  border: '1px solid rgba(173, 198, 255, 0.15)',
-                  borderRadius: '8px',
-                  padding: '0.75rem 1rem',
-                  fontSize: '0.95rem',
-                  color: '#ffffff',
-                  outline: 'none',
-                  boxSizing: 'border-box',
-                  transition: 'border-color 0.2s',
-                }}
-                onFocus={(e) => e.target.style.borderColor = '#00C2FF'}
-                onBlur={(e) => e.target.style.borderColor = 'rgba(173, 198, 255, 0.15)'}
-              />
-            </div>
+              {/* CALENDAR */}
+              <div style={{ marginTop: '2rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                  <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700, color: '#fff' }}>
+                    {currentMonth.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' }).replace(/^\w/, c => c.toUpperCase())}
+                  </h3>
+                  <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    <button onClick={prevMonth} style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', borderRadius: '8px', padding: '0.25rem 0.5rem', cursor: 'pointer' }}>
+                      <span className="material-symbols-outlined" style={{ fontSize: '1.2rem' }}>chevron_left</span>
+                    </button>
+                    <button onClick={nextMonth} style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', borderRadius: '8px', padding: '0.25rem 0.5rem', cursor: 'pointer' }}>
+                      <span className="material-symbols-outlined" style={{ fontSize: '1.2rem' }}>chevron_right</span>
+                    </button>
+                  </div>
+                </div>
 
-            {/* Selector de Días (Horizontal) */}
-            <div style={{ textAlign: 'left', marginBottom: '1.75rem' }}>
-              <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#9d9da4', marginBottom: '0.75rem', display: 'block' }}>
-                Selecciona el Día
-              </label>
-              <div style={{
-                display: 'flex',
-                gap: '0.6rem',
-                overflowX: 'auto',
-                paddingBottom: '0.5rem',
-                scrollbarWidth: 'none', // Firefox
-              }}>
-                {daysList.map((day, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => {
-                      setSelectedDayIndex(idx);
-                      setSelectedTime('');
-                    }}
-                    style={{
-                      flex: '0 0 auto',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      padding: '0.75rem 0.9rem',
-                      borderRadius: '10px',
-                      border: idx === selectedDayIndex ? '1px solid #00C2FF' : '1px solid rgba(173, 198, 255, 0.1)',
-                      backgroundColor: idx === selectedDayIndex ? 'rgba(0, 194, 255, 0.08)' : '#0f1418',
-                      color: idx === selectedDayIndex ? '#ffffff' : '#9d9da4',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s',
-                      width: '64px',
-                      boxSizing: 'border-box'
-                    }}
-                  >
-                    <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', fontWeight: 600 }}>{day.dayName}</span>
-                    <span style={{ fontSize: '1.2rem', fontWeight: 800, marginTop: '0.2rem', color: idx === selectedDayIndex ? '#00C2FF' : '#ffffff' }}>{day.dayNum}</span>
-                  </button>
-                ))}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '0.5rem', textAlign: 'center', marginBottom: '0.5rem' }}>
+                  {['Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sa', 'Do'].map(d => (
+                    <div key={d} style={{ fontSize: '0.75rem', fontWeight: 600, color: '#6d7680' }}>{d}</div>
+                  ))}
+                </div>
+                
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '0.5rem' }}>
+                  {blanks.map(b => <div key={`blank-${b}`} />)}
+                  {days.map(day => {
+                    const isDisabled = isDayDisabled(day);
+                    const isSelected = selectedDate && 
+                      selectedDate.getDate() === day && 
+                      selectedDate.getMonth() === currentMonth.getMonth() && 
+                      selectedDate.getFullYear() === currentMonth.getFullYear();
+
+                    return (
+                      <button
+                        key={day}
+                        disabled={isDisabled}
+                        onClick={() => {
+                          const newDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
+                          setSelectedDate(newDate);
+                        }}
+                        style={{
+                          aspectRatio: '1',
+                          borderRadius: '50%',
+                          border: isSelected ? '1px solid #00C2FF' : '1px solid transparent',
+                          background: isSelected ? 'rgba(0, 194, 255, 0.15)' : (isDisabled ? 'transparent' : 'rgba(255,255,255,0.03)'),
+                          color: isSelected ? '#00C2FF' : (isDisabled ? '#3a4149' : '#fff'),
+                          fontWeight: isSelected ? 800 : 500,
+                          cursor: isDisabled ? 'default' : 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: '0.9rem',
+                          transition: 'all 0.2s',
+                        }}
+                      >
+                        {day}
+                      </button>
+                    )
+                  })}
+                </div>
               </div>
+
             </div>
 
-            {/* Grid de Horarios */}
-            <div style={{ textAlign: 'left', marginBottom: '2.5rem' }}>
-              <div style={{ display: 'flex', justifyContent: 'between', alignItems: 'center', marginBottom: '0.75rem' }}>
-                <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#9d9da4', display: 'block', flex: 1 }}>
-                  Horario Disponible ({daysList[selectedDayIndex]?.fullDate})
-                </label>
-                {checkingAvailability && (
-                  <span style={{ fontSize: '0.75rem', color: '#00C2FF', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                    <div style={{ width: '10px', height: '10px', borderRadius: '50%', border: '2px solid rgba(0, 194, 255, 0.2)', borderTopColor: '#00C2FF', animation: 'spin 1s linear infinite' }}></div>
-                    Consultando...
-                  </span>
+            {/* RIGHT COLUMN: Time Slots & Form */}
+            <div style={{ flex: 'none', padding: '1.5rem 2rem 2rem 2rem', display: 'flex', flexDirection: 'column' }}>
+              <div style={{ flex: 1 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '1.5rem' }}>
+                  <div>
+                    <h3 style={{ margin: '0 0 0.25rem 0', fontSize: '1.1rem', fontWeight: 700, color: '#fff' }}>
+                      {selectedDate ? getFullDateString(selectedDate) : 'Selecciona una fecha'}
+                    </h3>
+                    {checkingAvailability && (
+                      <span style={{ fontSize: '0.8rem', color: '#00C2FF', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                        <div style={{ width: '10px', height: '10px', borderRadius: '50%', border: '2px solid rgba(0, 194, 255, 0.2)', borderTopColor: '#00C2FF', animation: 'spin 1s linear infinite' }}></div>
+                        Consultando horarios...
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {selectedDate ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', marginBottom: '2rem' }}>
+                    {/* MAÑANA */}
+                    <div>
+                      <h4 style={{ fontSize: '0.8rem', fontWeight: 700, color: '#9d9da4', textTransform: 'uppercase', marginBottom: '0.75rem', letterSpacing: '0.05em' }}>Mañana</h4>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))', gap: '0.5rem' }}>
+                        {timeSlots.filter(t => t.period === 'Mañana').map((slot, idx) => {
+                          const isBusy = busySlots.includes(slot.time);
+                          const isSelected = selectedTime === slot.time;
+                          return (
+                            <button
+                              key={idx}
+                              disabled={isBusy}
+                              onClick={() => setSelectedTime(slot.time)}
+                              style={{
+                                padding: '0.75rem 0',
+                                borderRadius: '8px',
+                                border: isSelected ? '1px solid #00C2FF' : '1px solid rgba(173, 198, 255, 0.1)',
+                                backgroundColor: isBusy ? 'rgba(255,255,255,0.02)' : (isSelected ? 'rgba(0, 194, 255, 0.1)' : 'transparent'),
+                                color: isBusy ? '#4a525d' : (isSelected ? '#fff' : '#adc6ff'),
+                                fontSize: '0.85rem',
+                                fontWeight: isSelected ? 700 : 500,
+                                cursor: isBusy ? 'not-allowed' : 'pointer',
+                                textDecoration: isBusy ? 'line-through' : 'none',
+                                transition: 'all 0.2s',
+                              }}
+                            >
+                              {slot.time}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* TARDE */}
+                    <div>
+                      <h4 style={{ fontSize: '0.8rem', fontWeight: 700, color: '#9d9da4', textTransform: 'uppercase', marginBottom: '0.75rem', letterSpacing: '0.05em' }}>Tarde</h4>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))', gap: '0.5rem' }}>
+                        {timeSlots.filter(t => t.period === 'Tarde').map((slot, idx) => {
+                          const isBusy = busySlots.includes(slot.time);
+                          const isSelected = selectedTime === slot.time;
+                          return (
+                            <button
+                              key={idx}
+                              disabled={isBusy}
+                              onClick={() => setSelectedTime(slot.time)}
+                              style={{
+                                padding: '0.75rem 0',
+                                borderRadius: '8px',
+                                border: isSelected ? '1px solid #00C2FF' : '1px solid rgba(173, 198, 255, 0.1)',
+                                backgroundColor: isBusy ? 'rgba(255,255,255,0.02)' : (isSelected ? 'rgba(0, 194, 255, 0.1)' : 'transparent'),
+                                color: isBusy ? '#4a525d' : (isSelected ? '#fff' : '#adc6ff'),
+                                fontSize: '0.85rem',
+                                fontWeight: isSelected ? 700 : 500,
+                                cursor: isBusy ? 'not-allowed' : 'pointer',
+                                textDecoration: isBusy ? 'line-through' : 'none',
+                                transition: 'all 0.2s',
+                              }}
+                            >
+                              {slot.time}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#4a525d', fontStyle: 'italic' }}>
+                    Selecciona una fecha en el calendario.
+                  </div>
                 )}
               </div>
-              <div style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(3, 1fr)',
-                gap: '0.6rem'
-              }}>
-                {timeSlots.map((slot, idx) => {
-                  const isBusy = busySlots.includes(slot.time);
-                  const isSelected = selectedTime === slot.time;
-                  return (
-                    <button
-                      key={idx}
-                      disabled={isBusy}
-                      onClick={() => setSelectedTime(slot.time)}
-                      style={{
-                        padding: '0.75rem 0',
-                        borderRadius: '8px',
-                        border: isBusy 
-                          ? '1px dashed rgba(220, 38, 38, 0.25)' 
-                          : isSelected 
-                            ? '1px solid #00C2FF' 
-                            : '1px solid rgba(173, 198, 255, 0.1)',
-                        backgroundColor: isBusy 
-                          ? 'rgba(220, 38, 38, 0.05)' 
-                          : isSelected 
-                            ? 'rgba(0, 194, 255, 0.08)' 
-                            : '#0f1418',
-                        color: isBusy 
-                          ? '#4a525d' 
-                          : isSelected 
-                            ? '#ffffff' 
-                            : '#9d9da4',
-                        fontSize: '0.85rem',
-                        fontWeight: 600,
-                        cursor: isBusy ? 'not-allowed' : 'pointer',
-                        textDecoration: isBusy ? 'line-through' : 'none',
-                        transition: 'all 0.2s',
-                        boxSizing: 'border-box',
-                        opacity: isBusy ? 0.35 : 1
-                      }}
-                    >
-                      {slot.time}
-                    </button>
-                  );
-                })}
+
+              {/* ACTION AREA */}
+              <div style={{ marginTop: 'auto', paddingTop: '1.5rem', borderTop: '1px solid rgba(173, 198, 255, 0.1)' }}>
+                <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#9d9da4', marginBottom: '0.5rem', display: 'block' }}>
+                  Correo de contacto
+                </label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="ejemplo@negocio.com"
+                  style={{
+                    width: '100%',
+                    backgroundColor: 'rgba(0,0,0,0.3)',
+                    border: '1px solid rgba(173, 198, 255, 0.15)',
+                    borderRadius: '8px',
+                    padding: '0.85rem 1rem',
+                    fontSize: '0.95rem',
+                    color: '#ffffff',
+                    outline: 'none',
+                    boxSizing: 'border-box',
+                    transition: 'border-color 0.2s',
+                    marginBottom: '1rem'
+                  }}
+                  onFocus={(e) => e.target.style.borderColor = '#00C2FF'}
+                  onBlur={(e) => e.target.style.borderColor = 'rgba(173, 198, 255, 0.15)'}
+                />
+                <button
+                  onClick={handleConfirm}
+                  disabled={loading || !selectedTime || !selectedDate}
+                  style={{
+                    width: '100%',
+                    padding: '1rem',
+                    borderRadius: '8px',
+                    border: 'none',
+                    background: (loading || !selectedTime || !selectedDate) ? 'rgba(255,255,255,0.1)' : 'linear-gradient(135deg, #00C2FF 0%, #004395 100%)',
+                    color: (loading || !selectedTime || !selectedDate) ? '#9d9da4' : '#ffffff',
+                    fontSize: '1rem',
+                    fontWeight: 700,
+                    cursor: (loading || !selectedTime || !selectedDate) ? 'not-allowed' : 'pointer',
+                    boxShadow: (loading || !selectedTime || !selectedDate) ? 'none' : '0 8px 16px rgba(0, 194, 255, 0.2)',
+                    transition: 'all 0.2s',
+                  }}
+                >
+                  {loading ? 'Confirmando...' : 'Confirmar Cita 🚀'}
+                </button>
               </div>
             </div>
-
-            {/* Botón de Confirmación */}
-            <button
-              onClick={handleConfirm}
-              disabled={loading}
-              style={{
-                width: '100%',
-                padding: '0.9rem',
-                borderRadius: '8px',
-                border: 'none',
-                background: 'linear-gradient(135deg, #00C2FF 0%, #004395 100%)',
-                color: '#ffffff',
-                fontSize: '0.95rem',
-                fontWeight: 700,
-                cursor: 'pointer',
-                boxShadow: '0 8px 16px rgba(0, 194, 255, 0.15)',
-                transition: 'all 0.2s',
-                opacity: loading ? 0.7 : 1,
-              }}
-              onMouseEnter={(e) => {
-                if(!loading) e.currentTarget.style.boxShadow = '0 12px 24px rgba(0, 194, 255, 0.25)';
-              }}
-              onMouseLeave={(e) => {
-                if(!loading) e.currentTarget.style.boxShadow = '0 8px 16px rgba(0, 194, 255, 0.15)';
-              }}
-            >
-              {loading ? 'Reservando...' : 'Confirmar Cita y Abrir WhatsApp 🚀'}
-            </button>
-            
-            <p style={{ color: '#6d7680', fontSize: '0.75rem', marginTop: '1rem', lineHeight: '1.4' }}>
-              * Al confirmar, se guardará tu cita y serás redirigido a WhatsApp para validar tu reserva con Robotina.
-            </p>
-          </div>
+          </>
         )}
       </div>
       <style>{`
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        @media (max-width: 768px) {
+          .calendar-container {
+            flex-direction: column !important;
+          }
+          .calendar-col, .time-col {
+            padding: 1.5rem !important;
+          }
+        }
       `}</style>
     </div>
   );

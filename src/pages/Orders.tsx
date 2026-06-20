@@ -38,9 +38,24 @@ export default function Orders() {
     // 2. Fetch Leads (Citas Agendadas)
     const { data: leadsData, error: leadsError } = await supabase
       .from('landing_leads')
-      .select('*');
+      .select('*')
+      .not('appointment_date', 'is', null);
 
     if (leadsError) console.error('Error fetching leads:', leadsError);
+
+    // 3. Fetch Reservations (AI Bookings)
+    const { data: resData, error: resError } = await supabase
+      .from('reservations')
+      .select('*, customer:customers(name, phone_number)');
+
+    if (resError) console.error('Error fetching reservations:', resError);
+
+    const getStatusClass = (status: string) => {
+      if (status === 'Pendiente') return 'status-pending';
+      if (status === 'Preparando' || status === 'Confirmado') return 'status-preparing';
+      if (status === 'Listo') return 'status-ready';
+      return 'status-delivered';
+    };
 
     let combined: any[] = [];
 
@@ -57,7 +72,7 @@ export default function Orders() {
         time: new Date(o.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         dateObj: new Date(o.created_at),
         status: o.status || 'Pendiente',
-        statusClass: o.status === 'Pendiente' ? 'status-pending' : (o.status === 'Preparando' ? 'status-preparing' : (o.status === 'Listo' ? 'status-ready' : 'status-delivered')),
+        statusClass: getStatusClass(o.status || 'Pendiente'),
         isLead: false,
         originalId: o.id,
         segment: '',
@@ -78,13 +93,36 @@ export default function Orders() {
         time: new Date(l.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         dateObj: new Date(l.created_at),
         status: l.status || 'Pendiente',
-        statusClass: (l.status || 'Pendiente') === 'Pendiente' ? 'status-pending' : ((l.status || 'Pendiente') === 'Preparando' ? 'status-preparing' : ((l.status || 'Pendiente') === 'Listo' ? 'status-ready' : 'status-delivered')),
+        statusClass: getStatusClass(l.status || 'Pendiente'),
         isLead: true,
         originalId: l.id,
         appointmentDateRaw: l.appointment_date,
         appointmentTimeRaw: l.appointment_time,
         segment: l.segment || '',
         volume: l.volume || ''
+      }))];
+    }
+
+    if (resData) {
+      combined = [...combined, ...resData.map((r: any) => ({
+        id: `CITA-${(r.id || '').toString().slice(0, 4).toUpperCase()}`,
+        type: 'Cita Agendada (IA)',
+        customer: r.customer?.name || 'Cliente WhatsApp',
+        phone: r.customer?.phone_number || '+0 000 0000',
+        email: '',
+        itemsDetails: [{ name: `${r.service_name || 'Servicio'}: ${r.reservation_date} a las ${r.reservation_time}`, qty: 1 }],
+        totalNum: 0,
+        total: 'Reunión',
+        time: new Date(r.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        dateObj: new Date(r.created_at),
+        status: r.status || 'Confirmado',
+        statusClass: getStatusClass(r.status || 'Confirmado'),
+        isLead: true,
+        originalId: r.id,
+        appointmentDateRaw: null, // we can parse it similarly if needed
+        appointmentTimeRaw: r.reservation_time,
+        segment: 'IA',
+        volume: 'Automático'
       }))];
     }
 
@@ -113,6 +151,13 @@ export default function Orders() {
       })
       .subscribe();
 
+    const channelRes = supabase
+      .channel('public:reservations')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'reservations' }, _payload => {
+        fetchOrders();
+      })
+      .subscribe();
+
     const chatsChannel = supabase
       .channel('orders-chats-realtime')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'whatsapp_chats' }, _payload => {
@@ -123,6 +168,7 @@ export default function Orders() {
     return () => {
       supabase.removeChannel(channelOrders);
       supabase.removeChannel(channelLeads);
+      supabase.removeChannel(channelRes);
       supabase.removeChannel(chatsChannel);
     };
   }, []);
@@ -142,7 +188,7 @@ export default function Orders() {
         return {
           ...o,
           status: newStatus,
-          statusClass: newStatus === 'Pendiente' ? 'status-pending' : (newStatus === 'Preparando' ? 'status-preparing' : (newStatus === 'Listo' ? 'status-ready' : 'status-delivered'))
+          statusClass: newStatus === 'Pendiente' ? 'status-pending' : (newStatus === 'Preparando' || newStatus === 'Confirmado' ? 'status-preparing' : (newStatus === 'Listo' ? 'status-ready' : 'status-delivered'))
         };
       }
       return o;
@@ -298,42 +344,43 @@ export default function Orders() {
       minHeight: '100vh', 
       color: 'var(--on-surface)',
       transition: 'all 0.3s ease',
-      paddingBottom: '10rem'
+      paddingBottom: '10rem',
+      paddingTop: '0.5rem'
     }}>
       <div className="page-header" style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
           <h2 className="page-title" style={{ color: 'var(--primary)' }}>Gestión de Ventas y Servicios</h2>
           <p className="body-md" style={{ opacity: 0.7, marginTop: '0.25rem', color: 'var(--secondary)' }}>
-            Control logístico y comercial de alta precisión • <span style={{ color: 'var(--tertiary)', fontWeight: 600 }}>En Vivo</span>
+            Control logístico y comercial
           </p>
         </div>
 
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
-        <div className="card" style={{ padding: '1rem 1.25rem', borderRadius: '12px', background: 'var(--surface-container)', border: 'var(--card-border)', boxShadow: 'var(--shadow-sm)' }}>
-          <p style={{ fontSize: '0.65rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--primary)', letterSpacing: '1px' }}>Tareas Activas</p>
-          <h3 style={{ fontSize: '1.75rem', margin: '0.25rem 0', color: 'var(--on-surface)', fontWeight: 800 }}>{activosCount.toString().padStart(2, '0')}</h3>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'var(--tertiary)', fontSize: '0.7rem' }}>
+      <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
+        <div className="card" style={{ width: '200px', padding: '0.75rem 1rem', borderRadius: '12px', background: 'var(--surface-container)', border: 'var(--card-border)', boxShadow: 'var(--shadow-sm)' }}>
+          <p style={{ fontSize: '0.6rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--primary)', letterSpacing: '1px' }}>Tareas Activas</p>
+          <h3 style={{ fontSize: '1.25rem', margin: '0.15rem 0', color: 'var(--on-surface)', fontWeight: 800 }}>{activosCount.toString().padStart(2, '0')}</h3>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'var(--tertiary)', fontSize: '0.65rem' }}>
             <span className="material-symbols-outlined" style={{ fontSize: '12px' }}>trending_up</span> Operación fluida
           </div>
         </div>
-        <div className="card" style={{ padding: '1rem 1.25rem', borderRadius: '12px', background: 'var(--surface-container)', border: 'var(--card-border)', boxShadow: 'var(--shadow-sm)' }}>
-          <p style={{ fontSize: '0.65rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--primary)', letterSpacing: '1px' }}>Volumen Diario</p>
-          <h3 style={{ fontSize: '1.75rem', margin: '0.25rem 0', color: 'var(--on-surface)', fontWeight: 800 }}>${totalIngresos.toFixed(2)}</h3>
-          <p style={{ fontSize: '0.7rem', opacity: 0.5, margin: 0 }}>Ingresos proyectados hoy</p>
+        <div className="card" style={{ width: '200px', padding: '0.75rem 1rem', borderRadius: '12px', background: 'var(--surface-container)', border: 'var(--card-border)', boxShadow: 'var(--shadow-sm)' }}>
+          <p style={{ fontSize: '0.6rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--primary)', letterSpacing: '1px' }}>Volumen Diario</p>
+          <h3 style={{ fontSize: '1.25rem', margin: '0.15rem 0', color: 'var(--on-surface)', fontWeight: 800 }}>${totalIngresos.toFixed(2)}</h3>
+          <p style={{ fontSize: '0.65rem', opacity: 0.5, margin: 0 }}>Ingresos proyectados hoy</p>
         </div>
-        <div className="card" style={{ padding: '1rem 1.25rem', borderRadius: '12px', background: 'var(--surface-container)', border: 'var(--card-border)', boxShadow: 'var(--shadow-sm)' }}>
-          <p style={{ fontSize: '0.65rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--primary)', letterSpacing: '1px' }}>Eficiencia Bot</p>
-          <h3 style={{ fontSize: '1.75rem', margin: '0.25rem 0', color: 'var(--on-surface)', fontWeight: 800 }}>{botEfficiency.toFixed(1)}%</h3>
-          <p style={{ fontSize: '0.7rem', opacity: 0.5, margin: 0 }}>Precisión en toma de pedidos</p>
+        <div className="card" style={{ width: '200px', padding: '0.75rem 1rem', borderRadius: '12px', background: 'var(--surface-container)', border: 'var(--card-border)', boxShadow: 'var(--shadow-sm)' }}>
+          <p style={{ fontSize: '0.6rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--primary)', letterSpacing: '1px' }}>Eficiencia Bot</p>
+          <h3 style={{ fontSize: '1.25rem', margin: '0.15rem 0', color: 'var(--on-surface)', fontWeight: 800 }}>{botEfficiency.toFixed(1)}%</h3>
+          <p style={{ fontSize: '0.65rem', opacity: 0.5, margin: 0 }}>Precisión en toma de pedidos</p>
         </div>
       </div>
 
       {/* Filtros Estilo Apple dentro de contenedor con borde negrita */}
       <div className="card" style={{ padding: '1rem 1.5rem', marginBottom: '2rem', backgroundColor: 'var(--surface-container-low)', borderRadius: '12px', border: 'var(--card-border)' }}>
         <div style={{ display: 'flex', gap: '0.75rem', overflowX: 'auto', paddingBottom: '0.2rem' }}>
-          {['Todos', 'Pendiente', 'Preparando', 'Listo', 'Despachado'].map(f => (
+          {['Todos', 'Pendiente', 'Confirmado', 'Preparando', 'Listo', 'Despachado'].map(f => (
             <button 
               key={f} 
               onClick={() => setActiveFilter(f)}
@@ -418,7 +465,6 @@ export default function Orders() {
                 </div>
 
                 <div style={{ background: 'var(--surface-container-low)', padding: '0.6rem', borderRadius: '10px', marginBottom: '0.75rem', border: 'var(--table-border)' }}>
-                  <p style={{ fontSize: '0.6rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--secondary)', marginBottom: '0.4rem' }}>Detalle del Servicio / Venta</p>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '65px', overflowY: 'auto', paddingRight: '4px' }} className="custom-scrollbar">
                     {order.itemsDetails && order.itemsDetails.length > 0 ? (
                       order.itemsDetails.map((item: any, idx: number) => (

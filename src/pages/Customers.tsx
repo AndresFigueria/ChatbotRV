@@ -16,6 +16,8 @@ export default function Customers() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState<'customers' | 'leads'>('customers');
+  const [activeSegmentFilter, setActiveSegmentFilter] = useState<string>('Todos');
+  const segments = ['Todos', 'Contactó', 'Interesado', 'Cliente', 'Cliente Frecuente', 'VIP'];
   const [leads, setLeads] = useState<any[]>([]);
   const [loadingLeads, setLoadingLeads] = useState(true);
 
@@ -49,10 +51,39 @@ export default function Customers() {
     setLoadingLeads(false);
   };
 
-  const filteredCustomers = customers.filter(c => 
-    c.name?.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    c.phone_number?.includes(searchTerm)
-  );
+  const handleStatusChange = async (customerId: string, newStatus: string) => {
+    // Optimistic update
+    setCustomers(prev => prev.map(c => c.id === customerId ? { ...c, status: newStatus } : c));
+    
+    // DB Update
+    const { error } = await supabase
+      .from('customers')
+      .update({ status: newStatus })
+      .eq('id', customerId);
+      
+    if (error) {
+      console.error('Error updating status:', error);
+      // Revert if error
+      fetchCustomers();
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch(status) {
+      case 'Contactó': return { bg: 'var(--surface-container-highest)', text: 'var(--secondary)' };
+      case 'Interesado': return { bg: 'rgba(56, 189, 248, 0.15)', text: '#38bdf8' }; // Blue
+      case 'Cliente': return { bg: 'rgba(16, 185, 129, 0.15)', text: '#10b981' }; // Emerald
+      case 'Cliente Frecuente': return { bg: 'rgba(168, 85, 247, 0.15)', text: '#a855f7' }; // Purple
+      case 'VIP': return { bg: 'rgba(245, 158, 11, 0.15)', text: '#f59e0b' }; // Amber
+      default: return { bg: 'var(--primary-dim)', text: 'var(--primary)' };
+    }
+  };
+
+  const filteredCustomers = customers.filter(c => {
+    const matchesSearch = c.name?.toLowerCase().includes(searchTerm.toLowerCase()) || c.phone_number?.includes(searchTerm);
+    const matchesSegment = activeSegmentFilter === 'Todos' || c.status === activeSegmentFilter;
+    return matchesSearch && matchesSegment;
+  });
 
   const filteredLeads = leads.filter(l => 
     l.name?.toLowerCase().includes(searchTerm.toLowerCase()) || 
@@ -66,7 +97,7 @@ export default function Customers() {
       <div className="page-header" style={{ marginBottom: '1.5rem' }}>
         <div>
           <h2 className="page-title">Base de Clientes 👥</h2>
-          <p className="body-md" style={{ color: 'var(--secondary)' }}>CRM Inteligente alimentado por WhatsApp y Landing Page.</p>
+          <p className="body-md" style={{ color: 'var(--secondary)' }}>Gestiona y segmenta todos tus contactos en un solo lugar.</p>
         </div>
         <div className="flex gap-4">
           <div className="input-group" style={{ position: 'relative' }}>
@@ -120,6 +151,49 @@ export default function Customers() {
         </button>
       </div>
 
+      {/* Segment Filters for CRM */}
+      {activeTab === 'customers' && (
+        <div className="flex gap-2 mb-6" style={{ flexWrap: 'wrap' }}>
+          {segments.map(seg => {
+            const count = seg === 'Todos' ? customers.length : customers.filter(c => c.status === seg).length;
+            const colors = getStatusColor(seg);
+            const isActive = activeSegmentFilter === seg;
+            
+            return (
+              <button
+                key={seg}
+                onClick={() => setActiveSegmentFilter(seg)}
+                style={{
+                  padding: '0.4rem 0.8rem',
+                  borderRadius: '2rem',
+                  fontSize: '0.75rem',
+                  fontWeight: 600,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  border: isActive ? `1px solid ${colors.text}` : '1px solid var(--surface-container-highest)',
+                  backgroundColor: isActive ? colors.bg : 'transparent',
+                  color: isActive ? colors.text : 'var(--secondary)',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s'
+                }}
+              >
+                {seg}
+                <span style={{ 
+                  backgroundColor: isActive ? colors.text : 'var(--surface-container-highest)', 
+                  color: isActive ? '#fff' : 'var(--secondary)', 
+                  padding: '2px 6px', 
+                  borderRadius: '1rem', 
+                  fontSize: '0.65rem' 
+                }}>
+                  {count}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+
       <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
           {activeTab === 'customers' ? (
@@ -157,9 +231,33 @@ export default function Customers() {
                   <td style={{ padding: '1rem' }}>{customer.total_orders}</td>
                   <td style={{ padding: '1rem', fontWeight: 700 }}>${Number(customer.ltv || 0).toFixed(2)}</td>
                   <td style={{ padding: '1rem' }}>
-                    <span style={{ backgroundColor: 'var(--primary-dim)', color: 'var(--primary)', padding: '0.2rem 0.6rem', borderRadius: '4px', fontSize: '0.7rem', fontWeight: 700 }}>
-                      {customer.status || 'Activo'}
-                    </span>
+                    <div style={{ position: 'relative', display: 'inline-block' }}>
+                      <select 
+                        value={customer.status || 'Contactó'}
+                        onChange={(e) => handleStatusChange(customer.id, e.target.value)}
+                        style={{
+                          appearance: 'none',
+                          backgroundColor: getStatusColor(customer.status).bg,
+                          color: getStatusColor(customer.status).text,
+                          border: 'none',
+                          padding: '0.3rem 1.8rem 0.3rem 0.8rem',
+                          borderRadius: '6px',
+                          fontSize: '0.75rem',
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          outline: 'none',
+                          boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.05)'
+                        }}
+                      >
+                        {segments.filter(s => s !== 'Todos').map(s => (
+                          <option key={s} value={s} style={{ backgroundColor: 'var(--surface-bright)', color: 'var(--on-surface)' }}>{s}</option>
+                        ))}
+                      </select>
+                      <span className="material-symbols-outlined" style={{ 
+                        position: 'absolute', right: '6px', top: '50%', transform: 'translateY(-50%)', 
+                        fontSize: '14px', pointerEvents: 'none', color: getStatusColor(customer.status).text 
+                      }}>expand_more</span>
+                    </div>
                   </td>
                 </tr>
               ))

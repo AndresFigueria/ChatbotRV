@@ -227,9 +227,7 @@ export default function Catalog() {
           <p className="body-md" style={{ color: 'var(--secondary)' }}>Gestión de productos, márgenes de ganancia y reglas de upsell IA.</p>
         </div>
         <div className="flex gap-3">
-          <button onClick={() => setIsCalendarOpen(true)} className="btn-secondary" style={{ height: '44px', padding: '0 1.5rem', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 700 }}>
-             <span className="material-symbols-outlined">calendar_month</span> Agenda de Reservas
-          </button>
+
           <button onClick={openNewItem} className="btn-primary" style={{ height: '44px', padding: '0 1.5rem', borderRadius: '8px', boxShadow: '0 4px 14px rgba(255, 90, 31, 0.2)' }}>
              + Nuevo Item
           </button>
@@ -237,9 +235,9 @@ export default function Catalog() {
       </div>
 
       {/* METRICS GRID OPERATIVO (Enfoque Trabajador) */}
-      <div className="metrics-grid mb-8">
+      <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginBottom: '2rem' }}>
         {/* 1. Estado del Catálogo (Activos / Total) */}
-        <div className="card">
+        <div className="card" style={{ flex: '0 0 200px', padding: '1.25rem' }}>
           <div className="flex justify-between items-start mb-2">
             <p className="label-sm">Items Activos</p>
             <span className="material-symbols-outlined" style={{ color: 'var(--primary)' }}>inventory_2</span>
@@ -251,7 +249,7 @@ export default function Catalog() {
         </div>
 
         {/* 2. Reservas IA (Reemplaza a Agotados) */}
-        <div className="card">
+        <div className="card" style={{ flex: '0 0 200px', padding: '1.25rem' }}>
           <div className="flex justify-between items-start mb-2">
             <p className="label-sm">Reservas Activas</p>
             <span className="material-symbols-outlined" style={{ color: 'var(--tertiary)' }}>event_seat</span>
@@ -265,7 +263,7 @@ export default function Catalog() {
         </div>
 
         {/* 3. Salud del Bot (Sin Keywords) */}
-        <div className="card">
+        <div className="card" style={{ flex: '0 0 200px', padding: '1.25rem' }}>
           <div className="flex justify-between items-start mb-2">
             <p className="label-sm">Alerta de Config. (IA)</p>
             <span className="material-symbols-outlined" style={{ color: 'var(--tertiary)' }}>warning</span>
@@ -279,7 +277,7 @@ export default function Catalog() {
         </div>
 
         {/* 4. TARJETA DE TOP RENDIMIENTO CON IMAGEN AJUSTADA */}
-        <div className="card" style={{ border: '1px solid var(--primary-dim)' }}>
+        <div className="card" style={{ flex: '0 0 200px', padding: '1.25rem', border: '1px solid var(--primary-dim)' }}>
           <div className="flex justify-between items-start mb-2">
             <p className="label-sm" style={{ color: 'var(--primary)' }}>Item Estrella</p>
             <span className="material-symbols-outlined" style={{ color: 'var(--primary)' }}>trending_up</span>

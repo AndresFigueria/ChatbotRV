@@ -25,6 +25,7 @@ export default function Analytics() {
     async function fetchAnalytics() {
       const { data: orders } = await supabase.from('orders').select('*');
       const { data: customers } = await supabase.from('customers').select('*');
+      const { data: messages } = await supabase.from('whatsapp_messages').select('created_at');
 
       if (orders && customers) {
         // --- KPIs ---
@@ -42,28 +43,40 @@ export default function Analytics() {
         for(let i=0; i<24; i++) hoursMap[`${i.toString().padStart(2, '0')}:00`] = 0;
 
         orders.forEach(o => {
+          if (!o.created_at) return;
           const d = new Date(o.created_at);
-          // Day
-          daysMap[daysOrder[d.getDay()]] += Number(o.total_amount || 0);
-          // Hour
-          hoursMap[`${d.getHours().toString().padStart(2, '0')}:00`] += 1;
+          if (!isNaN(d.getTime())) {
+            // Day
+            daysMap[daysOrder[d.getDay()]] += Number(o.total_amount || 0);
+          }
         });
+
+        if (messages) {
+          messages.forEach(m => {
+            if (!m.created_at) return;
+            const d = new Date(m.created_at);
+            if (!isNaN(d.getTime())) {
+              // Hour
+              hoursMap[`${d.getHours().toString().padStart(2, '0')}:00`] += 1;
+            }
+          });
+        }
 
         setSalesByDay(daysOrder.map(d => ({ name: d, Ingresos: daysMap[d] })));
 
-        const mappedHours = Object.keys(hoursMap).map(h => ({ hour: h, Pedidos: hoursMap[h] }));
+        const mappedHours = Object.keys(hoursMap).map(h => ({ hour: h, Mensajes: hoursMap[h] }));
         setOrdersPerHour(mappedHours);
 
         // Find peak hour
         let peak = 'N/A';
         let peakVal = -1;
         mappedHours.forEach(h => {
-          if (h.Pedidos > peakVal) {
-            peakVal = h.Pedidos;
+          if (h.Mensajes > peakVal) {
+            peakVal = h.Mensajes;
             peak = h.hour;
           }
         });
-        if (peakVal === 0) peak = 'Sin datos';
+        if (peakVal === 0) peak = '---';
 
         setKpis({ totalRevenue: revenue, ltvAvg: ltv, peakHour: peak, vipCount: vips });
 
@@ -113,7 +126,7 @@ export default function Analytics() {
         <div className="card">
           <p className="label-sm">Hora Pico Global</p>
           <h3 className="display-md" style={{ color: 'var(--on-surface)', marginTop: '0.5rem', fontSize: '1.5rem' }}>{kpis.peakHour}</h3>
-          <p className="body-md" style={{ color: 'var(--secondary)', fontSize: '0.75rem' }}>Máximo flujo de comandas</p>
+          <p className="body-md" style={{ color: 'var(--secondary)', fontSize: '0.75rem' }}>Máximo flujo de mensajes</p>
         </div>
         <div className="card" style={{ background: 'linear-gradient(145deg, var(--surface-container), rgba(255, 90, 31, 0.05))', border: '1px solid rgba(255, 90, 31, 0.2)' }}>
           <p className="label-sm">Comunidad VIP (Fidelización)</p>
@@ -130,7 +143,7 @@ export default function Analytics() {
           <div style={{ height: '260px', width: '100%' }}>
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={salesByDay} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--outline-variant)" strokeOpacity={0.2} />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--outline-variant)" strokeOpacity={0.8} />
                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: 'var(--secondary)', fontSize: 12 }} />
                 <YAxis axisLine={false} tickLine={false} tick={{ fill: 'var(--secondary)', fontSize: 12 }} />
                 <RechartsTooltip cursor={{ fill: 'var(--surface-container-high)' }} contentStyle={{ backgroundColor: 'var(--surface-bright)', border: '1px solid var(--card-border)', borderRadius: '8px', color: 'var(--on-surface)' }} itemStyle={{ color: 'var(--primary)', fontWeight: 'bold' }} />
@@ -160,15 +173,15 @@ export default function Analytics() {
 
         {/* Gráfico 3: Línea de tráfico */}
         <div className="card" style={{ gridColumn: '1 / -1' }}>
-          <h3 className="title-md" style={{ marginBottom: '1.5rem' }}>Mapa de Tráfico: Pedidos por Hora</h3>
+          <h3 className="title-md" style={{ marginBottom: '1.5rem' }}>Mapa de Tráfico: Mensajes por Hora</h3>
           <div style={{ height: '260px', width: '100%' }}>
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={ordersPerHour} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--outline-variant)" strokeOpacity={0.2} />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--outline-variant)" strokeOpacity={0.8} />
                 <XAxis dataKey="hour" axisLine={false} tickLine={false} tick={{ fill: 'var(--secondary)', fontSize: 10 }} interval="preserveStartEnd" />
                 <YAxis axisLine={false} tickLine={false} tick={{ fill: 'var(--secondary)', fontSize: 12 }} allowDecimals={false} />
                 <RechartsTooltip contentStyle={{ backgroundColor: 'var(--surface-bright)', border: '1px solid var(--card-border)', borderRadius: '8px', color: 'var(--on-surface)' }} itemStyle={{ color: 'var(--tertiary)', fontWeight: 'bold' }} />
-                <Line type="monotone" dataKey="Pedidos" stroke="var(--tertiary)" strokeWidth={3} dot={{ r: 4, fill: 'var(--tertiary)', strokeWidth: 0 }} activeDot={{ r: 6, stroke: 'var(--tertiary)', strokeWidth: 2, fill: '#fff' }} animationDuration={1500} />
+                <Line type="monotone" dataKey="Mensajes" stroke="var(--tertiary)" strokeWidth={3} dot={{ r: 4, fill: 'var(--tertiary)', strokeWidth: 0 }} activeDot={{ r: 6, stroke: 'var(--tertiary)', strokeWidth: 2, fill: '#fff' }} animationDuration={1500} />
               </LineChart>
             </ResponsiveContainer>
           </div>
