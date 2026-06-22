@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
 
 interface Chat {
@@ -37,6 +38,24 @@ export default function WhatsApp() {
   const [replyText, setReplyText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const phoneToSelect = searchParams.get('phone');
+  
+  const [searchTerm, setSearchTerm] = useState('');
+  const [highlightedChats, setHighlightedChats] = useState<string[]>(() => {
+    const saved = localStorage.getItem('whatsapp_highlighted_chats');
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  const toggleHighlight = (e: React.MouseEvent, chatId: string) => {
+    e.stopPropagation();
+    setHighlightedChats(prev => {
+      const isHighlighted = prev.includes(chatId);
+      const next = isHighlighted ? prev.filter(id => id !== chatId) : [...prev, chatId];
+      localStorage.setItem('whatsapp_highlighted_chats', JSON.stringify(next));
+      return next;
+    });
+  };
 
   const activeChat = chats.find(c => c.id === activeChatId);
   const isHumanControlled = activeChat ? !activeChat.is_bot_active : false;
@@ -65,6 +84,17 @@ export default function WhatsApp() {
       supabase.removeChannel(chatSubscription);
     };
   }, []);
+
+  useEffect(() => {
+    if (phoneToSelect && chats.length > 0 && !activeChatId) {
+      const targetChat = chats.find(c => c.phone_number.includes(phoneToSelect) || phoneToSelect.includes(c.phone_number));
+      if (targetChat) {
+        setActiveChatId(targetChat.id);
+        // Eliminar el parámetro de la URL después de seleccionar el chat
+        setSearchParams({});
+      }
+    }
+  }, [chats, phoneToSelect, activeChatId, setSearchParams]);
 
   // Fetch messages when a chat is selected
   useEffect(() => {
@@ -158,6 +188,13 @@ export default function WhatsApp() {
     }
   };
 
+  const cleanSearchTerm = searchTerm.replace(/\D/g, '');
+  const filteredChats = chats.filter(c => {
+    const matchesName = c.contact_name?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesPhone = c.phone_number?.includes(searchTerm) || (cleanSearchTerm.length > 0 && c.phone_number?.includes(cleanSearchTerm));
+    return matchesName || matchesPhone;
+  });
+
   return (
     <div className="page-container" style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 4.5rem)', overflow: 'hidden', padding: '0.5rem 1.5rem', boxSizing: 'border-box' }}>
       <header style={{ marginBottom: '1rem' }}>
@@ -170,14 +207,28 @@ export default function WhatsApp() {
         <div style={{ display: 'flex', flexDirection: 'column', width: '380px', minWidth: '380px' }}>
           
           <div className="chat-sidebar" style={{ flex: 1, backgroundColor: 'var(--surface-container)', borderRadius: '12px', display: 'flex', flexDirection: 'column', border: '2px solid var(--outline-variant)', overflow: 'hidden' }}>
-          <div style={{ padding: '1rem', borderBottom: '1px solid var(--surface-container-highest)', backgroundColor: '#10b981', color: '#ffffff', fontWeight: 600, display: 'flex', gap: '8px', alignItems:'center' }}>
-            <span className="material-symbols-outlined" style={{color: '#ffffff'}}>chat</span>
-            Bandeja de Entrada
+          <div style={{ padding: '1rem', borderBottom: '1px solid var(--surface-container-highest)', backgroundColor: '#10b981', color: '#ffffff', fontWeight: 600, display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <div style={{ display: 'flex', gap: '8px', alignItems:'center' }}>
+              <span className="material-symbols-outlined" style={{color: '#ffffff'}}>chat</span>
+              Bandeja de Entrada
+            </div>
+            <div style={{ position: 'relative' }}>
+              <span className="material-symbols-outlined" style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#10b981', fontSize: '1rem' }}>search</span>
+              <input 
+                type="text" 
+                placeholder="Buscar cliente..." 
+                value={searchTerm}
+                onChange={e => setSearchTerm(e.target.value)}
+                style={{ width: '100%', padding: '0.5rem 0.5rem 0.5rem 2rem', borderRadius: '2rem', border: 'none', outline: 'none', fontSize: '0.85rem', backgroundColor: '#ffffff', color: '#000' }}
+              />
+            </div>
           </div>
           <div style={{ flex: 1, overflowY: 'auto' }}>
-            {chats.length === 0 ? (
-              <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-secondary)' }}>No hay chats aún</div>
-            ) : chats.map(chat => (
+            {filteredChats.length === 0 ? (
+              <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-secondary)' }}>No hay chats</div>
+            ) : filteredChats.map(chat => {
+              const isHighlighted = highlightedChats.includes(chat.id);
+              return (
               <div 
                 key={chat.id} 
                 onClick={() => setActiveChatId(chat.id)}
@@ -185,13 +236,34 @@ export default function WhatsApp() {
                   padding: '1rem', 
                   borderBottom: '1px solid var(--surface-container-highest)', 
                   cursor: 'pointer',
-                  backgroundColor: activeChatId === chat.id ? 'rgba(74, 158, 255, 0.1)' : 'transparent',
-                  borderLeft: activeChatId === chat.id ? '3px solid var(--primary-color)' : '3px solid transparent',
-                  transition: 'all 0.2s ease'
+                  backgroundColor: activeChatId === chat.id ? 'rgba(74, 158, 255, 0.1)' : isHighlighted ? 'rgba(245, 158, 11, 0.1)' : 'transparent',
+                  borderLeft: activeChatId === chat.id ? '3px solid var(--primary-color)' : isHighlighted ? '3px solid #f59e0b' : '3px solid transparent',
+                  transition: 'all 0.2s ease',
+                  position: 'relative'
                 }}
               >
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                  <div style={{ fontWeight: chat.unread_count > 0 ? 800 : 600, color: 'var(--text-primary)' }}>{chat.contact_name}</div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px', alignItems: 'center' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <button 
+                      onClick={(e) => toggleHighlight(e, chat.id)}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        cursor: 'pointer',
+                        color: isHighlighted ? '#f59e0b' : '#64748b',
+                        padding: 0,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        transition: 'all 0.2s',
+                        outline: 'none'
+                      }}
+                      title={isHighlighted ? "Quitar resaltado" : "Resaltar chat"}
+                    >
+                      <span className="material-symbols-outlined" style={{ fontSize: '18px', fontVariationSettings: isHighlighted ? "'FILL' 1" : "'FILL' 0" }}>star</span>
+                    </button>
+                    <div style={{ fontWeight: chat.unread_count > 0 ? 800 : 600, color: 'var(--text-primary)' }}>{chat.contact_name}</div>
+                  </div>
                   <div style={{ fontSize: '0.75rem', color: chat.unread_count > 0 ? 'var(--primary)' : 'var(--text-secondary)' }}>
                     {new Date(chat.last_message_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
                   </div>
@@ -217,7 +289,7 @@ export default function WhatsApp() {
                   </div>
                 </div>
               </div>
-            ))}
+            )})}
           </div>
         </div>
         </div>
