@@ -189,8 +189,8 @@ export default function Settings() {
                         width: '100%', 
                         opacity: 0.6, 
                         cursor: 'not-allowed', 
-                        backgroundColor: 'rgba(255, 255, 255, 0.02)',
-                        border: '1px solid rgba(255, 255, 255, 0.08)'
+                        backgroundColor: 'var(--surface-container-high)',
+                        border: '1px solid var(--outline-variant)'
                       }} 
                       value={config.businessPhone} 
                       title="Número oficial vinculado a la API de Meta. Para cambiarlo contacta a soporte."
@@ -211,14 +211,14 @@ export default function Settings() {
                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
                      <label className="label-sm" style={{ marginBottom: '0.25rem' }}>Auto-Cierre</label>
                      <div style={{ width: '36px', height: '20px', borderRadius: '10px', backgroundColor: config.autoClose ? 'var(--emerald-400)' : 'var(--surface-container-highest)', display: 'flex', alignItems: 'center', padding: '2px', cursor: 'pointer', justifyContent: config.autoClose ? 'flex-end' : 'flex-start' }} onClick={() => setConfig({...config, autoClose: !config.autoClose})}>
-                        <div style={{ width: '16px', height: '16px', backgroundColor: '#fff', borderRadius: '50%' }}></div>
+                        <div style={{ width: '16px', height: '16px', backgroundColor: 'var(--surface-bright)', borderRadius: '50%', boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }}></div>
                      </div>
                    </div>
                 </div>
               </div>
 
               {/* Sección: Cerebro IA (Fase 3 Core) */}
-              <div style={{ padding: '1rem', borderRadius: '12px', backgroundColor: 'rgba(255, 90, 31, 0.03)', border: '1px solid rgba(255, 90, 31, 0.1)' }}>
+              <div style={{ padding: '1rem', borderRadius: '12px', backgroundColor: 'var(--surface-container-high)', border: '1px solid var(--outline-variant)' }}>
                 <h3 className="title-md" style={{ marginBottom: '0.5rem', color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.95rem' }}>
                   <span className="material-symbols-outlined">psychology</span> Configuración de la IA (Cerebro)
                 </h3>
@@ -281,8 +281,8 @@ export default function Settings() {
               <h4 style={{ fontWeight: 800, display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem', fontSize: '0.85rem' }}>
                 <span className="material-symbols-outlined" style={{ color: 'var(--tertiary)' }}>verified</span> SUSCRIPCIÓN
               </h4>
-              <div style={{ padding: '0.5rem 0.75rem', backgroundColor: 'rgba(255,255,255,0.03)', borderRadius: '12px', marginBottom: '0.5rem' }}>
-                <p style={{ fontSize: '0.65rem', fontWeight: 800, opacity: 0.6, marginBottom: '0.5rem' }}>
+              <div style={{ padding: '0.5rem 0.75rem', backgroundColor: 'var(--surface-container-highest)', borderRadius: '12px', marginBottom: '0.5rem', border: '1px solid var(--outline-variant)' }}>
+                <p style={{ fontSize: '0.65rem', fontWeight: 800, opacity: 0.6, marginBottom: '0.5rem', color: 'var(--on-surface)' }}>
                   PLAN {tenantPlan.toUpperCase()}
                 </p>
                 <h3 style={{ fontSize: '1.1rem', fontWeight: 900, color: 'var(--primary)', margin: 0 }}>

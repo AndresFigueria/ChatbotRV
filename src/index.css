@@ -3,17 +3,17 @@
 @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200');
 
 :root {
-  --background: #0D0E12;
-  --surface: #13151A;
-  --surface-container-lowest: #08090B;
-  --surface-container-low: #0D0E12;
-  --surface-container: #16181D;
-  --surface-container-high: #1E2028;
-  --surface-container-highest: #262933;
-  --surface-bright: #2E323E;
-  --surface-variant: #262933;
+  --background: #09090B;
+  --surface: #111113;
+  --surface-container-lowest: #000000;
+  --surface-container-low: #09090B;
+  --surface-container: #18181B;
+  --surface-container-high: #27272A;
+  --surface-container-highest: #3F3F46;
+  --surface-bright: #3F3F46;
+  --surface-variant: #27272A;
   
-  --surface-blur: rgba(13, 14, 18, 0.8);
+  --surface-blur: rgba(9, 9, 11, 0.85);
   --card-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
   --card-border: 1px solid rgba(255, 255, 255, 0.08);
   --table-border: 1px solid rgba(255, 255, 255, 0.06);
@@ -363,6 +363,7 @@ button {
 /* Glass & Gradients */
 .topbar {
   height: 6.5rem;
+  min-height: 6.5rem;
   position: sticky;
   top: 0;
   z-index: 40;
@@ -373,6 +374,8 @@ button {
   justify-content: space-between;
   padding: 0 2rem 0 0;
   border-bottom: var(--card-border);
+  box-sizing: border-box;
+  flex-shrink: 0;
 }
 
 /* General Layout Utils */
@@ -542,22 +545,22 @@ NEW PREMIUM LIGHT MODE (Robotina Central) - BORDES GRUESOS
 =====================================================
 */
 html.light-mode {
-  /* Fondo general muy suave (off-white) */
-  --background: #F3F4F6;
+  /* Fondo general (Gris claro para dar contraste a las tarjetas) */
+  --background: #E4E4E7; /* Zinc 200 */
   
-  /* Tarjetas (blanco muy sutilmente grisáceo) */
-  --surface: #FCFCFD;
-  --surface-container-lowest: #FCFCFD;
-  --surface-container-low: #FCFCFD;
-  --surface-container: #FFFFFF;
+  /* Tarjetas y superficies (blanco puro que ahora resaltará sobre el fondo) */
+  --surface: #FFFFFF;
+  --surface-container-lowest: #FFFFFF;
   
-  /* Estados interactivos */
-  --surface-container-high: #F0F1F3;
-  --surface-container-highest: #E5E7EB;
+  /* Estados interactivos y contenedores secundarios */
+  --surface-container-low: #F4F4F5; /* Zinc 100 */
+  --surface-container: #F4F4F5; 
+  --surface-container-high: #D4D4D8; /* Zinc 300 */
+  --surface-container-highest: #A1A1AA; /* Zinc 400 */
   --surface-bright: #FFFFFF;
-  --surface-variant: #E5E7EB;
+  --surface-variant: #D4D4D8;
   
-  --surface-blur: rgba(243, 244, 246, 0.85);
+  --surface-blur: rgba(228, 228, 231, 0.85);
   
   /* Sombras sutiles */
   --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -2px rgba(0, 0, 0, 0.04);

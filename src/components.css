@@ -6,12 +6,17 @@
   height: 100vh;
   position: sticky;
   top: 0;
-  padding: 1.5rem 0.25rem;
+  padding: 0 0.25rem; /* Remove top padding to match Topbar exactly */
 }
 
 .sidebar-header {
-  margin-bottom: 0.5rem; /* Reducido un 80% desde 2.5rem */
-  padding: 0 0.25rem;
+  height: 6.5rem; /* Exactly the same height as .topbar */
+  min-height: 6.5rem; /* Prevent shrinking */
+  margin-bottom: 0.5rem; 
+  padding: 0 0.5rem;
+  border-bottom: var(--card-border); /* Exact match with Topbar border */
+  box-sizing: border-box;
+  flex-shrink: 0;
 }
 
 .sidebar-brand {

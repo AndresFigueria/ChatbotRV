@@ -187,8 +187,8 @@ export default function Topbar() {
   };
 
   return (
-    <header className="topbar">
-      <div className="flex items-center" style={{ flex: '0 0 600px', position: 'relative' }}>
+    <header className="topbar" style={{ paddingLeft: '1.5rem' }}>
+      <div className="flex items-center" style={{ flex: '1', position: 'relative', marginRight: '1.5rem' }}>
         <div style={{ position: 'relative', width: '100%' }}>
           <span className="material-symbols-outlined" style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--secondary)', fontSize: '1.2rem', pointerEvents: 'none' }}>search</span>
           <input 
@@ -199,7 +199,7 @@ export default function Topbar() {
             onChange={(e) => setGlobalSearch(e.target.value)}
             onFocus={() => setIsSearchFocused(true)}
             onBlur={() => setTimeout(() => setIsSearchFocused(false), 200)}
-            style={{ width: '100%', paddingLeft: '2.5rem', borderRadius: '2rem', backgroundColor: 'var(--surface-container-low)', border: '1px solid var(--surface-container-highest)', outline: 'none' }}
+            style={{ width: '100%', padding: '0.8rem 1rem 0.8rem 2.6rem', fontSize: '0.9rem', borderRadius: '2rem', backgroundColor: 'var(--surface-container-low)', border: '1px solid var(--surface-container-highest)', outline: 'none' }}
           />
           {isSearching && <span className="material-symbols-outlined" style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--primary)', animation: 'spin 1s linear infinite', fontSize: '1.2rem' }}>sync</span>}
           

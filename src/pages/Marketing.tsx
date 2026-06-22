@@ -48,13 +48,14 @@ export default function Marketing() {
     
     if (audience === 'Todos') return true;
     if (audience === 'VIP') return c.status === 'VIP';
-    if (audience === 'Nuevo') return c.status === 'Nuevo';
-    if (audience === 'Frecuente') return c.orders_count >= 5;
+    if (audience === 'Nuevo') return c.status === 'Nuevo' || c.status === 'Contactó';
+    if (audience === 'Frecuente') return c.total_orders >= 5 || c.status === 'Cliente Frecuente';
+    if (audience === 'Interesado') return c.status === 'Interesado';
     if (audience === 'Inactivo') {
-      if (!c.last_order) return false;
+      if (!c.last_order_date) return false;
       const thirtyDaysAgo = new Date();
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-      return new Date(c.last_order) < thirtyDaysAgo;
+      return new Date(c.last_order_date) < thirtyDaysAgo;
     }
     
     return c.status === audience;
@@ -104,9 +105,9 @@ export default function Marketing() {
         message_template: message,
         image_url: imgUrl,
         customers: targetCustomers.map(c => ({
-          phone: c.phone,
+          phone: c.phone_number,
           name: c.name,
-          favorite_item: c.favorite_dish || 'nuestro servicio',
+          favorite_item: c.preferences || 'nuestro servicio',
           ltv: c.ltv
         }))
       };
@@ -150,6 +151,20 @@ export default function Marketing() {
     }
   };
 
+  const handleImageUpload = (file: File) => {
+    if (!file.type.startsWith('image/')) {
+      alert('Por favor, selecciona un archivo de imagen válido.');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      if (e.target?.result) {
+        setImgUrl(e.target.result as string);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
   // === LÓGICA DE DISTRIBUCIÓN DE AUDIENCIAS ===
   const totalOptIn = customers.filter(c => c.whatsapp_opt_in !== false).length;
   
@@ -158,13 +173,14 @@ export default function Marketing() {
       if (c.whatsapp_opt_in === false) return false;
       if (seg === 'Todos') return true;
       if (seg === 'VIP') return c.status === 'VIP';
-      if (seg === 'Nuevo') return c.status === 'Nuevo';
-      if (seg === 'Frecuente') return c.orders_count >= 5;
+      if (seg === 'Nuevo') return c.status === 'Nuevo' || c.status === 'Contactó';
+      if (seg === 'Frecuente') return c.total_orders >= 5 || c.status === 'Cliente Frecuente';
+      if (seg === 'Interesado') return c.status === 'Interesado';
       if (seg === 'Inactivo') {
-        if (!c.last_order) return false;
+        if (!c.last_order_date) return false;
         const thirtyDaysAgo = new Date();
         thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-        return new Date(c.last_order) < thirtyDaysAgo;
+        return new Date(c.last_order_date) < thirtyDaysAgo;
       }
       return false;
     }).length;
@@ -173,6 +189,7 @@ export default function Marketing() {
   const audienceSegments = [
     { id: 'VIP', label: 'Clientes VIP', icon: 'diamond', color: 'var(--tertiary)', count: getSegmentCount('VIP') },
     { id: 'Frecuente', label: 'Frecuentes', icon: 'workspace_premium', color: 'var(--primary)', count: getSegmentCount('Frecuente') },
+    { id: 'Interesado', label: 'Interesados', icon: 'local_fire_department', color: '#38bdf8', count: getSegmentCount('Interesado') },
     { id: 'Nuevo', label: 'Nuevos', icon: 'fiber_new', color: 'var(--emerald-400)', count: getSegmentCount('Nuevo') },
     { id: 'Inactivo', label: 'Inactivos', icon: 'snooze', color: 'var(--error)', count: getSegmentCount('Inactivo') },
     { id: 'Todos', label: 'Base Completa', icon: 'public', color: 'var(--on-surface)', count: getSegmentCount('Todos') },
@@ -192,7 +209,7 @@ export default function Marketing() {
       <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 5fr) minmax(0, 4fr)', gap: '2rem', alignItems: 'start' }}>
         
         {/* Lado Izquierdo: Formulario de Creación */}
-        <div className="card" style={{ padding: '2rem' }}>
+        <div className="card" style={{ padding: '2rem', background: 'linear-gradient(145deg, var(--surface-bright), var(--surface-container-low))' }}>
            <h3 className="title-md" style={{ borderBottom: '1px solid var(--surface-container-highest)', paddingBottom: '0.5rem', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
              <span className="material-symbols-outlined" style={{ color: 'var(--primary)' }}>campaign</span>
              Lanzar Nueva Difusión
@@ -210,6 +227,7 @@ export default function Marketing() {
                   <option value="Todos">Toda mi base de datos (Global Broadcast)</option>
                   <option value="Frecuente">Clientes Frecuentes (Más de 5 órdenes)</option>
                   <option value="Inactivo">Clientes Inactivos (+30 días sin compra)</option>
+                  <option value="Interesado">Interesados (Prospectos Calientes)</option>
                   <option value="VIP">Solo VIPs (Recompensas de Lealtad)</option>
                   <option value="Nuevo">Nuevos Clientes (Estrategia de Bienvenida)</option>
                 </select>
@@ -232,10 +250,50 @@ export default function Marketing() {
                </div>
              </div>
 
-             <div>
-               <label className="label-sm" style={{ display: 'block', marginBottom: '0.5rem' }}>Imagen Promocional (Opcional - Link Web)</label>
-               <input type="url" className="input-base" style={{ width: '100%', paddingLeft: '1rem' }} value={imgUrl} onChange={e => setImgUrl(e.target.value)} placeholder="Ej. https://miservidor.com/flyer-promo.jpg" />
-             </div>
+              <div>
+                <label className="label-sm" style={{ display: 'block', marginBottom: '0.5rem' }}>Imagen Promocional (Opcional)</label>
+                <div style={{ position: 'relative', border: '2px dashed var(--outline-variant)', borderRadius: '12px', padding: imgUrl ? '0' : '1rem', textAlign: 'center', backgroundColor: 'var(--surface-container-low)', cursor: imgUrl ? 'default' : 'pointer', transition: 'all 0.2s ease', overflow: 'hidden' }} 
+                     onClick={() => !imgUrl && document.getElementById('promo-image-upload')?.click()}
+                     onDragOver={(e) => { e.preventDefault(); if(!imgUrl) e.currentTarget.style.borderColor = 'var(--primary)'; }}
+                     onDragLeave={(e) => { e.preventDefault(); if(!imgUrl) e.currentTarget.style.borderColor = 'var(--outline-variant)'; }}
+                     onDrop={(e) => { 
+                       e.preventDefault(); 
+                       e.currentTarget.style.borderColor = 'var(--outline-variant)';
+                       if (!imgUrl && e.dataTransfer.files && e.dataTransfer.files[0]) handleImageUpload(e.dataTransfer.files[0]); 
+                     }}>
+                  
+                  {imgUrl ? (
+                    <div style={{ position: 'relative', width: '100%', display: 'flex', justifyContent: 'center', backgroundColor: 'var(--surface-container-lowest)' }}>
+                       <img src={imgUrl} alt="Preview" style={{ maxHeight: '140px', objectFit: 'contain', width: '100%', display: 'block' }} />
+                       <button 
+                         type="button"
+                         onClick={(e) => { e.stopPropagation(); setImgUrl(''); }}
+                         style={{ position: 'absolute', top: '0.5rem', right: '0.5rem', backgroundColor: 'rgba(0,0,0,0.6)', color: 'white', border: 'none', borderRadius: '50%', width: '28px', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', backdropFilter: 'blur(4px)' }}
+                       >
+                         <span className="material-symbols-outlined" style={{ fontSize: '1.2rem' }}>close</span>
+                       </button>
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.25rem' }}>
+                      <span className="material-symbols-outlined" style={{ fontSize: '2rem', color: 'var(--secondary)' }}>cloud_upload</span>
+                      <p style={{ fontSize: '0.85rem', color: 'var(--on-surface)', margin: 0, fontWeight: 500 }}>Sube una foto desde tu PC o Teléfono</p>
+                      <p style={{ fontSize: '0.7rem', color: 'var(--secondary)', margin: 0 }}>JPG, PNG, GIF</p>
+                    </div>
+                  )}
+                  <input 
+                    id="promo-image-upload" 
+                    type="file" 
+                    accept="image/*" 
+                    style={{ display: 'none' }} 
+                    onChange={(e) => {
+                      if (e.target.files && e.target.files[0]) {
+                        handleImageUpload(e.target.files[0]);
+                        e.target.value = ''; // Reset input to allow uploading the same file again if removed
+                      }
+                    }} 
+                  />
+                </div>
+              </div>
 
              <div className="flex justify-end gap-3" style={{ borderTop: 'var(--table-border)', paddingTop: '1.5rem', marginTop: '0.5rem' }}>
                <button type="submit" disabled={isDeploying} className="btn-primary" style={{ padding: '0.85rem 2rem', boxShadow: '0 4px 14px rgba(255, 90, 31, 0.3)', width: '100%', display: 'flex', justifyContent: 'center', gap: '0.5rem', alignItems: 'center' }}>
@@ -272,7 +330,7 @@ export default function Marketing() {
           </div>
 
           {/* Dashboard de Distribución de Audiencias */}
-          <div className="card" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+          <div className="card" style={{ flex: 1, display: 'flex', flexDirection: 'column', background: 'linear-gradient(145deg, var(--surface-bright), var(--surface-container-low))' }}>
             <div style={{ borderBottom: '1px solid var(--surface-container-highest)', marginBottom: '1.2rem', display: 'flex', gap: '1.5rem' }}>
               <button 
                 onClick={(e) => { e.preventDefault(); setRightTab('audiencia'); }}

@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { 
-  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer 
+  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  PieChart, Pie, Cell, Legend
 } from 'recharts';
 import { supabase } from '../supabaseClient';
 
@@ -14,6 +15,9 @@ export default function Dashboard() {
   });
   const [chartData7D, setChartData7D] = useState<any[]>([]);
   const [recentEvents, setRecentEvents] = useState<any[]>([]);
+  const [peakData, setPeakData] = useState<any[]>([]);
+  const [peakHourName, setPeakHourName] = useState<string>('N/A');
+  const [peakHourPeriod, setPeakHourPeriod] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [soundEnabled, setSoundEnabled] = useState(() => localStorage.getItem('robotina_sound') !== 'false');
@@ -119,6 +123,47 @@ export default function Dashboard() {
       .lte('last_message_at', endOfDay.toISOString())
       .order('last_message_at', { ascending: false })
       .limit(6);
+
+    // 6. Mensajes para calcular la hora pico (solo del día seleccionado)
+    const { data: messages } = await supabase.from('whatsapp_messages')
+      .select('created_at')
+      .gte('created_at', startOfDay.toISOString())
+      .lte('created_at', endOfDay.toISOString());
+
+    if (messages) {
+      const dist: Record<string, number> = { 'Madrugada (00-06)': 0, 'Mañana (06-12)': 0, 'Tarde (12-18)': 0, 'Noche (18-24)': 0 };
+      const hoursMap: Record<string, number> = {};
+      
+      messages.forEach(m => {
+        if (!m.created_at) return;
+        const h = new Date(m.created_at).getHours();
+        if (h < 6) dist['Madrugada (00-06)']++;
+        else if (h < 12) dist['Mañana (06-12)']++;
+        else if (h < 18) dist['Tarde (12-18)']++;
+        else dist['Noche (18-24)']++;
+        
+        hoursMap[h] = (hoursMap[h] || 0) + 1;
+      });
+
+      const pData = Object.keys(dist).map(k => ({ name: k, value: dist[k] })).filter(d => d.value > 0);
+      setPeakData(pData.length > 0 ? pData : [{ name: 'Sin actividad', value: 1 }]);
+      
+      let peakH = 'N/A';
+      let peakP = '';
+      let maxM = -1;
+      Object.keys(hoursMap).forEach(hStr => {
+        const h = parseInt(hStr, 10);
+        if (hoursMap[hStr] > maxM) {
+          maxM = hoursMap[hStr];
+          const ampm = h >= 12 ? 'PM' : 'AM';
+          const hr12 = h % 12 || 12;
+          peakH = `${hr12}:00`;
+          peakP = ampm;
+        }
+      });
+      setPeakHourName(maxM > 0 ? peakH : 'Sin datos');
+      setPeakHourPeriod(maxM > 0 ? peakP : '');
+    }
 
     if (allOrders) {
       // KPIs totales históricos
@@ -266,6 +311,28 @@ export default function Dashboard() {
           <p className="label-sm" style={{ color: 'var(--on-surface)', fontWeight: 800 }}>Clientes CRM</p>
           <h3 className="display-md" style={{ color: 'var(--on-surface)', marginTop: '0.5rem', fontWeight: 900 }}>{stats.customers}</h3>
         </div>
+        
+        {/* Hora Pico (Compact) */}
+        <div className="card" style={{ width: '220px', padding: '0.5rem 1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginLeft: 'auto' }}>
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            <p className="label-sm" style={{ color: 'var(--on-surface)', fontWeight: 800 }}>Hora Pico</p>
+            <h3 className="display-md" style={{ color: 'var(--primary)', marginTop: '0.2rem', fontWeight: 900, fontSize: '1.85rem', lineHeight: '1' }}>{peakHourName}</h3>
+            {peakHourPeriod && <span style={{ fontSize: '0.95rem', color: 'var(--secondary)', fontWeight: 800, marginTop: '2px' }}>{peakHourPeriod}</span>}
+          </div>
+          <div style={{ position: 'relative', width: '74px', height: '74px' }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie data={peakData} cx="50%" cy="50%" innerRadius={23} outerRadius={36} paddingAngle={4} dataKey="value" stroke="none">
+                  {peakData.map((entry, index) => {
+                    const colors = ['#8B5CF6', '#10B981', '#FFB300', '#FF5A1F', '#4B4F5E'];
+                    return <Cell key={`cell-${index}`} fill={entry.name === 'Sin actividad' ? 'var(--surface-container-high)' : colors[index % colors.length]} />;
+                  })}
+                </Pie>
+                <Tooltip contentStyle={{ backgroundColor: 'var(--surface-bright)', border: '1px solid var(--card-border)', borderRadius: '8px', color: 'var(--on-surface)', fontSize: '0.7rem', padding: '4px' }} itemStyle={{ fontWeight: 'bold' }} />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
       </div>
 
       {/* Date Selector */}
@@ -337,7 +404,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <div className="dashboard-grid-main">
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 5fr) minmax(0, 3fr)', gap: '1.5rem' }}>
         <div className="card" style={{ padding: '1rem', display: 'flex', flexDirection: 'column', height: '360px' }}>
           <h3 className="title-md mb-2">Ingresos (Últimos 7 Días)</h3>
           <div style={{ width: '100%', height: '280px' }}>

@@ -375,17 +375,18 @@ export default function Orders() {
       </div>
 
       {/* Filtros Estilo Apple dentro de contenedor con borde negrita */}
-      <div className="card" style={{ padding: '1rem 1.5rem', marginBottom: '2rem', backgroundColor: 'var(--surface-container-low)', borderRadius: '12px', border: 'var(--card-border)' }}>
-        <div style={{ display: 'flex', gap: '0.75rem', overflowX: 'auto', paddingBottom: '0.2rem' }}>
+      <div className="card" style={{ padding: '0.5rem', marginBottom: '2rem', backgroundColor: 'var(--surface-container-low)', borderRadius: '2rem', border: '1px solid var(--surface-container-highest)' }}>
+        <div style={{ display: 'flex', gap: '0.5rem', overflowX: 'auto', width: '100%' }}>
           {['Todos', 'Pendiente', 'Confirmado', 'Completado'].map(f => (
             <button 
               key={f} 
               onClick={() => setActiveFilter(f)}
               style={{ 
-                padding: '0.6rem 1.5rem', borderRadius: '30px', border: 'none', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer', transition: 'all 0.3s',
-                backgroundColor: activeFilter === f ? '#C9A84C' : 'var(--surface-container-high)',
-                color: activeFilter === f ? '#1A1A2E' : 'var(--on-surface)',
-                boxShadow: activeFilter === f ? '0 10px 20px rgba(201, 168, 76, 0.2)' : 'none'
+                flex: 1,
+                padding: '0.8rem 1.5rem', borderRadius: '2rem', border: 'none', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer', transition: 'all 0.3s',
+                backgroundColor: activeFilter === f ? 'var(--primary)' : 'transparent',
+                color: activeFilter === f ? '#fff' : 'var(--secondary)',
+                boxShadow: activeFilter === f ? '0 4px 15px rgba(255, 90, 31, 0.3)' : 'none'
               }}
             >
               {f}
