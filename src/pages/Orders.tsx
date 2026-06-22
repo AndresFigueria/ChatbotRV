@@ -52,8 +52,7 @@ export default function Orders() {
 
     const getStatusClass = (status: string) => {
       if (status === 'Pendiente') return 'status-pending';
-      if (status === 'Preparando' || status === 'Confirmado') return 'status-preparing';
-      if (status === 'Listo') return 'status-ready';
+      if (status === 'Confirmado') return 'status-preparing';
       return 'status-delivered';
     };
 
@@ -115,8 +114,8 @@ export default function Orders() {
         total: 'Reunión',
         time: new Date(r.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         dateObj: new Date(r.created_at),
-        status: r.status || 'Confirmado',
-        statusClass: getStatusClass(r.status || 'Confirmado'),
+        status: r.status || 'Pendiente',
+        statusClass: getStatusClass(r.status || 'Pendiente'),
         isLead: true,
         originalId: r.id,
         appointmentDateRaw: null, // we can parse it similarly if needed
@@ -177,9 +176,8 @@ export default function Orders() {
 
   const handleStatusChange = async (orderCode: string, currentStatus: string, isLead: boolean, originalId: string) => {
     let newStatus = '';
-    if (currentStatus === 'Pendiente') newStatus = 'Preparando';
-    else if (currentStatus === 'Preparando') newStatus = 'Listo';
-    else if (currentStatus === 'Listo') newStatus = 'Despachado';
+    if (currentStatus === 'Pendiente') newStatus = 'Confirmado';
+    else if (currentStatus === 'Confirmado') newStatus = 'Completado';
     else return;
 
     // Optimistic UI update para que cambie de inmediato
@@ -188,7 +186,7 @@ export default function Orders() {
         return {
           ...o,
           status: newStatus,
-          statusClass: newStatus === 'Pendiente' ? 'status-pending' : (newStatus === 'Preparando' || newStatus === 'Confirmado' ? 'status-preparing' : (newStatus === 'Listo' ? 'status-ready' : 'status-delivered'))
+          statusClass: newStatus === 'Pendiente' ? 'status-pending' : (newStatus === 'Confirmado' ? 'status-preparing' : 'status-delivered')
         };
       }
       return o;
@@ -307,7 +305,7 @@ export default function Orders() {
       }
     }
     if (!order.isLead) {
-      return order.status !== 'Despachado';
+      return order.status !== 'Completado';
     }
     return false;
   };
@@ -333,7 +331,7 @@ export default function Orders() {
     </div>
   );
 
-  const activosCount = orders.filter(o => o.status === 'Pendiente' || o.status === 'Preparando').length;
+  const activosCount = orders.filter(o => o.status === 'Pendiente' || o.status === 'Confirmado').length;
   const totalIngresos = orders.reduce((sum, o) => sum + (o.totalNum || 0), 0);
 
   const filteredOrders = orders.filter(o => activeFilter === 'Todos' || o.status === activeFilter);
@@ -379,7 +377,7 @@ export default function Orders() {
       {/* Filtros Estilo Apple dentro de contenedor con borde negrita */}
       <div className="card" style={{ padding: '1rem 1.5rem', marginBottom: '2rem', backgroundColor: 'var(--surface-container-low)', borderRadius: '12px', border: 'var(--card-border)' }}>
         <div style={{ display: 'flex', gap: '0.75rem', overflowX: 'auto', paddingBottom: '0.2rem' }}>
-          {['Todos', 'Pendiente', 'Confirmado', 'Preparando', 'Listo', 'Despachado'].map(f => (
+          {['Todos', 'Pendiente', 'Confirmado', 'Completado'].map(f => (
             <button 
               key={f} 
               onClick={() => setActiveFilter(f)}
@@ -405,7 +403,7 @@ export default function Orders() {
           </div>
         ) : filteredOrders.map((order) => {
           const isPending = order.status === 'Pendiente';
-          const isReady = order.status === 'Listo';
+          const isReady = order.status === 'Confirmado';
           
           return (
             <div 
@@ -558,7 +556,7 @@ export default function Orders() {
                     <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>undo</span>
                   </button>
                 )}
-                {order.status !== 'Despachado' && (
+                {order.status !== 'Completado' && (
                   <button 
                     onClick={() => handleStatusChange(order.id, order.status, order.isLead, order.originalId)}
                     style={{ 
@@ -575,7 +573,7 @@ export default function Orders() {
                       e.currentTarget.style.color = isPending ? '#C9A84C' : 'var(--on-surface)';
                     }}
                   >
-                    {isPending ? 'Pasar a Preparando' : (order.status === 'Preparando' ? 'Pasar a Listo' : 'Pasar a Despachado')}
+                    {isPending ? 'Confirmar' : 'Marcar Completado'}
                   </button>
                 )}
               </div>

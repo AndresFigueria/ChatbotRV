@@ -175,8 +175,12 @@ button {
 }
 
 .sidebar-header {
-  padding: 0.5rem 0.5rem 0rem 0.5rem; /* Eliminado el padding inferior, reducido el lateral */
-  border-bottom: 1px solid var(--surface-container-highest);
+  height: 5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1.25rem;
+  border-bottom: var(--card-border);
 }
 
 .brand-icon {
@@ -358,7 +362,7 @@ button {
 
 /* Glass & Gradients */
 .topbar {
-  height: 4.5rem;
+  height: 6.5rem;
   position: sticky;
   top: 0;
   z-index: 40;
@@ -367,7 +371,7 @@ button {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 2rem;
+  padding: 0 2rem 0 0;
   border-bottom: var(--card-border);
 }
 

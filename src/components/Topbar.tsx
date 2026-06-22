@@ -153,8 +153,10 @@ export default function Topbar() {
       const res: any[] = [];
       
       try {
-        const { data: cData } = await supabase.from('customers').select('*').ilike('name', query).limit(3);
-        if (cData) cData.forEach(c => res.push({ type: 'Cliente', id: c.id, label: c.name, desc: c.phone, path: '/customers' }));
+        const cleanQuery = globalSearch.replace(/\D/g, '');
+        const phoneQuery = cleanQuery.length > 0 ? `%${cleanQuery}%` : query;
+        const { data: cData } = await supabase.from('customers').select('*').or(`name.ilike.${query},phone_number.ilike.${phoneQuery}`).limit(3);
+        if (cData) cData.forEach(c => res.push({ type: 'Cliente', id: c.id, label: c.name, desc: c.phone_number, path: `/whatsapp?phone=${c.phone_number}` }));
         
         const { data: oData } = await supabase.from('orders').select('*, customer:customers(name)').ilike('order_code', query).limit(3);
         if (oData) oData.forEach(o => res.push({ type: 'Pedido', id: o.id, label: o.order_code, desc: `Cliente: ${o.customer?.name || 'N/A'}`, path: '/orders' }));
@@ -186,8 +188,8 @@ export default function Topbar() {
 
   return (
     <header className="topbar">
-      <div className="flex items-center gap-3" style={{ flex: 1, position: 'relative' }}>
-        <div style={{ position: 'relative', width: '100%', maxWidth: '400px' }}>
+      <div className="flex items-center" style={{ flex: '0 0 600px', position: 'relative' }}>
+        <div style={{ position: 'relative', width: '100%' }}>
           <span className="material-symbols-outlined" style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--secondary)', fontSize: '1.2rem', pointerEvents: 'none' }}>search</span>
           <input 
             type="text" 
