@@ -120,8 +120,7 @@ export default function Marketing() {
           name: c.name,
           favorite_item: c.preferences || 'nuestro servicio',
           ltv: c.ltv,
-          message_template: message,
-          image_url: imgUrl
+          message_template: message
         }))
       };
 
