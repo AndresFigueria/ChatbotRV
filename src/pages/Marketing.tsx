@@ -174,7 +174,37 @@ export default function Marketing() {
     const reader = new FileReader();
     reader.onload = (e) => {
       if (e.target?.result) {
-        setImgUrl(e.target.result as string);
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+          if (!ctx) return;
+          
+          let width = img.width;
+          let height = img.height;
+          const MAX_SIZE = 800; // Reducimos tamaño máximo para no saturar n8n ni WhatsApp
+          
+          if (width > height) {
+            if (width > MAX_SIZE) {
+              height *= MAX_SIZE / width;
+              width = MAX_SIZE;
+            }
+          } else {
+            if (height > MAX_SIZE) {
+              width *= MAX_SIZE / height;
+              height = MAX_SIZE;
+            }
+          }
+          
+          canvas.width = width;
+          canvas.height = height;
+          ctx.drawImage(img, 0, 0, width, height);
+          
+          // Comprimir a JPEG con calidad 70% (reduce el peso dramáticamente)
+          const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.7);
+          setImgUrl(compressedDataUrl);
+        };
+        img.src = e.target.result as string;
       }
     };
     reader.readAsDataURL(file);
