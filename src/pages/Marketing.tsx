@@ -119,7 +119,9 @@ export default function Marketing() {
           phone: c.phone_number,
           name: c.name,
           favorite_item: c.preferences || 'nuestro servicio',
-          ltv: c.ltv
+          ltv: c.ltv,
+          message_template: message,
+          image_url: imgUrl
         }))
       };
 
