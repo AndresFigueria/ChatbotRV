@@ -107,7 +107,7 @@ export default function Marketing() {
       }, 200);
 
       // 2. Disparar el Webhook hacia n8n directamente
-      const webhookUrl = 'https://n8n-whatsapp-central.robotina-ia.com/webhook/robotina-marketing-ia';
+      const webhookUrl = 'https://n8n-whatsappa-central.robotina-ia.com/webhook/robotina-marketing-ia';
       
       const payload = {
         campaign_id: campaign.id,
