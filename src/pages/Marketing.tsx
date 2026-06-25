@@ -106,8 +106,8 @@ export default function Marketing() {
         });
       }, 200);
 
-      // 2. Disparar el Webhook hacia n8n
-      const webhookUrl = 'https://n8n-whatsapp-central.robotina-ia.com/webhook/robotina-marketing-ia';
+      // 2. Disparar el Webhook hacia n8n (usando proxy CORS para evitar bloqueos del navegador local)
+      const webhookUrl = 'https://corsproxy.io/?https://n8n-whatsappa-central.robotina-ia.com/webhook/robotina-marketing-ia';
       
       const payload = {
         campaign_id: campaign.id,
@@ -310,7 +310,7 @@ export default function Marketing() {
              <div className="flex justify-end gap-3" style={{ borderTop: 'var(--table-border)', paddingTop: '1.5rem', marginTop: '0.5rem' }}>
                <button type="submit" disabled={isDeploying} className="btn-primary" style={{ padding: '0.85rem 2rem', boxShadow: '0 4px 14px rgba(255, 90, 31, 0.3)', width: '100%', display: 'flex', justifyContent: 'center', gap: '0.5rem', alignItems: 'center' }}>
                  <span className="material-symbols-outlined">{isDeploying ? 'sync' : 'rocket_launch'}</span> 
-                 {isDeploying ? 'Disparando Mensajes a la Nube...' : `Desplegar a ${audienceCount} Usuarios (+${(audienceCount * 0.05).toFixed(2)} USD coste API)`}
+                 {isDeploying ? 'Disparando Mensajes a la Nube...' : `Desplegar a ${audienceCount} Usuarios`}
                </button>
              </div>
            </form>
