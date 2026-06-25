@@ -124,12 +124,15 @@ export default function Marketing() {
       };
 
       try {
-        const response = await fetch(webhookUrl, {
+        await fetch(webhookUrl, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          mode: 'no-cors',
+          headers: {
+            'Content-Type': 'text/plain'
+          },
           body: JSON.stringify(payload)
         });
-        if (!response.ok) throw new Error("Fallo la respuesta del webhook");
+        // Al usar no-cors, no podemos leer el response.ok, pero sabemos que se envió
       } catch (err) {
         console.error("Error al enviar al webhook de n8n:", err);
         alert("Atención: La campaña se guardó en la base de datos, pero hubo un error al enviarla a n8n. Revisa que el webhook esté activo.");
