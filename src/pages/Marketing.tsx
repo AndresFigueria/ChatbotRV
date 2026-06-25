@@ -106,8 +106,8 @@ export default function Marketing() {
         });
       }, 200);
 
-      // 2. Disparar el Webhook hacia n8n (usando proxy CORS para evitar bloqueos del navegador local)
-      const webhookUrl = 'https://corsproxy.io/?https://n8n-whatsappa-central.robotina-ia.com/webhook/robotina-marketing-ia';
+      // 2. Disparar el Webhook hacia n8n directamente
+      const webhookUrl = 'https://n8n-whatsappa-central.robotina-ia.com/webhook/robotina-marketing-ia';
       
       const payload = {
         campaign_id: campaign.id,
