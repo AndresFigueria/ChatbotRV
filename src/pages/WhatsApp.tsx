@@ -9,6 +9,8 @@ interface Chat {
   last_message_at: string;
   unread_count: number;
   is_bot_active: boolean;
+  is_pinned?: boolean;
+  is_discarded?: boolean;
 }
 
 interface Message {
@@ -18,6 +20,8 @@ interface Message {
   message_body: string;
   created_at: string;
   status: string;
+  media_url?: string;
+  media_type?: string;
 }
 
 const renderFormattedMessage = (text: string) => {
@@ -37,24 +41,47 @@ export default function WhatsApp() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [replyText, setReplyText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [attachedMedia, setAttachedMedia] = useState<{ url: string, type: string, name: string } | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [searchParams, setSearchParams] = useSearchParams();
   const phoneToSelect = searchParams.get('phone');
   
   const [searchTerm, setSearchTerm] = useState('');
-  const [highlightedChats, setHighlightedChats] = useState<string[]>(() => {
-    const saved = localStorage.getItem('whatsapp_highlighted_chats');
-    return saved ? JSON.parse(saved) : [];
-  });
 
-  const toggleHighlight = (e: React.MouseEvent, chatId: string) => {
+  const toggleHighlight = async (e: React.MouseEvent, chatId: string, currentPinned: boolean) => {
     e.stopPropagation();
-    setHighlightedChats(prev => {
-      const isHighlighted = prev.includes(chatId);
-      const next = isHighlighted ? prev.filter(id => id !== chatId) : [...prev, chatId];
-      localStorage.setItem('whatsapp_highlighted_chats', JSON.stringify(next));
-      return next;
-    });
+    
+    // Optimistic update
+    setChats(prev => prev.map(c => c.id === chatId ? { ...c, is_pinned: !currentPinned } : c));
+    
+    // Update Supabase
+    const { error } = await supabase
+      .from('whatsapp_chats')
+      .update({ is_pinned: !currentPinned })
+      .eq('id', chatId);
+      
+    if (error) {
+      console.error('Error toggling pin:', error);
+      // Revert optimistic update
+      setChats(prev => prev.map(c => c.id === chatId ? { ...c, is_pinned: currentPinned } : c));
+    }
+  };
+
+  const toggleDiscard = async (e: React.MouseEvent, chatId: string, currentDiscarded: boolean) => {
+    e.stopPropagation();
+    
+    setChats(prev => prev.map(c => c.id === chatId ? { ...c, is_discarded: !currentDiscarded } : c));
+    
+    const { error } = await supabase
+      .from('whatsapp_chats')
+      .update({ is_discarded: !currentDiscarded })
+      .eq('id', chatId);
+      
+    if (error) {
+      console.error('Error toggling discard:', error);
+      setChats(prev => prev.map(c => c.id === chatId ? { ...c, is_discarded: currentDiscarded } : c));
+    }
   };
 
   const activeChat = chats.find(c => c.id === activeChatId);
@@ -72,7 +99,7 @@ export default function WhatsApp() {
   useEffect(() => {
     fetchChats();
     
-    // Suscripción de Realtime a nuevos chats
+    // SuscripciÃ³n de Realtime a nuevos chats
     const chatSubscription = supabase
       .channel('dashboard-whatsapp-chats-list')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'whatsapp_chats' }, () => {
@@ -90,7 +117,7 @@ export default function WhatsApp() {
       const targetChat = chats.find(c => c.phone_number.includes(phoneToSelect) || phoneToSelect.includes(c.phone_number));
       if (targetChat) {
         setActiveChatId(targetChat.id);
-        // Eliminar el parámetro de la URL después de seleccionar el chat
+        // Eliminar el parÃ¡metro de la URL despuÃ©s de seleccionar el chat
         setSearchParams({});
       }
     }
@@ -123,7 +150,7 @@ export default function WhatsApp() {
           setTimeout(() => {
             setMessages(prev => [...prev, payload.new as Message]);
             setIsTyping(false);
-          }, 800); // Pequeño delay para que se vea el "escribiendo"
+          }, 800); // PequeÃ±o delay para que se vea el "escribiendo"
           
           // Clear unread count immediately since the user is actively viewing this chat
           clearUnread();
@@ -142,6 +169,8 @@ export default function WhatsApp() {
     const { data, error } = await supabase
       .from('whatsapp_chats')
       .select('*')
+      .order('is_pinned', { ascending: false, nullsFirst: false })
+      .order('is_discarded', { ascending: true, nullsFirst: false })
       .order('last_message_at', { ascending: false });
     if (!error && data) setChats(data);
   };
@@ -155,19 +184,161 @@ export default function WhatsApp() {
     if (!error && data) setMessages(data);
   };
 
+  const handleMediaUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0 || !activeChatId) return;
+    const file = e.target.files[0];
+    
+    setIsUploading(true);
+    
+    const mimeType = (file.type || '').toLowerCase();
+    const fileName = file.name || '';
+    
+    const isVideo = mimeType.startsWith('video/') || 
+                    mimeType.includes('mp4') || 
+                    mimeType.includes('quicktime') || 
+                    /\.(mp4|mov|avi|mkv|webm|3gp)$/i.test(fileName);
+                    
+    const isImage = mimeType.startsWith('image/') || 
+                    mimeType.includes('png') || 
+                    mimeType.includes('jpeg') || 
+                    mimeType.includes('jpg') || 
+                    mimeType.includes('gif') || 
+                    mimeType.includes('webp') || 
+                    /\.(jpg|jpeg|png|gif|webp|bmp|svg)$/i.test(fileName);
+                    
+    const mediaType = isVideo ? 'video' : isImage ? 'image' : 'document';
+    
+    let fileExt = '';
+    if (fileName.includes('.')) {
+      fileExt = `.${fileName.split('.').pop()}`;
+    } else {
+      if (isVideo) {
+        fileExt = mimeType.includes('quicktime') || mimeType.includes('mov') ? '.mov' : '.mp4';
+      } else if (isImage) {
+        fileExt = mimeType.includes('png') ? '.png' : mimeType.includes('gif') ? '.gif' : mimeType.includes('webp') ? '.webp' : '.jpg';
+      } else {
+        fileExt = '.bin';
+      }
+    }
+    
+    const cleanName = fileName ? fileName.replace(/\.[^/.]+$/, "").replace(/[^a-zA-Z0-9_-]/g, '_') : 'file';
+    const filePath = `${activeChatId}/${Date.now()}_${cleanName}${fileExt}`;
+    
+    const { error } = await supabase.storage
+      .from('chat_media')
+      .upload(filePath, file, { cacheControl: '3600', upsert: true });
+      
+    if (error) {
+      console.error("Error al subir archivo:", error);
+      alert("Error al subir el archivo. Revisa los logs.");
+      setIsUploading(false);
+      return;
+    }
+    
+    const { data: { publicUrl } } = supabase.storage
+      .from('chat_media')
+      .getPublicUrl(filePath);
+      
+    setAttachedMedia({
+      url: publicUrl,
+      type: mediaType,
+      name: fileName || `Archivo (${mediaType})`
+    });
+    
+    setIsUploading(false);
+    // Limpiar input
+    e.target.value = '';
+  };
+
+  const handlePaste = async (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
+    const items = e.clipboardData.items;
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+      if (item.kind === 'file') {
+        const file = item.getAsFile();
+        if (file) {
+          const mimeType = (file.type || item.type || '').toLowerCase();
+          const fileName = file.name || '';
+          
+          const isVideo = mimeType.startsWith('video/') || 
+                          mimeType.includes('mp4') || 
+                          mimeType.includes('quicktime') || 
+                          /\.(mp4|mov|avi|mkv|webm|3gp)$/i.test(fileName);
+                          
+          const isImage = mimeType.startsWith('image/') || 
+                          mimeType.includes('png') || 
+                          mimeType.includes('jpeg') || 
+                          mimeType.includes('jpg') || 
+                          mimeType.includes('gif') || 
+                          mimeType.includes('webp') || 
+                          /\.(jpg|jpeg|png|gif|webp|bmp|svg)$/i.test(fileName);
+          
+          if (isVideo || isImage) {
+            e.preventDefault(); // Evitar que pegue texto raro
+            setIsUploading(true);
+            const mediaType = isVideo ? 'video' : 'image';
+            
+            let fileExt = '';
+            if (fileName.includes('.')) {
+              fileExt = `.${fileName.split('.').pop()}`;
+            } else {
+              if (isVideo) {
+                fileExt = mimeType.includes('quicktime') || mimeType.includes('mov') ? '.mov' : '.mp4';
+              } else if (isImage) {
+                fileExt = mimeType.includes('png') ? '.png' : mimeType.includes('gif') ? '.gif' : mimeType.includes('webp') ? '.webp' : '.jpg';
+              } else {
+                fileExt = '.bin';
+              }
+            }
+            
+            const cleanName = fileName ? fileName.replace(/\.[^/.]+$/, "").replace(/[^a-zA-Z0-9_-]/g, '_') : 'clipboard';
+            const filePath = `${activeChatId}/${Date.now()}_${cleanName}${fileExt}`;
+            
+            const { error } = await supabase.storage
+              .from('chat_media')
+              .upload(filePath, file, { cacheControl: '3600', upsert: true });
+              
+            if (error) {
+              console.error("Error al subir archivo pegado:", error);
+              alert("Error al subir el archivo pegado.");
+              setIsUploading(false);
+              return;
+            }
+            
+            const { data: { publicUrl } } = supabase.storage
+              .from('chat_media')
+              .getPublicUrl(filePath);
+              
+            setAttachedMedia({
+              url: publicUrl,
+              type: mediaType,
+              name: fileName || `Archivo pegado (${mediaType})`
+            });
+            setIsUploading(false);
+          }
+        }
+      }
+    }
+  };
+
   const handleSendMessage = async () => {
-    if (!replyText.trim() || !activeChatId) return;
+    if ((!replyText.trim() && !attachedMedia) || !activeChatId) return;
     
     // Inyectamos a Supabase como mensaje de salida. 
-    // NOTA: Para producción real, aquí también haríamos fetch a nuestro backend para que 
-    // le diga a Meta Graph API que envíe el mensaje al teléfono físico del cliente.
-    const outboundText = replyText;
+    // NOTA: Para producciÃ³n real, aquÃ­ tambiÃ©n harÃ­amos fetch a nuestro backend para que 
+    // le diga a Meta Graph API que envÃ­e el mensaje al telÃ©fono fÃ­sico del cliente.
+    const outboundText = replyText.trim();
+    const currentMedia = attachedMedia;
+    
     setReplyText('');
+    setAttachedMedia(null);
 
     await supabase.from('whatsapp_messages').insert([{
       chat_id: activeChatId,
       direction: 'outbound',
       message_body: outboundText,
+      media_url: currentMedia?.url || null,
+      media_type: currentMedia?.type || null,
       status: 'sent'
     }]);
   };
@@ -227,7 +398,8 @@ export default function WhatsApp() {
             {filteredChats.length === 0 ? (
               <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-secondary)' }}>No hay chats</div>
             ) : filteredChats.map(chat => {
-              const isHighlighted = highlightedChats.includes(chat.id);
+              const isHighlighted = chat.is_pinned;
+              const isDiscarded = chat.is_discarded;
               return (
               <div 
                 key={chat.id} 
@@ -236,33 +408,55 @@ export default function WhatsApp() {
                   padding: '1rem', 
                   borderBottom: '1px solid var(--surface-container-highest)', 
                   cursor: 'pointer',
-                  backgroundColor: activeChatId === chat.id ? 'rgba(74, 158, 255, 0.1)' : isHighlighted ? 'rgba(245, 158, 11, 0.1)' : 'transparent',
-                  borderLeft: activeChatId === chat.id ? '3px solid var(--primary-color)' : isHighlighted ? '3px solid #f59e0b' : '3px solid transparent',
+                  backgroundColor: activeChatId === chat.id ? 'rgba(74, 158, 255, 0.1)' : isDiscarded ? 'rgba(239, 68, 68, 0.05)' : isHighlighted ? 'rgba(245, 158, 11, 0.1)' : 'transparent',
+                  borderLeft: activeChatId === chat.id ? '3px solid var(--primary-color)' : isDiscarded ? '3px solid #ef4444' : isHighlighted ? '3px solid #f59e0b' : '3px solid transparent',
                   transition: 'all 0.2s ease',
-                  position: 'relative'
+                  position: 'relative',
+                  opacity: isDiscarded ? 0.7 : 1
+
                 }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px', alignItems: 'center' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <button 
-                      onClick={(e) => toggleHighlight(e, chat.id)}
-                      style={{
-                        background: 'none',
-                        border: 'none',
-                        cursor: 'pointer',
-                        color: isHighlighted ? '#f59e0b' : '#64748b',
-                        padding: 0,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        transition: 'all 0.2s',
-                        outline: 'none'
-                      }}
-                      title={isHighlighted ? "Quitar resaltado" : "Resaltar chat"}
-                    >
-                      <span className="material-symbols-outlined" style={{ fontSize: '18px', fontVariationSettings: isHighlighted ? "'FILL' 1" : "'FILL' 0" }}>star</span>
-                    </button>
-                    <div style={{ fontWeight: chat.unread_count > 0 ? 800 : 600, color: 'var(--text-primary)' }}>{chat.contact_name}</div>
+                    <div style={{ display: 'flex', gap: '2px' }}>
+                      <button 
+                        onClick={(e) => toggleHighlight(e, chat.id, !!chat.is_pinned)}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          cursor: 'pointer',
+                          color: isHighlighted ? '#f59e0b' : '#64748b',
+                          padding: '2px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          transition: 'all 0.2s',
+                          outline: 'none'
+                        }}
+                        title={isHighlighted ? "Quitar resaltado" : "Resaltar chat importante"}
+                      >
+                        <span className="material-symbols-outlined" style={{ fontSize: '18px', fontVariationSettings: isHighlighted ? "'FILL' 1" : "'FILL' 0" }}>star</span>
+                      </button>
+                      <button 
+                        onClick={(e) => toggleDiscard(e, chat.id, !!chat.is_discarded)}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          cursor: 'pointer',
+                          color: isDiscarded ? '#ef4444' : '#94a3b8',
+                          padding: '2px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          transition: 'all 0.2s',
+                          outline: 'none'
+                        }}
+                        title={isDiscarded ? "Restaurar cliente" : "Marcar como lead basura"}
+                      >
+                        <span className="material-symbols-outlined" style={{ fontSize: '18px', fontVariationSettings: isDiscarded ? "'FILL' 1" : "'FILL' 0" }}>thumb_down</span>
+                      </button>
+                    </div>
+                    <div style={{ fontWeight: chat.unread_count > 0 ? 800 : 600, color: 'var(--text-primary)', textDecoration: isDiscarded ? 'line-through' : 'none' }}>{chat.contact_name}</div>
                   </div>
                   <div style={{ fontSize: '0.75rem', color: chat.unread_count > 0 ? 'var(--primary)' : 'var(--text-secondary)' }}>
                     {new Date(chat.last_message_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
@@ -328,6 +522,41 @@ export default function WhatsApp() {
                  </button>
               </div>
               
+              {/* Banner de Modo Humano */}
+              {isHumanControlled && (
+                <div style={{
+                  padding: '8px 16px',
+                  backgroundColor: 'rgba(245, 158, 11, 0.12)',
+                  borderBottom: '2px solid rgba(245, 158, 11, 0.35)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px',
+                  fontSize: '0.82rem',
+                  color: '#f59e0b',
+                  fontWeight: 600
+                }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>support_agent</span>
+                  <span>Modo Humano activo — Robotina está silenciada. Tus mensajes llegan directamente al cliente.</span>
+                  <button
+                    onClick={toggleHumanMode}
+                    style={{
+                      marginLeft: 'auto',
+                      background: 'rgba(245,158,11,0.15)',
+                      border: '1px solid rgba(245,158,11,0.4)',
+                      borderRadius: '6px',
+                      padding: '3px 10px',
+                      color: '#f59e0b',
+                      cursor: 'pointer',
+                      fontSize: '0.78rem',
+                      fontWeight: 700,
+                      whiteSpace: 'nowrap'
+                    }}
+                  >
+                    🤖 Reactivar Bot
+                  </button>
+                </div>
+              )}
+
               {/* Burbujas de mensajes */}
               <div id="messages-container" style={{ flex: 1, overflowY: 'auto', padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '12px', minHeight: 0 }}>
                 {messages.length === 0 ? (
@@ -351,7 +580,13 @@ export default function WhatsApp() {
                           lineHeight: 1.5,
                           fontSize: '0.95rem'
                       }}>
-                        <div style={{wordBreak: 'break-word', whiteSpace: 'pre-wrap'}}>{renderFormattedMessage(msg.message_body)}</div>
+                        {msg.media_type === 'video' && msg.media_url && (
+                          <video src={msg.media_url} controls style={{ maxWidth: '100%', borderRadius: '8px', marginBottom: '8px', display: 'block', maxHeight: '280px', backgroundColor: '#000' }} />
+                        )}
+                        {msg.media_type === 'image' && msg.media_url && (
+                          <img src={msg.media_url} alt="Media" style={{ maxWidth: '100%', borderRadius: '8px', marginBottom: '8px', display: 'block', maxHeight: '280px', objectFit: 'cover' }} />
+                        )}
+                        {msg.message_body && <div style={{wordBreak: 'break-word', whiteSpace: 'pre-wrap'}}>{renderFormattedMessage(msg.message_body)}</div>}
                         <div style={{fontSize: '0.65rem', textAlign: 'right', marginTop: '6px', opacity: 0.6, letterSpacing: '0.5px', color: '#ffffff'}}>
                           {new Date(msg.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
                           {!isInbound && <span className="material-symbols-outlined" style={{fontSize: '12px', verticalAlign: 'middle', marginLeft: '4px'}}>done_all</span>}
@@ -372,8 +607,25 @@ export default function WhatsApp() {
               </div>
               
               {/* Input para responder */}
-              <div style={{ padding: '1rem', backgroundColor: 'var(--surface-container)', borderTop: '1px solid var(--card-border)' }}>
+              <div style={{ padding: '1rem', backgroundColor: 'var(--surface-container)', borderTop: '1px solid var(--card-border)', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {attachedMedia && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', backgroundColor: 'var(--surface-container-highest)', borderRadius: '8px', width: 'fit-content' }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: '1.2rem', color: 'var(--primary)' }}>{attachedMedia.type === 'video' ? 'movie' : 'image'}</span>
+                    <span style={{ fontSize: '0.8rem', color: 'var(--text-primary)', maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{attachedMedia.name}</span>
+                    <button onClick={() => setAttachedMedia(null)} style={{ background: 'none', border: 'none', padding: 0, color: 'var(--error)', cursor: 'pointer', display: 'flex' }}><span className="material-symbols-outlined" style={{ fontSize: '1rem' }}>close</span></button>
+                  </div>
+                )}
+                {isUploading && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', color: 'var(--text-secondary)', fontSize: '0.8rem' }}>
+                    <div style={{ width: '16px', height: '16px', border: '2px solid var(--text-secondary)', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
+                    Subiendo archivo...
+                  </div>
+                )}
                 <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                  <label htmlFor="media-upload" style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', height: '44px', width: '44px', borderRadius: '50%', backgroundColor: 'var(--surface-container-highest)', color: 'var(--text-secondary)', transition: 'background-color 0.2s', border: '1px solid var(--outline-variant)' }} title="Adjuntar archivo multimedia">
+                    <span className="material-symbols-outlined" style={{ fontSize: '1.3rem' }}>attach_file</span>
+                    <input id="media-upload" type="file" accept="video/*,image/*" style={{ display: 'none' }} onChange={handleMediaUpload} disabled={isUploading} />
+                  </label>
                   <div className="chat-input-container" style={{display: 'flex', flex: 1, backgroundColor: 'var(--surface-container-low)', borderRadius: '8px', border: '2px solid var(--outline)'}}>
                       <textarea 
                         placeholder="Escribe un mensaje al cliente..."
@@ -387,6 +639,7 @@ export default function WhatsApp() {
                             handleSendMessage();
                           }
                         }}
+                        onPaste={handlePaste}
                       />
                   </div>
                   <button className="btn-primary" onClick={handleSendMessage} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '44px', width: '44px', borderRadius: '50%', padding: 0 }}>
@@ -411,3 +664,4 @@ export default function WhatsApp() {
     </div>
   );
 }
+

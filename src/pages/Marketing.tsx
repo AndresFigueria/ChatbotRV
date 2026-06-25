@@ -2,10 +2,21 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
 
 export default function Marketing() {
-  const [audience, setAudience] = useState('Todos');
-  const [message, setMessage] = useState('¡Hola [Nombre]! 🌟 Sabemos que te interesa nuestro servicio de [Item_Favorito], por eso te regalamos un bono especial en tu próxima visita usando el código: REGRESA20.\n\n¿Deseas agendar ahora mismo? Escribe "QUIERO EL BONO" y yo me encargo de todo. ✨');
-  const [imgUrl, setImgUrl] = useState('');
-  const [campaignName, setCampaignName] = useState('Recuperación de Clientes Febrero');
+  const [audience, setAudience] = useState(() => localStorage.getItem('mkt_audience') || 'Todos');
+  const [message, setMessage] = useState(() => localStorage.getItem('mkt_message') || '¡Hola [Nombre]! 🌟 Sabemos que te interesa nuestro servicio de [Item_Favorito], por eso te regalamos un bono especial en tu próxima visita usando el código: REGRESA20.\n\n¿Deseas agendar ahora mismo? Escribe "QUIERO EL BONO" y yo me encargo de todo. ✨');
+  const [imgUrl, setImgUrl] = useState(() => localStorage.getItem('mkt_imgUrl') || '');
+  const [campaignName, setCampaignName] = useState(() => localStorage.getItem('mkt_campaignName') || 'Recuperación de Clientes Febrero');
+
+  useEffect(() => {
+    localStorage.setItem('mkt_audience', audience);
+    localStorage.setItem('mkt_message', message);
+    localStorage.setItem('mkt_campaignName', campaignName);
+    try {
+      localStorage.setItem('mkt_imgUrl', imgUrl);
+    } catch (e) {
+      console.warn('La imagen excede el límite de memoria local del navegador.');
+    }
+  }, [audience, message, campaignName, imgUrl]);
   
   const [customers, setCustomers] = useState<any[]>([]);
   const [isDeploying, setIsDeploying] = useState(false);
@@ -95,8 +106,8 @@ export default function Marketing() {
         });
       }, 200);
 
-      // 2. Disparar el Webhook hacia n8n o Meta API
-      const webhookUrl = 'https://hook.us1.make.com/placeholder-marketing-webhook'; // Reemplazar con URL real
+      // 2. Disparar el Webhook hacia n8n
+      const webhookUrl = 'https://n8n-whatsapp-central.robotina-ia.com/webhook/robotina-marketing-ia';
       
       const payload = {
         campaign_id: campaign.id,
@@ -113,14 +124,15 @@ export default function Marketing() {
       };
 
       try {
-        await fetch(webhookUrl, {
+        const response = await fetch(webhookUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
         });
+        if (!response.ok) throw new Error("Fallo la respuesta del webhook");
       } catch (err) {
-        console.warn("Webhook no disponible, pero la campaña se registró.", err);
-        // We catch and ignore fetch error since it's a placeholder URL for now.
+        console.error("Error al enviar al webhook de n8n:", err);
+        alert("Atención: La campaña se guardó en la base de datos, pero hubo un error al enviarla a n8n. Revisa que el webhook esté activo.");
       }
 
       clearInterval(interval);

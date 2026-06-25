@@ -11,6 +11,8 @@ export default function Catalog() {
   const [loading, setLoading] = useState(true);
   const [tenantId, setTenantId] = useState<string | null>(null);
   const [currencySymbol, setCurrencySymbol] = useState('$');
+  const [togglingAllOff, setTogglingAllOff] = useState(false);
+  const [showConfirmOff, setShowConfirmOff] = useState(false);
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -120,6 +122,27 @@ export default function Catalog() {
 
   const topProduct = menuItems.length > 0 ? [...menuItems].sort((a,b) => b.sales30d - a.sales30d)[0] : null;
 
+  const handleTurnOffAll = () => {
+    setShowConfirmOff(true);
+  };
+
+  const confirmTurnOffAll = async () => {
+    setTogglingAllOff(true);
+    // Turn off all items that aren't already off
+    const { error } = await supabase.from('menu_items')
+      .update({ is_available: false, stock_status: 'Agotado' })
+      .eq('is_available', true);
+    
+    if (!error) {
+      fetchMenu();
+    } else {
+      console.error('Error turning off items:', error.message);
+      alert('Error al apagar los productos: ' + error.message);
+    }
+    setTogglingAllOff(false);
+    setShowConfirmOff(false);
+  };
+
   const handleToggle = async (id: string, currentAvailable: boolean) => {
     const { error } = await supabase.from('menu_items').update({ 
       is_available: !currentAvailable,
@@ -226,7 +249,32 @@ export default function Catalog() {
           <h2 className="page-title">Inventario & Inteligencia Comercial</h2>
           <p className="body-md" style={{ color: 'var(--secondary)' }}>Gestión de productos, márgenes de ganancia y reglas de upsell IA.</p>
         </div>
-        <div className="flex gap-3">
+        <div className="flex gap-3 items-center">
+
+          {/* Botón Disimulado: Apagar Todo */}
+          <button 
+            onClick={handleTurnOffAll}
+            disabled={togglingAllOff}
+            title="Apagar todos los productos y servicios"
+            style={{
+              background: 'transparent',
+              border: 'none',
+              color: 'var(--secondary)',
+              cursor: togglingAllOff ? 'wait' : 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '0.5rem',
+              opacity: 0.6,
+              transition: 'opacity 0.2s'
+            }}
+            onMouseEnter={e => e.currentTarget.style.opacity = '1'}
+            onMouseLeave={e => e.currentTarget.style.opacity = '0.6'}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: '1.2rem' }}>
+              {togglingAllOff ? 'hourglass_empty' : 'power_off'}
+            </span>
+          </button>
 
           <button onClick={openNewItem} className="btn-primary" style={{ height: '44px', padding: '0 1.5rem', borderRadius: '8px', boxShadow: '0 4px 14px rgba(255, 90, 31, 0.2)' }}>
              + Nuevo Item
@@ -568,6 +616,34 @@ export default function Catalog() {
                   })}
                </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* MODAL DE CONFIRMACIÓN: APAGAR TODO */}
+      {showConfirmOff && (
+        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.65)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(6px)', padding: '1.5rem' }}>
+          <div className="card" style={{ width: '100%', maxWidth: '440px', backgroundColor: 'var(--surface-bright)', borderRadius: '20px', padding: '2rem', textAlign: 'center', animation: 'fadeIn 0.2s cubic-bezier(0.4,0,0.2,1)' }}>
+            <div style={{ width: '56px', height: '56px', borderRadius: '50%', backgroundColor: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.25rem' }}>
+              <span className="material-symbols-outlined" style={{ fontSize: '32px' }}>warning</span>
+            </div>
+            <h3 style={{ fontWeight: 900, fontSize: '1.25rem', marginBottom: '0.75rem', color: 'var(--on-surface)' }}>¿Apagar Catálogo Entero?</h3>
+            <p style={{ color: 'var(--secondary)', fontSize: '0.9rem', marginBottom: '2rem', lineHeight: 1.5 }}>
+              Estás a punto de apagar <strong>todos los productos y servicios</strong>. La IA dejará de ofrecerlos hasta que los vuelvas a encender manualmente.
+            </p>
+            <div className="flex gap-3">
+              <button onClick={() => setShowConfirmOff(false)} className="btn-secondary" style={{ flex: 1, height: '44px' }}>
+                Cancelar
+              </button>
+              <button 
+                onClick={confirmTurnOffAll} 
+                disabled={togglingAllOff}
+                className="btn-primary" 
+                style={{ flex: 1, height: '44px', backgroundColor: '#ef4444', boxShadow: '0 4px 14px rgba(239, 68, 68, 0.25)' }}
+              >
+                {togglingAllOff ? 'Apagando...' : 'Sí, Apagar Todo'}
+              </button>
+            </div>
           </div>
         </div>
       )}
