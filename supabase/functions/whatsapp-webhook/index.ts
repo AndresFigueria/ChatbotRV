@@ -26,8 +26,92 @@ serve(async (req) => {
     if (body.entry?.[0]?.changes?.[0]?.value?.messages?.[0]) {
       const msg = body.entry[0].changes[0].value.messages[0]
       const from = msg.from
-      const messageBody = msg.text?.body || "Mensaje multimedia"
       const customerName = body.entry[0].changes[0].value.contacts?.[0]?.profile?.name || "Cliente WhatsApp"
+      const incomingPhoneNumberId = body.entry[0].changes[0].value.metadata?.phone_number_id || "1091076967420278";
+      
+      // Obtener token de Meta
+      const { data: tenantInfo } = await supabase
+        .from('tenants')
+        .select('whatsapp_token')
+        .eq('phone_number_id', incomingPhoneNumberId)
+        .single();
+
+      const metaToken = tenantInfo?.whatsapp_token || Deno.env.get("META_API_TOKEN") || "";
+
+      let messageBody = msg.text?.body || "";
+      let mediaUrl = null;
+      let mediaType = null;
+
+      // Procesamiento de multimedia (video o imagen)
+      if (msg.type === 'video' && msg.video?.id) {
+        mediaType = 'video';
+        messageBody = msg.video.caption || "Video";
+        try {
+          const getMediaResponse = await fetch(`https://graph.facebook.com/v25.0/${msg.video.id}`, {
+            headers: { "Authorization": `Bearer ${metaToken}` }
+          });
+          const mediaMetadata = await getMediaResponse.json();
+          if (mediaMetadata.url) {
+            const downloadResponse = await fetch(mediaMetadata.url, {
+              headers: { "Authorization": `Bearer ${metaToken}` }
+            });
+            const fileBlob = await downloadResponse.blob();
+            const filePath = `${msg.video.id}.mp4`;
+            
+            const { error: uploadError } = await supabase.storage
+              .from('chat_media')
+              .upload(filePath, fileBlob, {
+                contentType: mediaMetadata.mime_type || 'video/mp4',
+                upsert: true
+              });
+              
+            if (!uploadError) {
+              const { data: { publicUrl } } = supabase.storage
+                .from('chat_media')
+                .getPublicUrl(filePath);
+              mediaUrl = publicUrl;
+            } else {
+              console.error("Storage upload error:", uploadError);
+            }
+          }
+        } catch (mediaErr) {
+          console.error("Error downloading video from Meta:", mediaErr);
+        }
+      } else if (msg.type === 'image' && msg.image?.id) {
+        mediaType = 'image';
+        messageBody = msg.image.caption || "Imagen";
+        try {
+          const getMediaResponse = await fetch(`https://graph.facebook.com/v25.0/${msg.image.id}`, {
+            headers: { "Authorization": `Bearer ${metaToken}` }
+          });
+          const mediaMetadata = await getMediaResponse.json();
+          if (mediaMetadata.url) {
+            const downloadResponse = await fetch(mediaMetadata.url, {
+              headers: { "Authorization": `Bearer ${metaToken}` }
+            });
+            const fileBlob = await downloadResponse.blob();
+            const filePath = `${msg.image.id}.jpg`;
+            
+            const { error: uploadError } = await supabase.storage
+              .from('chat_media')
+              .upload(filePath, fileBlob, {
+                contentType: mediaMetadata.mime_type || 'image/jpeg',
+                upsert: true
+              });
+              
+            if (!uploadError) {
+              const { data: { publicUrl } } = supabase.storage
+                .from('chat_media')
+                .getPublicUrl(filePath);
+              mediaUrl = publicUrl;
+            }
+          }
+        } catch (mediaErr) {
+          console.error("Error downloading image from Meta:", mediaErr);
+        }
+      } else if (!messageBody) {
+        messageBody = "Mensaje multimedia";
+      }
 
       // 1. Upsert del Cliente
       const { data: customer, error: custError } = await supabase
@@ -56,50 +140,82 @@ serve(async (req) => {
       await supabase.from('whatsapp_messages').insert({
         chat_id: chat.id,
         direction: 'inbound',
-        message_body: messageBody
+        message_body: messageBody,
+        media_url: mediaUrl,
+        media_type: mediaType
       })
 
-      // --- LOGICA DE DETECCION DE PEDIDO ---
-      const triggerWords = ["pedido", "quiero", "ordenar", "hamburguesa", "pizza", "menú", "cuenta"];
-      const isOrderIntent = triggerWords.some(word => messageBody.toLowerCase().includes(word));
+      // Si el bot ya está inactivo (modo humano), salir de inmediato y no responder
+      if (chat.is_bot_active === false) {
+        console.log(`Human mode is active for chat ${chat.id}. Skipping auto-response.`);
+        return new Response("OK", { status: 200 });
+      }
 
-      let botReply = `¡Hola ${customerName}! Soy Robotina Central. ¿En qué puedo ayudarte hoy?`
+      // -------------------------------------------------------
+      // FLUJO DE EMERGENCIA - REENCUENTRO VENEZUELA
+      // Etapas basadas en cuántos mensajes SALIENTES ha enviado el bot:
+      //   0 → Menú principal
+      //   1 → Petición de datos o handoff humano
+      //   2+ → Recepción de datos separados por comas
+      // -------------------------------------------------------
+      const msg_lower = messageBody.toLowerCase().trim();
 
-      if (isOrderIntent) {
-        // Simular creación de pedido real en la DB
-        const orderCode = "#WA-" + Math.floor(1000 + Math.random() * 9000);
-        const { error: orderErr } = await supabase.from('orders').insert({
-          order_code: orderCode,
-          customer_id: customer.id,
-          items_count: Math.floor(Math.random() * 3) + 1,
-          total_amount: (Math.random() * 25 + 10).toFixed(2),
-          status: 'Pendiente'
-        });
+      // Contar mensajes SALIENTES del bot en este chat
+      const { count: outboundCount } = await supabase
+        .from('whatsapp_messages')
+        .select('*', { count: 'exact', head: true })
+        .eq('chat_id', chat.id)
+        .eq('direction', 'outbound');
 
-        if (!orderErr) {
-          botReply = `¡Excelente elección! He registrado tu pedido ${orderCode}. Ya lo puedes ver en nuestro monitor. ¿Algo más?`
+      const botStep = outboundCount ?? 0;
+
+      let botReply = "";
+      let triggerHumanMode = false;
+
+      // ── Etapa 0: Primer contacto (Menú Principal) ──
+      if (botStep === 0) {
+        botReply = `Hola. Soy Reencuentro Venezuela 🇻🇪\n\nPuedo ayudarte con:\n\n1️⃣ Estoy bien\n2️⃣ Busco a alguien\n3️⃣ Encontré a alguien\n4️⃣ Información y ayuda\n5️⃣ Hablar con un voluntario\n\nResponde con el número correspondiente.`;
+
+      // ── Etapa 1: Selección del menú ──
+      } else if (botStep === 1) {
+        if (msg_lower === "1" || msg_lower === "2" || msg_lower === "3") {
+          botReply = `Por favor, responde en un solo mensaje con los siguientes datos separados por comas:\n\nNombre completo, Edad, Sexo, Ciudad/Ubicación, Fecha del último contacto.\n\n(Ejemplo: Juan Pérez, 45, Masculino, Caracas, 24 de junio)`;
+        } else if (msg_lower === "4" || msg_lower === "5") {
+          botReply = `Entendido. Un voluntario de nuestro equipo se contactará contigo por esta misma vía lo antes posible. Fuerza y esperanza. 🇻🇪`;
+          triggerHumanMode = true;
+        } else {
+          botReply = `Por favor, responde solo con el número:\n\n1️⃣ Estoy bien\n2️⃣ Busco a alguien\n3️⃣ Encontré a alguien\n4️⃣ Información y ayuda\n5️⃣ Hablar con un voluntario`;
+        }
+
+      // ── Etapa 2+: Recepción de datos ──
+      } else {
+        if (messageBody.includes(',')) {
+          botReply = `Datos registrados correctamente. Si hay alguna coincidencia, un voluntario te contactará por esta misma vía. Fuerza y esperanza. 🇻🇪`;
+          triggerHumanMode = true;
+        } else {
+          botReply = `Para registrar la información correctamente, por favor asegúrate de separar los datos con comas ( , ). \n\nEjemplo: Nombre completo, Edad, Sexo, Ciudad/Ubicación, Fecha del último contacto.`;
         }
       }
 
-      // 4. Enviar respuesta por Meta API (Extrayendo el Token Permanente de la DB)
-      const incomingPhoneNumberId = body.entry[0].changes[0].value.metadata?.phone_number_id || "1091076967420278";
-      
-      const { data: tenantInfo } = await supabase
-        .from('tenants')
-        .select('whatsapp_token')
-        .eq('phone_number_id', incomingPhoneNumberId)
-        .single();
+      // Aplicar handoff humano si fue solicitado
+      if (triggerHumanMode) {
+        await supabase
+          .from('whatsapp_chats')
+          .update({ is_bot_active: false })
+          .eq('id', chat.id);
+      }
 
-      const metaToken = tenantInfo?.whatsapp_token || Deno.env.get("META_API_TOKEN") || "";
+      // Construir payload de Meta
+      const metaPayload = {
+        messaging_product: "whatsapp",
+        to: from,
+        text: { body: botReply }
+      };
 
       const metaResponse = await fetch(`https://graph.facebook.com/v25.0/${incomingPhoneNumberId}/messages`, {
         method: "POST",
         headers: { "Authorization": `Bearer ${metaToken}`, "Content-Type": "application/json" },
-        body: JSON.stringify({
-          messaging_product: "whatsapp",
-          to: from,
-          text: { body: botReply }
-        })
+        body: JSON.stringify(metaPayload)
       })
 
       const metaData = await metaResponse.json()
@@ -109,7 +225,9 @@ serve(async (req) => {
       await supabase.from('whatsapp_messages').insert({
         chat_id: chat.id,
         direction: 'outbound',
-        message_body: botReply
+        message_body: botReply,
+        media_url: null,
+        media_type: null
       })
     }
 

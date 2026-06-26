@@ -8,6 +8,7 @@ import Orders from './pages/Orders';
 import Customers from './pages/Customers';
 import Marketing from './pages/Marketing';
 import Catalog from './pages/Catalog';
+import Matches from './pages/Matches';
 
 import Analytics from './pages/Analytics';
 import History from './pages/History';
@@ -29,21 +30,12 @@ import Agendar from './pages/Agendar';
 let globalAudioCtx: AudioContext | null = null;
 
 function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(() => {
-    const saved = localStorage.getItem('isAuthenticated');
-    return saved === 'true';
-  });
+  const [isAuthenticated, setIsAuthenticated] = useState(true);
 
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
-    if (isAuthenticated) {
-      supabase.auth.refreshSession().finally(() => {
-        setIsReady(true);
-      });
-    } else {
-      setIsReady(true);
-    }
+    setIsReady(true);
   }, [isAuthenticated]);
 
   useEffect(() => {
@@ -161,6 +153,7 @@ function App() {
             <Route path="/settings" element={<Settings />} />
             <Route path="/bot-status" element={<BotStatus />} />
             <Route path="/whatsapp" element={<WhatsApp />} />
+            <Route path="/matches" element={<Matches />} />
             <Route path="/notifications" element={<Notifications />} />
           </Routes>
         </div>

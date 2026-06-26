@@ -7,21 +7,8 @@ const navGroups = [
     group: 'Operaciones',
     items: [
       { path: '/', label: 'Monitor Principal', icon: 'grid_view' },
-      { path: '/whatsapp', label: 'Canal WhatsApp', icon: 'forum' },
-      { path: '/catalog', label: 'Productos y Servicios', icon: 'inventory_2' },
-      { path: '/orders', label: 'Gestión de Ventas', icon: 'shopping_bag' },
-      { path: '/bookings', label: 'Agenda de Citas', icon: 'calendar_month' },
-
-      { path: '/customers', label: 'Base de Clientes', icon: 'group' },
-      { path: '/notifications', label: 'Centro de Alertas', icon: 'notifications' },
-      { path: '/analytics', label: 'Estadísticas IA', icon: 'psychology' },
-      { path: '/history', label: 'Historial de Auditoría', icon: 'history' },
-    ]
-  },
-  {
-    group: 'Automatización',
-    items: [
-      { path: '/marketing', label: 'Campañas IA', icon: 'campaign' },
+      { path: '/whatsapp', label: 'Bandeja de Voluntarios', icon: 'forum' },
+      { path: '/matches', label: 'Coincidencias (Matches)', icon: 'group' },
     ]
   },
   {

@@ -4,7 +4,7 @@ import { supabase } from '../supabaseClient';
 
 interface Chat {
   id: string;
-  phone_number: string;
+  phone: string;
   contact_name: string;
   last_message_at: string;
   unread_count: number;
@@ -114,7 +114,7 @@ export default function WhatsApp() {
 
   useEffect(() => {
     if (phoneToSelect && chats.length > 0 && !activeChatId) {
-      const targetChat = chats.find(c => c.phone_number.includes(phoneToSelect) || phoneToSelect.includes(c.phone_number));
+      const targetChat = chats.find(c => c.phone?.includes(phoneToSelect) || phoneToSelect.includes(c.phone || ''));
       if (targetChat) {
         setActiveChatId(targetChat.id);
         // Eliminar el parÃ¡metro de la URL despuÃ©s de seleccionar el chat
@@ -362,7 +362,7 @@ export default function WhatsApp() {
   const cleanSearchTerm = searchTerm.replace(/\D/g, '');
   const filteredChats = chats.filter(c => {
     const matchesName = c.contact_name?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesPhone = c.phone_number?.includes(searchTerm) || (cleanSearchTerm.length > 0 && c.phone_number?.includes(cleanSearchTerm));
+    const matchesPhone = c.phone?.includes(searchTerm) || (cleanSearchTerm.length > 0 && c.phone?.includes(cleanSearchTerm));
     return matchesName || matchesPhone;
   });
 
@@ -463,7 +463,7 @@ export default function WhatsApp() {
                   </div>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div style={{ fontSize: '0.8rem', color: chat.unread_count > 0 ? 'var(--text-primary)' : 'var(--text-secondary)', fontWeight: chat.unread_count > 0 ? 600 : 400 }}>+{chat.phone_number}</div>
+                  <div style={{ fontSize: '0.8rem', color: chat.unread_count > 0 ? 'var(--text-primary)' : 'var(--text-secondary)', fontWeight: chat.unread_count > 0 ? 600 : 400 }}>+{chat.phone}</div>
                   <div style={{display: 'flex', gap: '6px', alignItems: 'center'}}>
                     {chat.unread_count > 0 && (
                       <span style={{ backgroundColor: 'var(--primary)', color: '#fff', fontSize: '0.65rem', fontWeight: 800, padding: '2px 8px', borderRadius: '12px' }}>

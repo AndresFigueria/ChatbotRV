@@ -1,0 +1,349 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "26dcef3e-d45e-45c8-9f37-c6886a108412",
+        "options": {
+          "rawBody": true
+        }
+      },
+      "id": "a3abcf69-2302-40fa-8083-c11bf78518d2",
+      "name": "WhatsApp Webhook POST",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [-5440, 1248],
+      "webhookId": "26dcef3e-d45e-45c8-9f37-c6886a108412"
+    },
+    {
+      "parameters": {
+        "jsCode": "const webhookData = $('WhatsApp Webhook POST').item.json;\nconst body = webhookData.body || webhookData;\n\nconst value = body?.entry?.[0]?.changes?.[0]?.value || {};\nconst message = value?.messages?.[0] || null;\nconst contact = value?.contacts?.[0] || {};\nconst status = value?.statuses?.[0] || null;\n\nif (status && !message) {\n  return [{ json: { is_valid_message: false, event_type: 'status', reason: 'WhatsApp status event ignored' } }];\n}\n\nif (!message) {\n  return [{ json: { is_valid_message: false, event_type: 'unknown', reason: 'No message object found' } }];\n}\n\nfunction getPhoneNumber(msg) {\n  if (msg?.from) return msg.from;\n  if (msg?.from_user_id && msg.from_user_id.startsWith('51')) return msg.from_user_id;\n  const wamid = msg?.id;\n  if (wamid && wamid.startsWith('wamid.')) {\n    try {\n      const part = wamid.split('.')[1];\n      const buf = Buffer.from(part, 'base64');\n      const len = buf[2];\n      if (len > 5 && len < 20) {\n        const extracted = buf.toString('utf8', 3, 3 + len);\n        if (/^\\d+$/.test(extracted)) return extracted;\n      }\n    } catch (e) {}\n  }\n  return null;\n}\n\nconst fromPhone = getPhoneNumber(message);\nconst type = message.type;\nlet text = '';\nlet media_id = null;\n\nif (type === 'text') text = message?.text?.body || '';\nif (type === 'audio') media_id = message?.audio?.id || null;\nif (type === 'image') {\n  text = message?.image?.caption || '';\n  media_id = message?.image?.id || null;\n}\nif (type === 'document') {\n  text = message?.document?.caption || '';\n  media_id = message?.document?.id || null;\n}\n\nreturn [{\n  json: {\n    is_valid_message: true,\n    event_type: 'message',\n    from: fromPhone,\n    customer_name: contact?.profile?.name || null,\n    message_id: message.id,\n    message_type: type,\n    text,\n    media_id,\n    timestamp: message.timestamp,\n    session_id: fromPhone,\n    business_phone_number_id: value?.metadata?.phone_number_id || null,\n    display_phone_number: value?.metadata?.display_phone_number || null,\n    raw_message: message\n  }\n}];"
+      },
+      "id": "9592d78b-e0c6-4e27-bd64-0a5a58222137",
+      "name": "Normalize WhatsApp Message",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-5232, 1248]
+    },
+    {
+      "parameters": {
+        "conditions": { "boolean": [{ "value1": "={{$json.is_valid_message}}", "value2": true }] }
+      },
+      "id": "5dc957d5-d1b5-4dde-a4f3-e9fce205220a",
+      "name": "IF Valid Message",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [-5056, 1248]
+    },
+    {
+      "parameters": {
+        "conditions": { "string": [{ "value1": "={{$json.message_type}}", "value2": "text" }] }
+      },
+      "id": "d98d69ef-3d61-4424-a25c-2e30dfd5882a",
+      "name": "IF Text Message",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [-4864, 1232]
+    },
+    {
+      "parameters": {
+        "url": "=https://vijzjcpkypsmkhywndus.supabase.co/rest/v1/processed_messages?select=id&whatsapp_message_id=eq.{{$json.message_id}}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "apikey", "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpanpqY3BreXBzbWtoeXduZHVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NzEzODMsImV4cCI6MjA5MDI0NzM4M30.SiFNNR3ixkITh2y5tHbFiCymhRQmAny1CrlMojm3HkA" },
+            { "name": "Authorization", "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpanpqY3BreXBzbWtoeXduZHVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NzEzODMsImV4cCI6MjA5MDI0NzM4M30.SiFNNR3ixkITh2y5tHbFiCymhRQmAny1CrlMojm3HkA" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "910cc4c2-f02e-420e-aae6-5ac1265ac06f",
+      "name": "Check Duplicate Message",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [-4800, 992],
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://vijzjcpkypsmkhywndus.supabase.co/rest/v1/processed_messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "apikey", "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpanpqY3BreXBzbWtoeXduZHVzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NDY3MTM4MywiZXhwIjoyMDkwMjQ3MzgzfQ.PyYU30n4yp2z_wtIJHnzunMtc_hX8rD7xWdPNxSYTHw" },
+            { "name": "Authorization", "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpanpqY3BreXBzbWtoeXduZHVzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NDY3MTM4MywiZXhwIjoyMDkwMjQ3MzgzfQ.PyYU30n4yp2z_wtIJHnzunMtc_hX8rD7xWdPNxSYTHw" },
+            { "name": "Content-Type", "value": "application/json" },
+            { "name": "Prefer", "value": "return=representation" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"whatsapp_message_id\": \"{{$node['Normalize WhatsApp Message'].json.message_id}}\",\n  \"phone\": \"{{$node['Normalize WhatsApp Message'].json.from}}\"\n}",
+        "options": {}
+      },
+      "id": "c47cd879-1f53-4978-978d-3c26b579c912",
+      "name": "Insert Processed Message",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [-4592, 992],
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "model": "gpt-4o-mini",
+        "options": { "temperature": 0.2 }
+      },
+      "id": "0d552b3e-a665-40de-a48b-28f488aba2d3",
+      "name": "OpenAI Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1,
+      "position": [-3744, 1248],
+      "credentials": {
+        "openAiApi": {
+          "id": "EqCyyLUNyQ3YpJj3",
+          "name": "OpenAI account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionKey": "={{ $json.from }}",
+        "contextWindowLength": 10
+      },
+      "id": "e8daa5dd-a9cc-428c-a810-a19ee996f94a",
+      "name": "Memory by WhatsApp Number",
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1,
+      "position": [-3584, 1232]
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $json;\nlet reply = input.output || input.reply || input.text || '';\nif (!reply) reply = 'Gracias por escribirnos. ¿En qué puedo ayudarte?';\nif (reply.length > 3500) reply = reply.slice(0, 3400) + '\\n\\nTe resumo lo principal arriba.';\nreply = reply.replace(/!\\[.*?\\]\\(.*?\\)/g, '').replace(/\\[(.*?)\\]\\((.*?)\\)/g, '$1 ($2)').replace(/\\*\\*/g, '*').replace(/#{1,6}\\s/g, '').trim();\nlet from = input.from || input.customer_phone || input.phone || '';\ntry { from = from || $('Normalize WhatsApp Message').first().json.from; } catch (e) {}\nreturn [{ json: { from, reply } }];"
+      },
+      "id": "d84eba93-2843-4990-a347-869e02ff7d5a",
+      "name": "Format WhatsApp Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-3232, 1056]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/v21.0/{{$node['Normalize WhatsApp Message'].json.business_phone_number_id}}/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "=Bearer {{$node['HTTP Request'].json.whatsapp_token}}" },
+            { "name": "Content-Type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"messaging_product\": \"whatsapp\",\n  \"to\": \"{{ $json.from }}\",\n  \"type\": \"text\",\n  \"text\": {\n    \"body\": {{ JSON.stringify($json.reply) }}\n  }\n}",
+        "options": {}
+      },
+      "id": "3bf126bc-ae80-4856-a826-8e82fabfb9c4",
+      "name": "Send WhatsApp Message",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [-2992, 1056],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://vijzjcpkypsmkhywndus.supabase.co/rest/v1/conversation_logs",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "apikey", "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpanpqY3BreXBzbWtoeXduZHVzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NDY3MTM4MywiZXhwIjoyMDkwMjQ3MzgzfQ.PyYU30n4yp2z_wtIJHnzunMtc_hX8rD7xWdPNxSYTHw" },
+            { "name": "Authorization", "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpanpqY3BreXBzbWtoeXduZHVzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NDY3MTM4MywiZXhwIjoyMDkwMjQ3MzgzfQ.PyYU30n4yp2z_wtIJHnzunMtc_hX8rD7xWdPNxSYTHw" },
+            { "name": "Content-Type", "value": "application/json" },
+            { "name": "Prefer", "value": "return=minimal" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({\n  \"phone\": $('Format WhatsApp Response').first().json.from,\n  \"customer_name\": $('Format WhatsApp Response').first().json.customer_name || null,\n  \"agent_response\": $('Format WhatsApp Response').first().json.reply,\n  \"status\": \"ok\"\n}) }}",
+        "options": {}
+      },
+      "id": "5f756486-124d-4f81-96f1-b836933a9865",
+      "name": "Log Conversation",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [-2544, 1056]
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{\n  json: {\n    from: $node['Normalize WhatsApp Message'].json.from,\n    reply: 'Por ahora puedo atender mensajes de texto. En breve activaremos audios e imágenes.'\n  }\n}];"
+      },
+      "id": "3fd0967a-e006-4c2d-a6db-4db0a3e820c6",
+      "name": "Unsupported Message Fallback",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-4400, 1200]
+    },
+    {
+      "parameters": {
+        "jsCode": "const normalize = $('Normalize WhatsApp Message').first().json;\nreturn [{ json: normalize }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-4400, 992],
+      "id": "11bdd2ef-b44a-436e-8f63-bacf82b14f52",
+      "name": "Restore WhatsApp Context"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://vijzjcpkypsmkhywndus.supabase.co/rest/v1/rpc/registrar_mensaje",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "apikey", "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpanpqY3BreXBzbWtoeXduZHVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NzEzODMsImV4cCI6MjA5MDI0NzM4M30.SiFNNR3ixkITh2y5tHbFiCymhRQmAny1CrlMojm3HkA" },
+            { "name": "Authorization", "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpanpqY3BreXBzbWtoeXduZHVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NzEzODMsImV4cCI6MjA5MDI0NzM4M30.SiFNNR3ixkITh2y5tHbFiCymhRQmAny1CrlMojm3HkA" },
+            { "name": "Content-Type", "value": "application/json" },
+            { "name": "prefer", "value": "return=representation" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"p_phone\": \"{{$node['Normalize WhatsApp Message'].json.from}}\",\n  \"p_message\": \"{{$node['Normalize WhatsApp Message'].json.text}}\",\n  \"p_direction\": \"inbound\",\n  \"p_customer_name\": \"{{$node['Normalize WhatsApp Message'].json.customer_name}}\",\n  \"p_tenant_id\": \"{{$node['HTTP Request'].json.id}}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [-4976, 992],
+      "id": "d7feaeed-93cd-4840-8fb4-a6007ec5bb57",
+      "name": "Guardar Mensaje Cliente"
+    },
+    {
+      "parameters": {
+        "url": "=https://vijzjcpkypsmkhywndus.supabase.co/rest/v1/whatsapp_chats?phone=eq.{{ $('Normalize WhatsApp Message').first().json.from }}&tenant_id=eq.{{ $('HTTP Request').first().json.id }}&select=is_bot_active&limit=1",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "apikey", "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpanpqY3BreXBzbWtoeXduZHVzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NDY3MTM4MywiZXhwIjoyMDkwMjQ3MzgzfQ.PyYU30n4yp2z_wtIJHnzunMtc_hX8rD7xWdPNxSYTHw" },
+            { "name": "Authorization", "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpanpqY3BreXBzbWtoeXduZHVzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NDY3MTM4MywiZXhwIjoyMDkwMjQ3MzgzfQ.PyYU30n4yp2z_wtIJHnzunMtc_hX8rD7xWdPNxSYTHw" }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [-4224, 992],
+      "id": "37e8f2da-b00b-413e-9773-3ad30f7a7547",
+      "name": "Consultar Modo Humano",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "loose", "version": 3 },
+          "conditions": [{ "id": "e9e156f3-885b-4093-a64e-795edcb85743", "leftValue": "={{ $json.is_bot_active !== false }}", "rightValue": "true", "operator": { "type": "boolean", "operation": "true", "singleValue": true } }],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [-4016, 992],
+      "id": "f0520009-4c60-4d43-bc02-6963e5443425",
+      "name": "Bot Activo?"
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $json;\n\n// TODO: Conectar a Supabase real. \n// Estos son datos que el AI Agent necesita para el prompt de estadísticas.\ninput.stats = {\n  buscadas: 5281,\n  encontradas: 978,\n  seguras: 2134,\n  pendientes: 312\n};\n\nreturn [{\n  json: input\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-3792, 992],
+      "id": "b1b2a9e3-82c8-47e4-bcde-2e4b85d99b1a",
+      "name": "Obtener Estadisticas"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://vijzjcpkypsmkhywndus.supabase.co/rest/v1/rpc/registrar_mensaje",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "apikey", "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpanpqY3BreXBzbWtoeXduZHVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NzEzODMsImV4cCI6MjA5MDI0NzM4M30.SiFNNR3ixkITh2y5tHbFiCymhRQmAny1CrlMojm3HkA" },
+            { "name": "Authorization", "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpanpqY3BreXBzbWtoeXduZHVzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NDY3MTM4MywiZXhwIjoyMDkwMjQ3MzgzfQ.PyYU30n4yp2z_wtIJHnzunMtc_hX8rD7xWdPNxSYTHw" },
+            { "name": "Content-Type", "value": "application/json" },
+            { "name": "prefer", "value": "return=representation" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({\n  \"p_phone\": $('Format WhatsApp Response').first().json.from,\n  \"p_message\": $('Format WhatsApp Response').first().json.reply,\n  \"p_direction\": \"outbound\",\n  \"p_customer_name\": $('Normalize WhatsApp Message').first().json.customer_name || null,\n  \"p_tenant_id\": $('HTTP Request').first().json.id\n}) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [-2784, 1056],
+      "id": "a01a8a36-bc1f-4eab-a8c9-8838762748ae",
+      "name": "Guardar Respuesta Bot"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ '' }}\nEres *Reencuentro Venezuela* 🇻🇪, un asistente humanitario de emergencia que opera por WhatsApp. Fuiste creado por @andres.a.fz en Instagram como un motor voluntario de procesamiento de datos y sin fines de lucro para ayudar a reunir familias y localizar personas después del terremoto en Venezuela.\n\nTu objetivo es doble: \n1. Ser inmensamente cálido, paciente y empático ante la crisis.\n2. Transmitir constantemente que el sistema está VIVO, procesando información, monitorizando reportes y buscando coincidencias de forma activa (no eres un simple formulario).\n\n═══════════════════════════════\nPERSONALIDAD Y TONO\n═══════════════════════════════\n- Usa un tono humano, compasivo y tecnológico. Habla como un voluntario que cuenta con una poderosa red de datos para ayudar.\n- Sé paciente. Si alguien escribe en pánico, con errores o desordenado, interpreta su intención con buena fe.\n- Usa emojis con moderación para estructurar la información (🔍, 📍, 🧠, 📡, ⚠, ✅, 📞, 🏥, 🇻🇪). Nunca uses humor o sarcasmo.\n- Responde SIEMPRE en español, trata de \"tú\" para generar cercanía.\n- Mantén las respuestas claras; en crisis, los textos muy largos abruman.\n\n═══════════════════════════════\nINFORMACIÓN DINÁMICA DEL SISTEMA\n═══════════════════════════════\n(Utiliza estos datos para generar confianza al mostrar estadísticas):\n- Personas buscadas activamente: {{$json.stats.buscadas}}\n- Personas encontradas: {{$json.stats.encontradas}}\n- Personas reportadas seguras: {{$json.stats.seguras}}\n- Coincidencias en revisión: {{$json.stats.pendientes}}\n\n═══════════════════════════════\nMENÚ PRINCIPAL Y PRIMER CONTACTO\n═══════════════════════════════\nCuando alguien te escriba por primera vez, presenta esto:\n\n\"Hola. Soy *Reencuentro Venezuela* 🇻🇪\nEstoy aquí para ayudarte.\n\n1️⃣ Estoy bien (avisar que estás a salvo)\n2️⃣ Busco a alguien\n3️⃣ Encontré a alguien\n4️⃣ Información y ayuda\n5️⃣ Hablar con un voluntario\n\nEscribe el número o cuéntame directamente tu situación.\"\n\nSi la persona NO usa un número sino que escribe su angustia (\"estoy buscando a mi papá\"), NO la obligues a elegir un número, asiste directamente.\n\n═══════════════════════════════\nRECEPCIÓN DE DATOS (OPCIONES 1, 2 Y 3)\n═══════════════════════════════\nSolicita de forma humana:\n- Nombre completo\n- Edad aproximada\n- Sexo\n- Última ubicación (ciudad/zona)\n- Fecha del último contacto / ¿Con quién está? (si aplica)\n\nUna vez que el usuario envíe sus datos, DEBES mostrar este proceso para generar confianza y transparencia:\n\n\"🔍 *Analizando tu reporte...*\n📍 *Extrayendo información relevante...*\n🧠 *Comparando con registros existentes...*\n\n✅ Información estructurada correctamente. Estamos revisando coincidencias mediante:\n✓ Nombre completo\n✓ Edad aproximada\n✓ Ciudad / Última ubicación conocida\n✓ Fecha del reporte\n\n📡 *Monitorización Continua Activada:* Tu búsqueda permanecerá activa durante las próximas 72 horas. El sistema ejecutará búsquedas automáticas cada vez que ingrese nueva información. Te notificaremos si hay cruces de datos. No pierdas la esperanza. 🇻🇪\"\n\n═══════════════════════════════\nNOTIFICACIONES DE COINCIDENCIA\n═══════════════════════════════\nSi detectas una coincidencia con datos previos (similitud > 50%), alerta así:\n\n\"⚠ *NUEVA POSIBLE COINCIDENCIA ENCONTRADA*\n\nConfianza estimada: [ALTA / MEDIA]\nUbicación aproximada: [Ciudad/Zona de la coincidencia]\nReportada hace: [Tiempo estimado]\n\nUn voluntario está revisando esta información antes de compartir datos personales. Por favor, mantén este chat abierto.\"\n\n═══════════════════════════════\nPANEL GLOBAL DEL SISTEMA\n═══════════════════════════════\nSi el usuario pregunta si el sistema sirve, cómo funciona, o pide estadísticas, responde:\n\n\"Actualmente el sistema está monitorizando la red global:\n• {{$json.stats.buscadas}} personas buscadas\n• {{$json.stats.seguras}} personas seguras\n• {{$json.stats.encontradas}} personas localizadas\n• {{$json.stats.pendientes}} coincidencias pendientes de revisión\n\nSeguimos recibiendo y procesando reportes cada minuto. 📡\"\n\n═══════════════════════════════\nINFORMACIÓN DE EMERGENCIA (OPCIÓN 4)\n═══════════════════════════════\nSi piden ambulancia, policía o ayuda urgente, envía:\n\n\"📞 *Números Oficiales de Emergencia Venezuela:*\n🚑 Emergencias integrales: *911*\n👮 Emergencias policiales: *171*\n🚓 Policía Nacional Bolivariana: *0800-765-4242*\n🚒 Protección Civil (RESCATE/LLUVIAS): *0800-558-8427*\n\nSi estás en peligro inminente o herido, llama al *911* ahora mismo.\"\n\n(Si preguntan por refugios o insumos, diles que contacten a Protección Civil al 0800-558-8427).\n\n═══════════════════════════════\nHABLAR CON VOLUNTARIO (OPCIÓN 5)\n═══════════════════════════════\n\"Entendido. Un voluntario de nuestro equipo se comunicará contigo por esta misma vía lo antes posible. Por favor, mantén este chat abierto. Fuerza. 🇻🇪\"\n\n═══════════════════════════════\nSITUACIONES CRÍTICAS\n═══════════════════════════════\n- PERSONA EN PÁNICO: \"Respira. Estoy aquí contigo. Vas a estar bien. Cuéntame qué necesitas y vamos paso a paso.\"\n- PERSONA HERIDA: Envía inmediatamente el 911 y ofrécete a guardar su ubicación.\n- NIÑOS SOLOS: Solicita ubicación urgente y alerta que un voluntario se conecta ya mismo.\n- QUIÉN TE CREÓ: \"Fui desarrollado por *@andres.a.fz* (Instagram) como iniciativa voluntaria para conectar familias. Si quieres ayudar, escríbele.\"\n- FUERA DE CONTEXTO (spam/bromas): \"Este canal es exclusivamente para la emergencia del terremoto en Venezuela. 🇻🇪\"\n\n═══════════════════════════════\nREGLAS ABSOLUTAS\n═══════════════════════════════\n1. NUNCA compartas teléfonos o direcciones sin validación humana.\n2. NUNCA hables de ventas, Robotina, marketing o negocios.\n3. NUNCA inventes coincidencias para calmar a alguien.\n4. Si falta información crítica (como el nombre), pregúntalo amable y directamente.",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [-3520, 1056],
+      "id": "2b0afe99-6da8-4ed8-8175-eeb6df631e02",
+      "name": "AI Agent",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://vijzjcpkypsmkhywndus.supabase.co/rest/v1/rpc/resolver_tenant",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "apikey", "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpanpqY3BreXBzbWtoeXduZHVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NzEzODMsImV4cCI6MjA5MDI0NzM4M30.SiFNNR3ixkITh2y5tHbFiCymhRQmAny1CrlMojm3HkA" },
+            { "name": "Authorization", "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpanpqY3BreXBzbWtoeXduZHVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NzEzODMsImV4cCI6MjA5MDI0NzM4M30.SiFNNR3ixkITh2y5tHbFiCymhRQmAny1CrlMojm3HkA" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"p_phone_number_id\": \"{{ $json.body.entry[0].changes[0].value.metadata.phone_number_id }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [-5200, 1008],
+      "id": "12b21b26-204c-411f-a2cc-c052c83d8933",
+      "name": "HTTP Request"
+    }
+  ],
+  "connections": {
+    "WhatsApp Webhook POST": { "main": [[{ "node": "HTTP Request", "type": "main", "index": 0 }]] },
+    "Normalize WhatsApp Message": { "main": [[{ "node": "IF Valid Message", "type": "main", "index": 0 }]] },
+    "IF Valid Message": { "main": [[{ "node": "IF Text Message", "type": "main", "index": 0 }]] },
+    "IF Text Message": { "main": [[{ "node": "Guardar Mensaje Cliente", "type": "main", "index": 0 }], [{ "node": "Unsupported Message Fallback", "type": "main", "index": 0 }]] },
+    "Check Duplicate Message": { "main": [[{ "node": "Insert Processed Message", "type": "main", "index": 0 }]] },
+    "Insert Processed Message": { "main": [[{ "node": "Restore WhatsApp Context", "type": "main", "index": 0 }]] },
+    "OpenAI Chat Model": { "ai_languageModel": [[{ "node": "AI Agent", "type": "ai_languageModel", "index": 0 }]] },
+    "Memory by WhatsApp Number": { "ai_memory": [[{ "node": "AI Agent", "type": "ai_memory", "index": 0 }]] },
+    "Format WhatsApp Response": { "main": [[{ "node": "Send WhatsApp Message", "type": "main", "index": 0 }]] },
+    "Send WhatsApp Message": { "main": [[{ "node": "Guardar Respuesta Bot", "type": "main", "index": 0 }]] },
+    "Unsupported Message Fallback": { "main": [[{ "node": "Send WhatsApp Message", "type": "main", "index": 0 }]] },
+    "Restore WhatsApp Context": { "main": [[{ "node": "Consultar Modo Humano", "type": "main", "index": 0 }]] },
+    "Guardar Mensaje Cliente": { "main": [[{ "node": "Check Duplicate Message", "type": "main", "index": 0 }]] },
+    "Consultar Modo Humano": { "main": [[{ "node": "Bot Activo?", "type": "main", "index": 0 }]] },
+    "Bot Activo?": { "main": [[{ "node": "Obtener Estadisticas", "type": "main", "index": 0 }]] },
+    "Obtener Estadisticas": { "main": [[{ "node": "AI Agent", "type": "main", "index": 0 }]] },
+    "Guardar Respuesta Bot": { "main": [[{ "node": "Log Conversation", "type": "main", "index": 0 }]] },
+    "AI Agent": { "main": [[{ "node": "Format WhatsApp Response", "type": "main", "index": 0 }], []] },
+    "HTTP Request": { "main": [[{ "node": "Normalize WhatsApp Message", "type": "main", "index": 0 }]] }
+  }
+}
