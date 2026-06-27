@@ -67,64 +67,36 @@ export default function Dashboard() {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'whatsapp_messages' }, () => {
         fetchDashboardData(selectedDate);
       })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, () => fetchDashboardData(selectedDate))
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'reservations' }, () => {
-        fetchDashboardData(selectedDate);
-      })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'landing_leads' }, () => {
-        fetchDashboardData(selectedDate);
-      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'humanitarian_reports' }, () => fetchDashboardData(selectedDate))
       .subscribe();
     return () => { supabase.removeChannel(channel); };
   }, [selectedDate]);
 
   const fetchDashboardData = async (targetDate: Date) => {
-    // Definimos el inicio y fin del día seleccionado para KPIs diarios
     const startOfDay = new Date(targetDate);
     startOfDay.setHours(0, 0, 0, 0);
     const endOfDay = new Date(targetDate);
     endOfDay.setHours(23, 59, 59, 999);
 
-    // Para el gráfico de 7 días, necesitamos los 7 días terminando en la fecha seleccionada
     const startOf7Days = new Date(targetDate);
     startOf7Days.setDate(startOf7Days.getDate() - 6);
     startOf7Days.setHours(0, 0, 0, 0);
 
-    // 1. Órdenes Totales (histórico hasta la fecha seleccionada)
-    const { data: allOrders } = await supabase
-      .from('orders')
+    const { data: allReports } = await supabase
+      .from('humanitarian_reports')
       .select('*')
       .lte('created_at', endOfDay.toISOString());
 
-    // 2. Chats Totales (histórico)
     const { count: chatCount } = await supabase.from('whatsapp_chats')
       .select('*', { count: 'exact', head: true })
       .lte('last_message_at', endOfDay.toISOString());
 
-    // 3. Clientes Totales (histórico acumulado - la tabla no tiene created_at)
-    const { count: custCount } = await supabase.from('customers')
-      .select('*', { count: 'exact', head: true });
-    
-    // 4. Reuniones Agendadas Totales (histórico)
-    const { count: leadsCount } = await supabase.from('landing_leads')
-      .select('*', { count: 'exact', head: true })
-      .not('appointment_date', 'is', null)
-      .lte('created_at', endOfDay.toISOString());
-
-    const { count: resCount } = await supabase.from('reservations')
-      .select('*', { count: 'exact', head: true })
-      .lte('created_at', endOfDay.toISOString());
-
-    const totalMeetings = (leadsCount || 0) + (resCount || 0);
-
-    // 5. Historial reciente de chats (para la bitácora)
     const { data: chats } = await supabase.from('whatsapp_chats')
       .select('*')
       .lte('last_message_at', endOfDay.toISOString())
       .order('last_message_at', { ascending: false })
       .limit(6);
 
-    // 6. Mensajes para calcular la hora pico (solo del día seleccionado)
     const { data: messages } = await supabase.from('whatsapp_messages')
       .select('created_at')
       .gte('created_at', startOfDay.toISOString())
@@ -165,22 +137,21 @@ export default function Dashboard() {
       setPeakHourPeriod(maxM > 0 ? peakP : '');
     }
 
-    if (allOrders) {
-      // KPIs totales históricos
-      const totalRev = allOrders.reduce((sum, o) => sum + Number(o.total_amount || 0), 0);
-      setStats({ revenue: totalRev, orders: allOrders.length, activeChats: chatCount || 0, customers: custCount || 0, meetings: totalMeetings });
+    if (allReports) {
+      const activeSearches = allReports.filter(r => r.status?.toLowerCase() === 'buscando').length;
+      const foundCount = allReports.filter(r => r.status?.toLowerCase() === 'encontrado').length;
+      const safeCount = allReports.filter(r => r.status?.toLowerCase() === 'seguro').length;
       
-      // Para el gráfico de 7 días, extraemos solo los de la última semana terminando en targetDate
-      const orders7D = allOrders.filter(o => {
-        const d = new Date(o.created_at);
+      setStats({ revenue: allReports.length, orders: activeSearches, activeChats: chatCount || 0, customers: safeCount, meetings: foundCount });
+      
+      const reports7D = allReports.filter(r => {
+        const d = new Date(r.created_at);
         return d >= startOf7Days && d <= endOfDay;
       });
 
-      // Chart: últimos 7 días terminando en la fecha seleccionada
       const daysMap: Record<string, number> = {};
       const dayNames = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
       
-      // Inicializar los últimos 7 días en orden cronológico
       const chartLabels: string[] = [];
       for (let i = 6; i >= 0; i--) {
         const d = new Date(targetDate);
@@ -190,11 +161,11 @@ export default function Dashboard() {
         daysMap[name] = 0;
       }
 
-      orders7D.forEach(o => {
-        const d = new Date(o.created_at);
+      reports7D.forEach(r => {
+        const d = new Date(r.created_at);
         const dayName = dayNames[d.getDay()];
         if (daysMap[dayName] !== undefined) {
-          daysMap[dayName] += Number(o.total_amount || 0);
+          daysMap[dayName] += 1;
         }
       });
       setChartData7D(chartLabels.map(d => ({ name: d, ingresos: daysMap[d] })));
@@ -204,7 +175,7 @@ export default function Dashboard() {
       setRecentEvents(chats.map(c => ({
         id: c.id,
         time: new Date(c.last_message_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        event: `Chat: ${c.contact_name || 'Cliente'}`,
+        event: `Chat: ${c.contact_name || 'Ciudadano'}`,
         details: c.last_message,
         cl: 'bg-primary',
         icon: 'chat_bubble'
@@ -292,15 +263,15 @@ export default function Dashboard() {
 
       <div className="mb-4" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '1rem' }}>
         <div className="card" style={{ padding: '0.75rem 0.5rem' }}>
-          <p className="label-sm" style={{ color: 'var(--on-surface)', fontWeight: 800 }}>Facturación Total</p>
-          <h3 className="display-md" style={{ color: 'var(--primary)', marginTop: '0.5rem', fontWeight: 900 }}>${stats.revenue.toLocaleString()}</h3>
+          <p className="label-sm" style={{ color: 'var(--on-surface)', fontWeight: 800 }}>Reportes Totales</p>
+          <h3 className="display-md" style={{ color: 'var(--primary)', marginTop: '0.5rem', fontWeight: 900 }}>{stats.revenue}</h3>
         </div>
         <div className="card" style={{ padding: '0.75rem 0.5rem' }}>
-          <p className="label-sm" style={{ color: 'var(--on-surface)', fontWeight: 800 }}>Operaciones Totales</p>
+          <p className="label-sm" style={{ color: 'var(--on-surface)', fontWeight: 800 }}>Búsquedas Activas</p>
           <h3 className="display-md" style={{ color: 'var(--on-surface)', marginTop: '0.5rem', fontWeight: 900 }}>{stats.orders}</h3>
         </div>
         <div className="card" style={{ padding: '0.75rem 0.5rem' }}>
-          <p className="label-sm" style={{ color: 'var(--on-surface)', fontWeight: 800 }}>Reuniones Agendadas</p>
+          <p className="label-sm" style={{ color: 'var(--on-surface)', fontWeight: 800 }}>Casos Resueltos</p>
           <h3 className="display-md" style={{ color: '#C9A84C', marginTop: '0.5rem', fontWeight: 900 }}>{stats.meetings}</h3>
         </div>
         <div className="card" style={{ padding: '0.75rem 0.5rem' }}>
@@ -308,7 +279,7 @@ export default function Dashboard() {
           <h3 className="display-md" style={{ color: 'var(--emerald-400)', marginTop: '0.5rem', fontWeight: 900 }}>{stats.activeChats}</h3>
         </div>
         <div className="card" style={{ padding: '0.75rem 0.5rem' }}>
-          <p className="label-sm" style={{ color: 'var(--on-surface)', fontWeight: 800 }}>Clientes CRM</p>
+          <p className="label-sm" style={{ color: 'var(--on-surface)', fontWeight: 800 }}>Personas Seguras</p>
           <h3 className="display-md" style={{ color: 'var(--on-surface)', marginTop: '0.5rem', fontWeight: 900 }}>{stats.customers}</h3>
         </div>
         
