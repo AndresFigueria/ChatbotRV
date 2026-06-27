@@ -1435,7 +1435,7 @@
     {
       "parameters": {
         "name": "registrar_reporte",
-        "description": "Call this tool whenever you extract data from a user (Option 1, 2, or 3). Provide person_name, age, gender, location, status (must be exactly 'Buscando', 'Encontrado' or 'Seguro'), and companion_info.",
+        "description": "Call this tool whenever you extract data from a user (Option 1, 2, or 3). Provide person_name, cedula, age, gender, location, status (must be exactly 'Buscando', 'Encontrado' or 'Seguro'), and companion_info.",
         "method": "POST",
         "url": "={{ $('HTTP Request (Emergencia)').first().json.supabase_url }}/rest/v1/rpc/registrar_reporte",
         "sendHeaders": true,
@@ -1453,7 +1453,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"p_tenant_id\": \"{{ $('HTTP Request (Emergencia)').first().json.id }}\",\n  \"p_reporter_phone\": \"{{ $('Normalize WhatsApp Message (Emergencia)').first().json.from }}\",\n  \"p_person_name\": \"{{ $fromAI('person_name') }}\",\n  \"p_age\": \"{{ $fromAI('age') }}\",\n  \"p_gender\": \"{{ $fromAI('gender') }}\",\n  \"p_location\": \"{{ $fromAI('location') }}\",\n  \"p_status\": \"{{ $fromAI('status') }}\",\n  \"p_companion_info\": \"{{ $fromAI('companion_info') }}\"\n}"
+        "jsonBody": "={\n  \"p_tenant_id\": \"{{ $('HTTP Request (Emergencia)').first().json.id }}\",\n  \"p_reporter_phone\": \"{{ $('Normalize WhatsApp Message (Emergencia)').first().json.from }}\",\n  \"p_person_name\": \"{{ $fromAI('person_name') }}\",\n  \"p_cedula\": \"{{ $fromAI('cedula') }}\",\n  \"p_age\": \"{{ $fromAI('age') }}\",\n  \"p_gender\": \"{{ $fromAI('gender') }}\",\n  \"p_location\": \"{{ $fromAI('location') }}\",\n  \"p_status\": \"{{ $fromAI('status') }}\",\n  \"p_companion_info\": \"{{ $fromAI('companion_info') }}\"\n}"
       },
       "id": "95c77b7d-027c-44ed-a336-dbcb68f8258d",
       "name": "Registrar Reporte (Tool)",

@@ -17,8 +17,8 @@ export default function Matches() {
           similarity_score,
           status,
           created_at,
-          report_a:report_a_id ( person_name, age, location, status, reporter_phone ),
-          report_b:report_b_id ( person_name, age, location, status, reporter_phone )
+          report_a:report_a_id ( person_name, cedula, age, location, status, reporter_phone ),
+          report_b:report_b_id ( person_name, cedula, age, location, status, reporter_phone )
         `)
         .order('similarity_score', { ascending: false });
       if (matchesError) throw matchesError;
@@ -112,6 +112,7 @@ export default function Matches() {
                       <strong style={{ color: '#fff', fontSize: '1.05rem' }}>{report.person_name}</strong>
                     </div>
                     <div style={{ fontSize: '0.85rem', color: 'var(--secondary)', display: 'flex', gap: '1rem' }}>
+                      {report.cedula && <span><span className="material-symbols-outlined" style={{ fontSize: '14px', verticalAlign: 'middle' }}>badge</span> {report.cedula}</span>}
                       <span><span className="material-symbols-outlined" style={{ fontSize: '14px', verticalAlign: 'middle' }}>calendar_today</span> {report.age || 'N/A'}</span>
                       <span><span className="material-symbols-outlined" style={{ fontSize: '14px', verticalAlign: 'middle' }}>location_on</span> {report.location || 'N/A'}</span>
                     </div>
@@ -173,6 +174,7 @@ export default function Matches() {
                     <div style={{ flex: 1, padding: '0.75rem', backgroundColor: 'rgba(0,0,0,0.3)', borderRadius: '0.5rem' }}>
                       <div style={{ fontSize: '0.7rem', color: getStatusColor(match.report_a?.status), fontWeight: 700, marginBottom: '4px' }}>{match.report_a?.status}</div>
                       <div style={{ color: '#fff', fontSize: '0.95rem', fontWeight: 600 }}>{match.report_a?.person_name}</div>
+                      {match.report_a?.cedula && <div style={{ color: 'var(--secondary)', fontSize: '0.75rem', marginTop: '4px' }}>Cédula: {match.report_a?.cedula}</div>}
                       <div style={{ color: 'var(--secondary)', fontSize: '0.75rem', marginTop: '4px' }}>Ubicación: {match.report_a?.location}</div>
                     </div>
                     
@@ -181,6 +183,7 @@ export default function Matches() {
                     <div style={{ flex: 1, padding: '0.75rem', backgroundColor: 'rgba(0,0,0,0.3)', borderRadius: '0.5rem' }}>
                       <div style={{ fontSize: '0.7rem', color: getStatusColor(match.report_b?.status), fontWeight: 700, marginBottom: '4px' }}>{match.report_b?.status}</div>
                       <div style={{ color: '#fff', fontSize: '0.95rem', fontWeight: 600 }}>{match.report_b?.person_name}</div>
+                      {match.report_b?.cedula && <div style={{ color: 'var(--secondary)', fontSize: '0.75rem', marginTop: '4px' }}>Cédula: {match.report_b?.cedula}</div>}
                       <div style={{ color: 'var(--secondary)', fontSize: '0.75rem', marginTop: '4px' }}>Ubicación: {match.report_b?.location}</div>
                     </div>
                   </div>

@@ -95,15 +95,48 @@ export default function WhatsApp() {
     scrollToBottom();
   }, [messages]);
 
+  const playNotification = () => {
+    try {
+      const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(600, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(800, ctx.currentTime + 0.1);
+      gain.gain.setValueAtTime(0.2, ctx.currentTime);
+      osc.start();
+      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
+      osc.stop(ctx.currentTime + 0.5);
+      
+      if (Notification.permission === 'granted') {
+        new Notification('¡Nuevo Mensaje!', { body: 'Alguien escribió en la bandeja de WhatsApp.' });
+      } else if (Notification.permission !== 'denied') {
+        Notification.requestPermission();
+      }
+    } catch(e) {}
+  };
+
   // Fetch initial chats
   useEffect(() => {
     fetchChats();
     
-    // SuscripciÃ³n de Realtime a nuevos chats
+    // Request notification permissions early
+    if (Notification.permission !== 'denied' && Notification.permission !== 'granted') {
+      Notification.requestPermission();
+    }
+    
+    // Suscripción de Realtime a nuevos chats
     const chatSubscription = supabase
       .channel('dashboard-whatsapp-chats-list')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'whatsapp_chats' }, () => {
         fetchChats();
+      })
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'whatsapp_messages' }, (payload) => {
+         if (payload.new && payload.new.direction === 'inbound') {
+            playNotification();
+         }
       })
       .subscribe();
 
