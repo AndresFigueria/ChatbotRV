@@ -290,30 +290,30 @@ export default function Dashboard() {
         </div>
       </header>
 
-      <div className="mb-4" style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-        <div className="card" style={{ width: '170px', padding: '0.75rem 0.5rem' }}>
+      <div className="mb-4" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '1rem' }}>
+        <div className="card" style={{ padding: '0.75rem 0.5rem' }}>
           <p className="label-sm" style={{ color: 'var(--on-surface)', fontWeight: 800 }}>Facturación Total</p>
           <h3 className="display-md" style={{ color: 'var(--primary)', marginTop: '0.5rem', fontWeight: 900 }}>${stats.revenue.toLocaleString()}</h3>
         </div>
-        <div className="card" style={{ width: '170px', padding: '0.75rem 0.5rem' }}>
+        <div className="card" style={{ padding: '0.75rem 0.5rem' }}>
           <p className="label-sm" style={{ color: 'var(--on-surface)', fontWeight: 800 }}>Operaciones Totales</p>
           <h3 className="display-md" style={{ color: 'var(--on-surface)', marginTop: '0.5rem', fontWeight: 900 }}>{stats.orders}</h3>
         </div>
-        <div className="card" style={{ width: '170px', padding: '0.75rem 0.5rem' }}>
+        <div className="card" style={{ padding: '0.75rem 0.5rem' }}>
           <p className="label-sm" style={{ color: 'var(--on-surface)', fontWeight: 800 }}>Reuniones Agendadas</p>
           <h3 className="display-md" style={{ color: '#C9A84C', marginTop: '0.5rem', fontWeight: 900 }}>{stats.meetings}</h3>
         </div>
-        <div className="card" style={{ width: '170px', padding: '0.75rem 0.5rem' }}>
+        <div className="card" style={{ padding: '0.75rem 0.5rem' }}>
           <p className="label-sm" style={{ color: 'var(--on-surface)', fontWeight: 800 }}>Chats Activos</p>
           <h3 className="display-md" style={{ color: 'var(--emerald-400)', marginTop: '0.5rem', fontWeight: 900 }}>{stats.activeChats}</h3>
         </div>
-        <div className="card" style={{ width: '170px', padding: '0.75rem 0.5rem' }}>
+        <div className="card" style={{ padding: '0.75rem 0.5rem' }}>
           <p className="label-sm" style={{ color: 'var(--on-surface)', fontWeight: 800 }}>Clientes CRM</p>
           <h3 className="display-md" style={{ color: 'var(--on-surface)', marginTop: '0.5rem', fontWeight: 900 }}>{stats.customers}</h3>
         </div>
         
         {/* Hora Pico (Compact) */}
-        <div className="card" style={{ width: '220px', padding: '0.5rem 1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginLeft: 'auto' }}>
+        <div className="card" style={{ padding: '0.5rem 1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', flexDirection: 'column' }}>
             <p className="label-sm" style={{ color: 'var(--on-surface)', fontWeight: 800 }}>Hora Pico</p>
             <h3 className="display-md" style={{ color: 'var(--primary)', marginTop: '0.2rem', fontWeight: 900, fontSize: '1.85rem', lineHeight: '1' }}>{peakHourName}</h3>
