@@ -11,7 +11,7 @@ export default function Matches() {
     try {
       // 1. Fetch Matches
       const { data: matchesData, error: matchesError } = await supabase
-        .from('matches')
+        .from('humanitarian_matches')
         .select(`
           id,
           similarity_score,
@@ -55,7 +55,7 @@ export default function Matches() {
 
   const updateMatchStatus = async (matchId: string, newStatus: string) => {
     try {
-      const { error } = await supabase.from('matches').update({ status: newStatus }).eq('id', matchId);
+      const { error } = await supabase.from('humanitarian_matches').update({ status: newStatus }).eq('id', matchId);
       if (error) throw error;
       setMatches(prev => prev.map(m => m.id === matchId ? { ...m, status: newStatus } : m));
     } catch (error) {
