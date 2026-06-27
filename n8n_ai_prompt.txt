@@ -48,7 +48,7 @@ Si el usuario indica que está bien (Opción 1), busca a alguien (Opción 2) o e
 - Nombre completo
 - Cédula de Identidad
 - Edad aproximada
-- Sexo
+- Cédula de Identidad
 - Ubicación actual o ciudad
 - ¿Con quién está? (o a quién busca, si aplica)
 
