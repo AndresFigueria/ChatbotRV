@@ -69,10 +69,10 @@ export default function Sidebar({ isOpen, onClose }: { isOpen: boolean, onClose:
     if (!ordersError && ordersCount !== null) count += ordersCount;
 
     // 2. Leads (Reuniones) pendientes (solo los que tienen fecha)
-    const { data: leadsData } = await supabase.from('landing_leads').select('status').not('appointment_date', 'is', null);
-    if (leadsData) {
-      count += leadsData.filter(l => !l.status || l.status === 'Pendiente').length;
-    }
+    // const { data: leadsData } = await supabase.from('landing_leads').select('status').not('appointment_date', 'is', null);
+    // if (leadsData) {
+    //   count += leadsData.filter(l => !l.status || l.status === 'Pendiente').length;
+    // }
 
     // 3. Reservaciones pendientes
     const { data: resData } = await supabase.from('reservations').select('status');
@@ -108,9 +108,9 @@ export default function Sidebar({ isOpen, onClose }: { isOpen: boolean, onClose:
       .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, () => {
         fetchPendingOrders();
       })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'landing_leads' }, () => {
-        fetchPendingOrders();
-      })
+      // .on('postgres_changes', { event: '*', schema: 'public', table: 'landing_leads' }, () => {
+      //   fetchPendingOrders();
+      // })
       .subscribe();
 
     return () => {
