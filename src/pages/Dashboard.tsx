@@ -404,7 +404,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 5fr) minmax(0, 3fr)', gap: '1.5rem' }}>
+      <div className="dashboard-grid-main">
         <div className="card" style={{ padding: '1rem', display: 'flex', flexDirection: 'column', height: '360px' }}>
           <h3 className="title-md mb-2">Ingresos (Últimos 7 Días)</h3>
           <div style={{ width: '100%', height: '280px' }}>
