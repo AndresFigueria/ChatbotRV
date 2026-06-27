@@ -88,7 +88,7 @@ export default function Matches() {
         </p>
       </header>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', flex: 1, minHeight: 0 }}>
+      <div className="grid-auto-responsive" style={{ flex: 1, minHeight: 0 }}>
         
         {/* COLUMNA 1: REPORTES */}
         <div style={{ display: 'flex', flexDirection: 'column', backgroundColor: 'var(--surface-container-low)', borderRadius: '1rem', border: '1px solid var(--outline-variant)', overflow: 'hidden' }}>

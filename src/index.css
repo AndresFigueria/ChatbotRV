@@ -649,6 +649,27 @@ html.light-mode {
   .sidebar-overlay.visible {
     display: block;
   }
+
+  .chat-layout {
+    flex-direction: column !important;
+  }
+  
+  .chat-sidebar-wrapper {
+    width: 100% !important;
+    min-width: 100% !important;
+  }
+  
+  .chat-main-wrapper {
+    width: 100% !important;
+  }
+
+  .chat-sidebar-wrapper.mobile-hidden {
+    display: none !important;
+  }
+
+  .chat-main-wrapper.mobile-hidden {
+    display: none !important;
+  }
 }
 
 @media (max-width: 1024px) {

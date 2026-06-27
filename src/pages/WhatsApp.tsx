@@ -138,6 +138,9 @@ export default function WhatsApp() {
             playNotification();
          }
       })
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'conversation_logs' }, () => {
+         playNotification();
+      })
       .subscribe();
 
     return () => {
@@ -408,7 +411,7 @@ export default function WhatsApp() {
       <div className="chat-layout" style={{ display: 'flex', flex: 1, gap: '1.5rem', minHeight: 0, width: '100%' }}>
         
         {/* Columna Izquierda: Lista de Chats */}
-        <div style={{ display: 'flex', flexDirection: 'column', width: '380px', minWidth: '380px' }}>
+        <div className={`chat-sidebar-wrapper ${activeChatId ? 'mobile-hidden' : ''}`} style={{ display: 'flex', flexDirection: 'column', width: '380px', minWidth: '380px' }}>
           
           <div className="chat-sidebar" style={{ flex: 1, backgroundColor: 'var(--surface-container)', borderRadius: '12px', display: 'flex', flexDirection: 'column', border: '2px solid var(--outline-variant)', overflow: 'hidden' }}>
           <div style={{ padding: '1rem', borderBottom: '1px solid var(--surface-container-highest)', backgroundColor: '#10b981', color: '#ffffff', fontWeight: 600, display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -522,12 +525,19 @@ export default function WhatsApp() {
         </div>
 
         {/* Panel Derecho: Ventana del Chat Activo */}
-        <div style={{ flex: 1, backgroundColor: 'var(--surface-container-low)', borderRadius: '12px', display: 'flex', flexDirection: 'column', border: '1px solid var(--outline-variant)', overflow: 'hidden', boxShadow: '0 4px 20px rgba(0,0,0,0.05)' }}>
+        <div className={`chat-main-wrapper ${!activeChatId ? 'mobile-hidden' : ''}`} style={{ flex: 1, backgroundColor: 'var(--surface-container-low)', borderRadius: '12px', display: 'flex', flexDirection: 'column', border: '1px solid var(--outline-variant)', overflow: 'hidden', boxShadow: '0 4px 20px rgba(0,0,0,0.05)' }}>
           {activeChatId ? (
             <>
               {/* Header del chat */}
               <div style={{ padding: '1rem', borderBottom: '1px solid var(--border-color)', backgroundColor: 'var(--bg-card)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                   <button 
+                     className="mobile-only icon-btn"
+                     onClick={() => setActiveChatId(null)}
+                     style={{ background: 'none', border: 'none', color: 'var(--on-surface)', cursor: 'pointer', padding: '0', marginRight: '0.5rem' }}
+                   >
+                     <span className="material-symbols-outlined" style={{ fontSize: '1.5rem' }}>arrow_back</span>
+                   </button>
                    <div style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: 'rgba(16, 185, 129, 0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
                       <span className="material-symbols-outlined" style={{color: '#10b981'}}>account_circle</span>
                    </div>

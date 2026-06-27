@@ -53,7 +53,6 @@ function App() {
     document.addEventListener('click', unlockAudio);
     
     const playGlobalSound = (type: 'chat' | 'meeting') => {
-      if (localStorage.getItem('robotina_sound') === 'false') return;
       if (!globalAudioCtx) return;
       
       try {
@@ -95,6 +94,9 @@ function App() {
           playGlobalSound('chat');
         }
       })
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'conversation_logs' }, () => {
+        playGlobalSound('chat');
+      })
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'reservations' }, () => {
         playGlobalSound('meeting');
       })
@@ -123,7 +125,7 @@ function App() {
   // };
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  // const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
+  const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
   const closeSidebar = () => setIsSidebarOpen(false);
 
   // Componente interno para el layout principal
@@ -139,7 +141,7 @@ function App() {
         />
         <Sidebar isOpen={isSidebarOpen} onClose={closeSidebar} />
         <div className="main-canvas">
-          <Topbar />
+          <Topbar toggleSidebar={toggleSidebar} />
           <Routes>
             <Route path="/" element={<Dashboard />} />
             <Route path="/orders" element={<Orders />} />
