@@ -17,8 +17,8 @@ export default function Matches() {
           similarity_score,
           status,
           created_at,
-          report_a:report_a_id ( person_name, cedula, age, location, status, reporter_phone ),
-          report_b:report_b_id ( person_name, cedula, age, location, status, reporter_phone )
+          report_a:humanitarian_reports!report_a_id ( person_name, cedula, age, location, status, reporter_phone ),
+          report_b:humanitarian_reports!report_b_id ( person_name, cedula, age, location, status, reporter_phone )
         `)
         .order('similarity_score', { ascending: false });
       if (matchesError) throw matchesError;
